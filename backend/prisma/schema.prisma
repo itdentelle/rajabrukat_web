@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  name          String
+  price         Float
+  discountPrice Float?
+  category      String
+  description   String?
+  image         String
+  galleryImages String[] @default([])
+  colors        String[] @default([])
+  weight        Int      @default(500) // Default weight 500 grams
+  stock         Int      @default(100)
+  sizeGuide     String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  orderItems    OrderItem[]
+  wishlistItems WishlistItem[]
+  reviews       Review[]
+  cartItems     CartItem[]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String?
+  googleId  String?  @unique
+  name      String
+  role      String   @default("CUSTOMER") // "ADMIN" or "CUSTOMER"
+  phone         String?
+  address       String?
+  otpCode       String?
+  otpExpiresAt  DateTime?
+  isEmailVerified Boolean @default(false)
+  orders        Order[]
+  wishlistItems WishlistItem[]
+  reviews       Review[]
+  cart          Cart?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Order {
+  id           String      @id @default(uuid())
+  customerName String
+  email        String
+  phone        String
+  address      String
+  totalAmount    Float
+  status         String      @default("PENDING") // PENDING, PAID, PROCESSING, SHIPPED, COMPLETED, CANCELLED
+  paymentId      String?     // Xendit Invoice ID
+  paymentUrl     String?     // Xendit Invoice URL
+  shippingMethod String?     // e.g., "JNE REG"
+  shippingCost   Float       @default(0)
+  trackingNumber String?
+  biteshipOrderId String?    // ID pesanan Biteship untuk request pickup
+  items          OrderItem[]
+  userId         String?     // Optional link to a registered user
+  user           User?       @relation(fields: [userId], references: [id])
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Int
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model WishlistItem {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int      // 1 to 5
+  comment   String?
+  productId String
+  userId    String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([userId])
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  abandonedEmailSent Boolean @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String
+  productId String
+  quantity  Int      @default(1)
+  size      String?
+  color     String?
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId, size, color])
+  @@index([cartId])
+  @@index([productId])
+}
+
+model SiteConfig {
+  id         String   @id @default("hero-banner")
+  
+  // Hero Banner
+  title      String   @default("Define Your Street.")
+  subtitle   String   @default("New Collection 2026")
+  buttonText String   @default("Shop Now")
+  buttonLink String   @default("/shop")
+  imageUrl   String   @default("https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=2400&auto=format&fit=crop")
+  
+  // About Section
+  aboutTitle       String @default("Forged In The Underground.")
+  aboutSubtitle    String @default("Engineered For The Streets.")
+  aboutDescription String @default("We don't just print shirts. We craft armor for the modern streets.")
+  
+  // Footer Section
+  footerDesc       String @default("DragonWorm is a daily wear clothing brand established in Bandung, Indonesia. Providing high quality products for your daily outfit.")
+  instagramUrl     String @default("#")
+  facebookUrl      String @default("#")
+  twitterUrl       String @default("#")
+  
+  // Shop Page
+  shopTitle        String   @default("Shop \\n All.")
+  shopDescription  String   @default("Browse our complete collection of premium streetwear. Designed for the bold.")
+
+  // About Page Full
+  aboutPageTitle       String   @default("The \\n Underground \\n Movement.")
+  aboutPageStory1      String   @default("Born from the concrete streets, DragonWorm is more than just clothing. It's a statement of raw authenticity and unapologetic self-expression.")
+  aboutPageStory2      String   @default("Founded in 2024, our mission has been simple: to bridge the gap between high-end fashion and gritty street culture. We believe that what you wear is the ultimate form of rebellion.\\n\\nEvery piece is meticulously designed with a focus on uncompromising quality, structural integrity, and bold aesthetics. We don't follow trends; we create our own wave.")
+  aboutPageImgUrl      String   @default("https://images.unsplash.com/photo-1511556820780-d912e42b4980?auto=format&fit=crop&q=80")
+  aboutPageImgText     String   @default("No Compromise.")
+  aboutPagePhil1Title  String   @default("01. Quality")
+  aboutPagePhil1Desc   String   @default("Heavyweight fabrics and reinforced stitching. Our garments are built to withstand the test of time and the harshness of the streets.")
+  aboutPagePhil2Title  String   @default("02. Design")
+  aboutPagePhil2Desc   String   @default("Minimalist approach with maximum impact. We let the silhouette and the attitude speak louder than overly complex graphics.")
+  aboutPagePhil3Title  String   @default("03. Culture")
+  aboutPagePhil3Desc   String   @default("Deeply rooted in underground music, skate, and graffiti culture. DragonWorm is a reflection of the creative minds shaping tomorrow.")
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Collection {
+  id          String   @id @default(uuid())
+  title       String
+  subtitle    String?
+  description String?
+  imageUrl    String?
+  color       String   @default("bg-zinc-900")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
