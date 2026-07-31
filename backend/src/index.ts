@@ -1893,15 +1893,23 @@ app.delete('/api/cart', authenticateToken, async (req: Request, res: Response) =
 app.get('/api/config/hero', cacheMiddleware(86400), async (req: Request, res: Response) => {
   try {
     let config = await prisma.siteConfig.findUnique({ where: { id: "hero-banner" } });
-    if (!config) {
-      config = await prisma.siteConfig.create({
-        data: {
-          id: "hero-banner",
-          title: "Define Your Street.",
-          subtitle: "New Collection 2026",
+    if (!config || config.title === "Define Your Street.") {
+      config = await prisma.siteConfig.upsert({
+        where: { id: "hero-banner" },
+        update: {
+          title: "Keanggunan Kain Brukat & Lace Premium",
+          subtitle: "KOLEKSI RAJA BRUKAT 2026",
           buttonText: "Shop Now",
           buttonLink: "/shop",
-          imageUrl: "https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=2400&auto=format&fit=crop"
+          imageUrl: "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=2400&auto=format&fit=crop"
+        },
+        create: {
+          id: "hero-banner",
+          title: "Keanggunan Kain Brukat & Lace Premium",
+          subtitle: "KOLEKSI RAJA BRUKAT 2026",
+          buttonText: "Shop Now",
+          buttonLink: "/shop",
+          imageUrl: "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=2400&auto=format&fit=crop"
         }
       });
     }
