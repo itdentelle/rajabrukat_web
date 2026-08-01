@@ -124,7 +124,11 @@ export default function DealsAndRecommendations({ products = [] }: DealsProps) {
               {/* Product Image with Promo Sticker */}
               <div className="md:col-span-6 relative aspect-square bg-stone-100 rounded-xl overflow-hidden group">
                 <Image
-                  src={dealItem.image || "/images/brukat_tile_mutiara.png"}
+                  src={
+                    dealItem.image && !dealItem.image.includes("unsplash") && !dealItem.image.includes("photo-")
+                      ? dealItem.image
+                      : "/images/brukat_tile_mutiara.png"
+                  }
                   alt={dealItem.name}
                   fill
                   sizes="(max-width: 768px) 100vw, 300px"
@@ -133,9 +137,9 @@ export default function DealsAndRecommendations({ products = [] }: DealsProps) {
 
                 {/* Circular Promo Badge Sticker */}
                 <div className="absolute top-4 right-4 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#b77305] text-white flex flex-col items-center justify-center text-center p-1 shadow-lg transform rotate-12 group-hover:rotate-0 transition-transform">
-                  <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-tight">Kain Sutra</span>
-                  <span className="text-sm sm:text-base font-black leading-none">Super</span>
-                  <span className="text-[10px] font-mono font-bold">54</span>
+                  <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-tight">RAJA BRUKAT</span>
+                  <span className="text-sm sm:text-base font-black leading-none">GRADE A</span>
+                  <span className="text-[10px] font-bold">PROMO 30%</span>
                 </div>
               </div>
 

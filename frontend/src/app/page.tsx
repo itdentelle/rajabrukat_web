@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import HeroBanner from "@/components/home/HeroBanner";
 import FeaturedCategories from "@/components/home/FeaturedCategories";
 import AboutBrand from "@/components/home/AboutBrand";
@@ -12,7 +14,7 @@ async function getProducts() {
     const data = await res.json();
     return data.products || data;
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching products:", error);
     return [];
   }
 }
@@ -23,7 +25,7 @@ async function getHeroConfig() {
     if (!res.ok) throw new Error("Failed to fetch hero config");
     return await res.json();
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching hero config:", error);
     return null;
   }
 }

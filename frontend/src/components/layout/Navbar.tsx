@@ -49,13 +49,9 @@ function TikTokIcon({ className = "w-5 h-5" }: { className?: string }) {
 }
 
 const CATEGORIES = [
-  { name: "Grade A", href: "/shop?category=Grade A" },
-  { name: "Grade B", href: "/shop?category=Grade B" },
-  { name: "Tulle", href: "/shop?category=Tulle" },
-  { name: "Brukat Tile Mutiara", href: "/shop?category=Grade A" },
-  { name: "Renda Chantilly", href: "/shop?category=Grade B" },
-  { name: "Cornely 3D", href: "/shop?category=Tulle" },
-  { name: "Silk & Satin Furing", href: "/shop?category=Tulle" },
+  { name: "Grade A", href: "/collections/grade-a" },
+  { name: "Grade B", href: "/collections/grade-b" },
+  { name: "Tulle", href: "/collections/tulle" },
 ];
 
 export default function Navbar() {

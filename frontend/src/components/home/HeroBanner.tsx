@@ -62,11 +62,11 @@ export default function HeroBanner({ config }: HeroBannerProps) {
       category: config.subtitle || "KOLEKSI EKSKLUSIF 2026",
       title: config.title.replace(/\n/g, ", "),
       subtitle: "Koleksi Tekstil Premium Raja Brukat",
-      description: "Nikmati koleksi tekstil brukat dan renda pilihan dengan standar kualitas terbaik untuk setiap momen istimewa Anda.",
+      description: "Koleksi kain brukat dan renda pilihan dengan standar kualitas terbaik untuk gaun pesta & kebaya istimewa Anda.",
       buttonText: config.buttonText || "Shop Now",
       buttonLink: config.buttonLink || "/shop",
-      image: config.imageUrl || CATEGORY_PANELS[0].image,
-      badge: "Special Selection",
+      image: "/images/brukat_tile_mutiara.png",
+      badge: "Grade A",
     },
     ...CATEGORY_PANELS.slice(1)
   ] : CATEGORY_PANELS;
@@ -103,11 +103,10 @@ export default function HeroBanner({ config }: HeroBannerProps) {
               key={panel.id}
               onClick={() => setActiveIndex(idx)}
               onMouseEnter={() => setActiveIndex(idx)}
-              className={`relative h-full transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer overflow-hidden group border-b lg:border-b-0 lg:border-r border-stone-200/90 transform-gpu will-change-flex ${
-                isActive
+              className={`relative h-full transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer overflow-hidden group border-b lg:border-b-0 lg:border-r border-stone-200/90 transform-gpu will-change-flex ${isActive
                   ? "flex-[3.5] lg:flex-[3.5] shadow-2xl"
                   : "flex-1 lg:flex-1 opacity-80 hover:opacity-100 hover:flex-[1.3]"
-              }`}
+                }`}
             >
               {/* Background Fabric Image with Soft Zoom */}
               <div className="absolute inset-0 z-0 transform-gpu">
@@ -117,18 +116,16 @@ export default function HeroBanner({ config }: HeroBannerProps) {
                   fill
                   priority={idx === 0}
                   sizes="(max-width: 1024px) 100vw, 33vw"
-                  className={`object-cover object-center transition-transform duration-1000 transform-gpu ${
-                    isActive ? "scale-105" : "scale-100 group-hover:scale-105"
-                  }`}
+                  className={`object-cover object-center transition-transform duration-1000 transform-gpu ${isActive ? "scale-105" : "scale-100 group-hover:scale-105"
+                    }`}
                 />
 
-                {/* White Luxury Soft Gradient Overlays */}
+                {/* Tight Compact Soft Radial Glow at Bottom-Left */}
                 <div
-                  className={`absolute inset-0 transition-opacity duration-700 ${
-                    isActive
-                      ? "bg-gradient-to-t from-white/95 via-white/70 to-white/30 opacity-95"
-                      : "bg-gradient-to-t from-white/95 via-white/75 to-white/40 opacity-90 group-hover:opacity-75"
-                  }`}
+                  className={`absolute inset-0 pointer-events-none transition-opacity duration-700 ${isActive
+                      ? "bg-[radial-gradient(ellipse_at_bottom_left,_rgba(255,255,255,0.92)_0%,_rgba(255,255,255,0.3)_25%,_transparent_45%)] opacity-95"
+                      : "bg-[radial-gradient(ellipse_at_bottom_left,_rgba(255,255,255,0.85)_0%,_rgba(255,255,255,0.2)_20%,_transparent_40%)] opacity-90 group-hover:opacity-75"
+                    }`}
                 />
 
                 {/* Top Active Gold Border Ribbon */}
@@ -193,14 +190,9 @@ export default function HeroBanner({ config }: HeroBannerProps) {
                   </p>
 
                   {/* Main Title */}
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-stone-950 leading-tight mb-3 drop-shadow-sm">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-stone-950 leading-tight mb-6 drop-shadow-sm">
                     {panel.title}
                   </h2>
-
-                  {/* Description */}
-                  <p className="text-stone-700 text-sm md:text-base leading-relaxed mb-6 max-w-lg font-medium">
-                    {panel.description}
-                  </p>
 
                   {/* Action Button */}
                   <div>
@@ -229,11 +221,10 @@ export default function HeroBanner({ config }: HeroBannerProps) {
             className="p-1 focus:outline-none"
           >
             <div
-              className={`h-1.5 rounded-full transition-all duration-500 ${
-                idx === activeIndex
+              className={`h-1.5 rounded-full transition-all duration-500 ${idx === activeIndex
                   ? "w-8 bg-[#b77305]"
                   : "w-3 bg-stone-300 hover:bg-stone-400"
-              }`}
+                }`}
             />
           </button>
         ))}

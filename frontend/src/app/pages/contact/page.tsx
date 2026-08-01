@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Phone, Mail, MapPin, Clock, Send, MessageSquare, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
+import FullWidthHeroSlider from "@/components/home/FullWidthHeroSlider";
 
 function TikTokIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
@@ -50,22 +51,20 @@ export default function ContactPage() {
     setFormData({ name: "", phone: "", email: "", needType: "Eceran Meteran", message: "" });
   };
 
-  return (
-    <div className="min-h-screen bg-stone-50 text-stone-900 pt-28 pb-24">
-      {/* Top Header Banner */}
-      <div className="bg-white border-b border-stone-200 py-12 mb-12 shadow-sm">
-        <div className="container mx-auto px-6 max-w-4xl text-center">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-stone-900 mb-4">
-            Hubungi Raja Brukat
-          </h1>
-          
-          <p className="text-stone-600 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-            Konsultasikan kebutuhan kain brukat tile mutiara, Chantilly, Cornely 3D, meteran, grosir per roll, hingga seragam kebaya keluarga dengan tim layanan kami.
-          </p>
-        </div>
-      </div>
+  const contactHeroConfig = {
+    title: "Layanan & Konsultasi Kain Raja Brukat",
+    subtitle: "HUBUNGI TIM CS KAMI",
+    buttonText: "Konsultasi Sekarang",
+    buttonLink: "#form-section",
+  };
 
-      <div className="container mx-auto px-6 max-w-6xl">
+  return (
+    <div className="min-h-screen bg-stone-50 text-stone-900 pb-24 pt-16">
+      {/* Full-width Horizontal Sliding Hero Banner */}
+      <FullWidthHeroSlider config={contactHeroConfig} />
+
+      {/* Main Content Section */}
+      <div id="form-section" className="container mx-auto px-6 max-w-6xl pt-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           
           {/* Left Column: Form Section */}
