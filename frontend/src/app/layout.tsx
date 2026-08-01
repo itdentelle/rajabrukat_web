@@ -16,6 +16,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Raja Brukat - Kain Brukat & Lace Premium",
   description: "Pusat Grosir & Eceran Kain Brukat, Tile Mutiara, Renda Chantilly, dan Silk Mewah untuk Kebaya & Gaun Pesta.",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 import { Toaster } from "react-hot-toast";
@@ -27,6 +32,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
+      <head>
+        <link rel="icon" href="/icon.png" type="image/png" sizes="any" />
+        <link rel="apple-touch-icon" href="/icon.png" />
+      </head>
       <body className="min-h-full flex flex-col font-sans bg-[var(--background)] text-[var(--foreground)]">
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
           <Toaster position="top-center" />

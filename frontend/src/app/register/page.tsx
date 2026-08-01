@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, ArrowRight, UserPlus, User } from "lucide-react";
+import Image from "next/image";
+import { Mail, Lock, ArrowRight, UserPlus, User, ShieldCheck } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
-import { GoogleLogin } from '@react-oauth/google';
+import { GoogleLogin } from "@react-oauth/google";
 import { useCartStore } from "@/store/cartStore";
 
 export default function RegisterPage() {
@@ -18,7 +19,7 @@ export default function RegisterPage() {
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const mergeCart = useCartStore(state => state.mergeCart);
+  const mergeCart = useCartStore((state) => state.mergeCart);
 
   const handleGoogleSuccess = async (tokenResponse: any) => {
     try {
@@ -34,16 +35,16 @@ export default function RegisterPage() {
         localStorage.setItem("token", "cookie_managed_token");
         localStorage.setItem("user", JSON.stringify(data.user));
         await mergeCart();
-        toast.success("Google Registration successful! Welcome to Raja Brukat.");
+        toast.success("Pendaftaran Google berhasil! Selamat datang di Raja Brukat.");
         router.push("/profile");
       } else {
         const err = await res.json();
-        setError(err.error || "Google registration failed");
-        toast.error(err.error || "Google registration failed");
+        setError(err.error || "Pendaftaran Google gagal");
+        toast.error(err.error || "Pendaftaran Google gagal");
       }
     } catch (err) {
-      setError("Failed to connect to the server.");
-      toast.error("Failed to connect to the server.");
+      setError("Gagal terhubung ke server.");
+      toast.error("Gagal terhubung ke server.");
     } finally {
       setLoading(false);
     }
@@ -65,17 +66,17 @@ export default function RegisterPage() {
         const data = await res.json();
         if (data.message === "OTP_REQUIRED") {
           setStep(2);
-          toast.success("OTP sent to your email!");
+          toast.success("Kode OTP telah dikirim ke email Anda!");
         }
       } else {
         const err = await res.json();
-        const errorMsg = err.error || "Registration failed";
+        const errorMsg = err.error || "Pendaftaran gagal";
         setError(errorMsg);
         toast.error(errorMsg);
       }
     } catch (err) {
-      setError("Failed to connect to the server.");
-      toast.error("Failed to connect to the server.");
+      setError("Gagal terhubung ke server.");
+      toast.error("Gagal terhubung ke server.");
     } finally {
       setLoading(false);
     }
@@ -97,78 +98,96 @@ export default function RegisterPage() {
         const data = await res.json();
         localStorage.setItem("token", "cookie_managed_token");
         localStorage.setItem("user", JSON.stringify(data.user));
-        
+
         await mergeCart();
 
-        toast.success("Registration successful! Welcome to DragonWorm.");
+        toast.success("Pendaftaran berhasil! Selamat datang di Raja Brukat.");
         router.push("/profile");
       } else {
         const err = await res.json();
-        const errorMsg = err.error || "Invalid OTP";
+        const errorMsg = err.error || "Kode OTP tidak valid";
         setError(errorMsg);
         toast.error(errorMsg);
       }
     } catch (err) {
-      setError("Failed to connect to the server.");
-      toast.error("Failed to connect to the server.");
+      setError("Gagal terhubung ke server.");
+      toast.error("Gagal terhubung ke server.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-stone-50">
       {/* Left Panel - Image/Branding (Hidden on Mobile) */}
-      <div className="hidden lg:flex lg:w-[70%] relative bg-black items-center justify-center overflow-hidden">
-        <motion.div 
-          initial={{ scale: 1.1, opacity: 0 }}
-          animate={{ scale: 1, opacity: 0.5 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
+      <div className="hidden lg:flex lg:w-[65%] relative bg-stone-900 items-center justify-center overflow-hidden">
+        <motion.div
+          initial={{ scale: 1.05, opacity: 0 }}
+          animate={{ scale: 1, opacity: 0.65 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
           className="absolute inset-0 z-0"
         >
-          <img 
-            src="https://images.unsplash.com/photo-1550614000-4b95d4662134?q=80&w=2000" 
-            alt="Urban Streetwear" 
-            className="w-full h-full object-cover"
+          <Image
+            src="/images/renda_chantilly_french.png"
+            alt="Renda Chantilly Raja Brukat"
+            fill
+            priority
+            className="object-cover object-center"
           />
         </motion.div>
-        
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-10" />
-        
-        <motion.div 
+
+        {/* White Luxury Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-900/60 to-stone-950/40 z-10" />
+
+        <motion.div
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="relative z-20 text-white text-center p-12"
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="relative z-20 text-white text-center p-12 max-w-xl"
         >
-          <h1 className="text-5xl font-black uppercase tracking-tighter mb-4">Join The Movement</h1>
-          <p className="text-gray-300 font-medium tracking-wide max-w-md mx-auto">
-            Become a part of DragonWorm. Unlock exclusive drops, member-only perks, and unparalleled style.
+          <div className="w-20 h-20 mx-auto mb-6 relative">
+            <Image
+              src="/images/logo_rajabrukat-removebg-preview.png"
+              alt="Logo Raja Brukat"
+              fill
+              className="object-contain"
+            />
+          </div>
+
+          <h1 className="text-4xl font-black uppercase tracking-tight mb-4 text-[#b77305]">
+            BERGABUNG BERSAMA KAMI
+          </h1>
+          <p className="text-stone-300 font-medium tracking-wide leading-relaxed text-base">
+            Daftar akun Raja Brukat untuk kemudahan transaksi meteran & grosir roll, pelacakan pesanan, serta penawaran eksklusif kain brukat pilihan.
           </p>
         </motion.div>
       </div>
 
       {/* Right Panel - Register Form */}
-      <div className="w-full lg:w-[30%] flex items-center justify-center p-8 sm:p-12 lg:p-16 bg-white relative">
-        <motion.div 
+      <div className="w-full lg:w-[35%] flex items-center justify-center p-8 sm:p-12 lg:p-14 bg-white relative shadow-2xl">
+        <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
           className="max-w-md w-full"
         >
-          <div className="mb-10 text-center lg:text-left">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-black text-white rounded-xl mb-6 shadow-lg shadow-black/20">
-              <UserPlus className="w-6 h-6" />
+          <div className="mb-8 text-center lg:text-left">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-[#b77305]/10 text-[#b77305] rounded-2xl mb-4 border border-[#b77305]/20 shadow-sm">
+              <UserPlus className="w-6 h-6 stroke-[2]" />
             </div>
-            <h2 className="text-3xl font-black uppercase tracking-tighter mb-2">Create Account</h2>
-            <p className="text-gray-500 font-medium">Join us and start your journey today.</p>
+            <h2 className="text-2xl sm:text-3xl font-bold uppercase tracking-tight text-stone-900 mb-2">
+              Daftar Akun Baru
+            </h2>
+            <p className="text-stone-500 text-sm font-normal">
+              Isi data diri Anda untuk membuat akun di Raja Brukat.
+            </p>
           </div>
 
           {error && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-red-50 border border-red-100 text-red-600 text-sm p-4 rounded-xl mb-6 text-center font-bold"
+              className="bg-rose-50 border border-rose-200 text-rose-600 text-xs p-4 rounded-xl mb-6 text-center font-semibold"
             >
               {error}
             </motion.div>
@@ -176,53 +195,59 @@ export default function RegisterPage() {
 
           {step === 1 ? (
             <>
-              <form onSubmit={handleRegister} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">Full Name</label>
+              <form onSubmit={handleRegister} className="space-y-5">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-stone-700 ml-1">
+                    Nama Lengkap
+                  </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <User className="w-5 h-5 text-gray-400" />
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-stone-400">
+                      <User className="w-5 h-5" />
                     </div>
                     <input
                       type="text"
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 text-black p-4 pl-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all font-medium"
-                      placeholder="John Doe"
+                      className="w-full bg-stone-50 border border-stone-300 text-stone-900 p-3.5 pl-12 rounded-xl focus:outline-none focus:border-[#b77305] focus:ring-2 focus:ring-[#b77305]/20 transition-all text-sm font-medium"
+                      placeholder="Siska Wijaya"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">Email Address</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-stone-700 ml-1">
+                    Alamat Email
+                  </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Mail className="w-5 h-5 text-gray-400" />
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-stone-400">
+                      <Mail className="w-5 h-5" />
                     </div>
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 text-black p-4 pl-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all font-medium"
-                      placeholder="you@example.com"
+                      className="w-full bg-stone-50 border border-stone-300 text-stone-900 p-3.5 pl-12 rounded-xl focus:outline-none focus:border-[#b77305] focus:ring-2 focus:ring-[#b77305]/20 transition-all text-sm font-medium"
+                      placeholder="nama@email.com"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">Password</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-stone-700 ml-1">
+                    Kata Sandi
+                  </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Lock className="w-5 h-5 text-gray-400" />
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-stone-400">
+                      <Lock className="w-5 h-5" />
                     </div>
                     <input
                       type="password"
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 text-black p-4 pl-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all font-medium"
+                      className="w-full bg-stone-50 border border-stone-300 text-stone-900 p-3.5 pl-12 rounded-xl focus:outline-none focus:border-[#b77305] focus:ring-2 focus:ring-[#b77305]/20 transition-all text-sm font-medium"
                       placeholder="••••••••"
                     />
                   </div>
@@ -231,13 +256,13 @@ export default function RegisterPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="group w-full flex items-center justify-center gap-2 py-4 bg-black text-white font-bold uppercase tracking-widest text-sm hover:bg-gray-800 transition-all rounded-xl disabled:opacity-70 shadow-lg shadow-black/20"
+                  className="group w-full flex items-center justify-center gap-2 py-3.5 bg-[#b77305] hover:bg-[#965e04] text-white font-bold uppercase tracking-wider text-xs rounded-xl transition-all duration-300 disabled:opacity-70 shadow-lg shadow-[#b77305]/20"
                 >
                   {loading ? (
-                    "Creating Account..."
+                    "Mendaftarkan..."
                   ) : (
                     <>
-                      Register Now
+                      <span>Daftar Akun Sekarang</span>
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}
@@ -245,15 +270,17 @@ export default function RegisterPage() {
               </form>
 
               <div className="mt-6 flex items-center justify-center">
-                <div className="border-t border-gray-200 w-full"></div>
-                <span className="bg-white px-4 text-xs text-gray-400 font-bold uppercase tracking-widest">Or</span>
-                <div className="border-t border-gray-200 w-full"></div>
+                <div className="border-t border-stone-200 w-full"></div>
+                <span className="bg-white px-3 text-[10px] text-stone-400 font-bold uppercase tracking-widest whitespace-nowrap">
+                  Atau
+                </span>
+                <div className="border-t border-stone-200 w-full"></div>
               </div>
 
               <div className="mt-6 flex justify-center">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
-                  onError={() => toast.error("Google Login failed")}
+                  onError={() => toast.error("Google Login gagal")}
                   theme="outline"
                   size="large"
                   width="100%"
@@ -264,10 +291,12 @@ export default function RegisterPage() {
           ) : (
             <form onSubmit={handleVerifyOTP} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">6-Digit OTP Code</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-stone-700 ml-1">
+                  Kode OTP 6 Digit
+                </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Mail className="w-5 h-5 text-gray-400" />
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-stone-400">
+                    <ShieldCheck className="w-5 h-5" />
                   </div>
                   <input
                     type="text"
@@ -275,28 +304,33 @@ export default function RegisterPage() {
                     maxLength={6}
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 text-black p-4 pl-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all font-medium tracking-[0.5em] text-center"
+                    className="w-full bg-stone-50 border border-stone-300 text-stone-900 p-4 pl-12 rounded-xl focus:outline-none focus:border-[#b77305] focus:ring-2 focus:ring-[#b77305]/20 transition-all font-bold tracking-[0.5em] text-center"
                     placeholder="------"
                   />
                 </div>
-                <p className="text-xs text-gray-500">We've sent a 6-digit code to {email}</p>
+                <p className="text-xs text-stone-500">
+                  Kode OTP telah dikirimkan ke email: <span className="font-semibold">{email}</span>
+                </p>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="group w-full flex items-center justify-center gap-2 py-4 bg-black text-white font-bold uppercase tracking-widest text-sm hover:bg-gray-800 transition-all rounded-xl disabled:opacity-70 shadow-lg shadow-black/20"
+                className="group w-full flex items-center justify-center gap-2 py-3.5 bg-[#b77305] hover:bg-[#965e04] text-white font-bold uppercase tracking-wider text-xs rounded-xl transition-all disabled:opacity-70 shadow-lg"
               >
-                {loading ? "Verifying..." : "Verify OTP"}
+                {loading ? "Memverifikasi..." : "Verifikasi OTP"}
               </button>
             </form>
           )}
 
-          <div className="mt-10 text-center">
-            <p className="text-sm font-medium text-gray-500">
-              Already have an account?{" "}
-              <Link href="/login" className="font-black text-black hover:underline underline-offset-4">
-                Login here
+          <div className="mt-8 text-center">
+            <p className="text-xs font-medium text-stone-500">
+              Sudah memiliki akun Raja Brukat?{" "}
+              <Link
+                href="/login"
+                className="font-bold text-[#b77305] hover:underline"
+              >
+                Masuk di sini
               </Link>
             </p>
           </div>

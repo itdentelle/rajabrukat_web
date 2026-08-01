@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Award, Truck, ChevronUp, ChevronDown, Sparkles, ArrowRight, Eye } from "lucide-react";
+import { RotateCcw, Award, Truck, ChevronUp, ChevronDown, ArrowRight, Eye } from "lucide-react";
 
 interface FabricCardItem {
   id: string;
@@ -27,7 +27,7 @@ const FABRIC_CARDS: FabricCardItem[] = [
     badgeTop: "✨ Renda Chantilly Impor Halus",
     badgeBottom: "“ Lembut & Tidak Gatal di Kulit ”",
     description: "Serat renda Chantilly kualitas ekspor yang sangat halus, ringan, dan tidak gatal. Pilihan utama para desainer untuk gaun pesta & kebaya pengantin.",
-    image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=1200&auto=format&fit=crop",
+    image: "/images/renda_chantilly_french.png",
     link: "/shop?category=Renda Chantilly",
   },
   {
@@ -38,7 +38,7 @@ const FABRIC_CARDS: FabricCardItem[] = [
     badgeTop: "🌟 100% Premium Quality Guaranteed",
     badgeBottom: "“ Motif Brukat Mutiara 2026 ”",
     description: "Kerapatan bordir presisi diperkaya dengan taburan mutiara timbul dan payet kilau eksklusif. Sempurna untuk busana pesta, wisuda, dan seragam keluarga.",
-    image: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop",
+    image: "/images/brukat_tile_mutiara.png",
     link: "/shop?category=Brukat Tile Mutiara",
   },
   {
@@ -49,7 +49,7 @@ const FABRIC_CARDS: FabricCardItem[] = [
     badgeTop: "💎 Silk Satin Polos Premium",
     badgeBottom: "“ Jatuh Sempurna & Adem ”",
     description: "Bahan furing satin silk impor dengan Kilau lembut mewah, tekstur dingin di kulit, serta jatuh secara sempurna untuk dalaman kebaya dan gaun.",
-    image: "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=1200&auto=format&fit=crop",
+    image: "/images/cornely_silk_satin.png",
     link: "/shop?category=Furing %26 Silk",
   },
 ];
@@ -77,8 +77,21 @@ export default function FeaturedCategories() {
     setActiveCardId(FABRIC_CARDS[prevIndex].id);
   };
 
+  // Auto-rotate every 5 seconds, pauses on mouse hover
+  useEffect(() => {
+    if (isHovered) return;
+    const timer = setInterval(() => {
+      handleNext();
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [activeCardId, isHovered]);
+
   return (
-    <section className="py-20 px-6 bg-white overflow-hidden relative">
+    <section
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="py-20 px-6 bg-white overflow-hidden relative"
+    >
       <div className="container mx-auto max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           

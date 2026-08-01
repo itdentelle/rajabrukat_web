@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, Sparkles, ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface HeroConfig {
   title?: string;
@@ -18,192 +18,226 @@ interface HeroBannerProps {
   config?: HeroConfig;
 }
 
-const DEFAULT_SLIDES = [
+const CATEGORY_PANELS = [
   {
     id: 1,
-    title: "Keanggunan Kain Brukat & Lace Premium Raja Brukat",
-    category: "KOLEKSI TERBARU 2026",
-    buttonText: "Shop Now",
+    num: "01",
+    category: "BRUKAT TILE MUTIARA 3D",
+    title: "Brukat Tile Mutiara",
+    description: "Seni bordir tile bertabur payet mutiara kristal mewah untuk kebaya & gaun pesta.",
+    buttonText: "Lihat Koleksi",
     buttonLink: "/shop?category=Brukat Tile Mutiara",
-    image: "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=2400&auto=format&fit=crop",
+    image: "/images/brukat_tile_mutiara.png",
+    badge: "Grade A",
   },
   {
     id: 2,
-    title: "Renda Chantilly Halus & Lembut Untuk Kebaya Pesta Impian",
-    category: "KUALITAS IMPOR EKSKLUSIF",
-    buttonText: "Shop Now",
+    num: "02",
+    category: "RENDA CHANTILLY FRENCH",
+    title: "Renda Chantilly Impor",
+    description: "Kehalusan renda Prancis bertkstur ultra-soft yang jatuh lembut di kulit.",
+    buttonText: "Lihat Koleksi",
     buttonLink: "/shop?category=Renda Chantilly",
-    image: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=2400&auto=format&fit=crop",
+    image: "/images/renda_chantilly_french.png",
+    badge: "Grade B",
   },
   {
     id: 3,
-    title: "Brukat Cornely 3D Mutiara, Detail Timbul & Anggun Berkelas",
-    category: "BORDIR 3D PREMIUM",
-    buttonText: "Shop Now",
+    num: "03",
+    category: "CORNELY 3D & SILK SATIN",
+    title: "Cornely 3D & Silk Satin",
+    description: "Dimensi bordir 3D timbul dipadu furing silk satin bernapas untuk kenyamanan maksimal.",
+    buttonText: "Lihat Koleksi",
     buttonLink: "/shop?category=Cornely 3D",
-    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2400&auto=format&fit=crop",
-  },
-  {
-    id: 4,
-    title: "Silk & Satin Furing Premium, Tekstur Halus & Jatuh Sempurna",
-    category: "FURING & SILK SATIN",
-    buttonText: "Shop Now",
-    buttonLink: "/shop?category=Furing & Silk",
-    image: "https://images.unsplash.com/photo-1528459801416-a9e53bbf4e17?q=80&w=2400&auto=format&fit=crop",
+    image: "/images/cornely_silk_satin.png",
+    badge: "Tulle",
   },
 ];
 
 export default function HeroBanner({ config }: HeroBannerProps) {
-  const slides = config?.title && config.title !== "Define Your Street." ? [
+  const panels = config?.title && config.title !== "Define Your Street." ? [
     {
       id: 1,
+      num: "01",
+      category: config.subtitle || "KOLEKSI EKSKLUSIF 2026",
       title: config.title.replace(/\n/g, ", "),
-      category: config.subtitle || "KOLEKSI TERBARU 2026",
+      subtitle: "Koleksi Tekstil Premium Raja Brukat",
+      description: "Nikmati koleksi tekstil brukat dan renda pilihan dengan standar kualitas terbaik untuk setiap momen istimewa Anda.",
       buttonText: config.buttonText || "Shop Now",
       buttonLink: config.buttonLink || "/shop",
-      image: config.imageUrl || DEFAULT_SLIDES[0].image,
+      image: config.imageUrl || CATEGORY_PANELS[0].image,
+      badge: "Special Selection",
     },
-    ...DEFAULT_SLIDES.slice(1)
-  ] : DEFAULT_SLIDES;
+    ...CATEGORY_PANELS.slice(1)
+  ] : CATEGORY_PANELS;
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
-  const nextSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % slides.length);
-  }, [slides.length]);
+  const nextPanel = useCallback(() => {
+    setActiveIndex((prev) => (prev + 1) % panels.length);
+  }, [panels.length]);
 
-  const prevSlide = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
-  }, [slides.length]);
-
-  // Auto-play timer (5 seconds)
+  // Auto-play timer (5.5 seconds), pauses on user interaction
   useEffect(() => {
+    if (isPaused) return;
     const timer = setInterval(() => {
-      nextSlide();
+      nextPanel();
     }, 5500);
     return () => clearInterval(timer);
-  }, [nextSlide]);
-
-  const currentSlide = slides[currentIndex];
+  }, [nextPanel, isPaused]);
 
   return (
-    <div className="relative w-full h-screen min-h-[600px] bg-white overflow-hidden flex items-center">
-      {/* Background Image Carousel with Ken Burns Soft Zoom Animation */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentSlide.id}
-          initial={{ opacity: 0, scale: 1.0 }}
-          animate={{ opacity: 1, scale: 1.12 }}
-          exit={{ opacity: 0, transition: { duration: 0.8, ease: "easeInOut" } }}
-          transition={{
-            opacity: { duration: 1.2, ease: "easeInOut" },
-            scale: { duration: 6.5, ease: "linear" }
-          }}
-          className="absolute inset-0 z-0 transform-gpu"
-        >
-          <Image
-            src={currentSlide.image}
-            alt={currentSlide.title}
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-center"
-          />
-          {/* White Overlay Gradient from Left */}
-          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/85 md:via-white/60 to-transparent z-10" />
-          <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-white/30 z-10" />
-        </motion.div>
-      </AnimatePresence>
+    <div
+      className="relative w-full h-screen min-h-[650px] bg-stone-100 overflow-hidden flex flex-col pt-20"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      {/* Main 3-Column Interactive Accordion Container */}
+      <div className="relative w-full h-full flex flex-col lg:flex-row items-stretch overflow-hidden">
+        {panels.map((panel, idx) => {
+          const isActive = idx === activeIndex;
 
-      {/* Main Content Container (Left Aligned) */}
-      <div className="container mx-auto px-6 md:px-12 relative z-20 pt-12 md:pt-0">
-        <div className="max-w-2xl text-left">
-          
-          {/* Dash Pagination Indicators (Top of Text) */}
-          <div className="flex items-center gap-2 mb-6">
-            {slides.map((slide, idx) => (
-              <button
-                key={slide.id}
-                onClick={() => setCurrentIndex(idx)}
-                aria-label={`Go to slide ${idx + 1}`}
-                className="group p-1 focus:outline-none"
-              >
-                <div
-                  className={`h-[3px] rounded-full transition-all duration-500 ${
-                    idx === currentIndex
-                      ? "w-10 bg-[#b77305]"
-                      : "w-5 bg-stone-300 group-hover:bg-stone-500"
+          return (
+            <div
+              key={panel.id}
+              onClick={() => setActiveIndex(idx)}
+              onMouseEnter={() => setActiveIndex(idx)}
+              className={`relative h-full transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer overflow-hidden group border-b lg:border-b-0 lg:border-r border-stone-200/90 transform-gpu will-change-flex ${
+                isActive
+                  ? "flex-[3.5] lg:flex-[3.5] shadow-2xl"
+                  : "flex-1 lg:flex-1 opacity-80 hover:opacity-100 hover:flex-[1.3]"
+              }`}
+            >
+              {/* Background Fabric Image with Soft Zoom */}
+              <div className="absolute inset-0 z-0 transform-gpu">
+                <Image
+                  src={panel.image}
+                  alt={panel.title}
+                  fill
+                  priority={idx === 0}
+                  sizes="(max-width: 1024px) 100vw, 33vw"
+                  className={`object-cover object-center transition-transform duration-1000 transform-gpu ${
+                    isActive ? "scale-105" : "scale-100 group-hover:scale-105"
                   }`}
                 />
-              </button>
-            ))}
-          </div>
 
-          {/* Category Tag */}
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={`cat-${currentSlide.id}`}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.6, ease: [0.25, 1, 0.5, 1] }}
-              className="inline-block text-[#b77305] text-xs md:text-sm font-semibold uppercase tracking-widest mb-3"
-            >
-              {currentSlide.category}
-            </motion.span>
-          </AnimatePresence>
+                {/* White Luxury Soft Gradient Overlays */}
+                <div
+                  className={`absolute inset-0 transition-opacity duration-700 ${
+                    isActive
+                      ? "bg-gradient-to-t from-white/95 via-white/70 to-white/30 opacity-95"
+                      : "bg-gradient-to-t from-white/95 via-white/75 to-white/40 opacity-90 group-hover:opacity-75"
+                  }`}
+                />
 
-          {/* Headline Title */}
-          <AnimatePresence mode="wait">
-            <motion.h1
-              key={`title-${currentSlide.id}`}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.7, delay: 0.15, ease: [0.25, 1, 0.5, 1] }}
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-stone-900 leading-tight md:leading-[1.15] mb-8 tracking-tight drop-shadow-sm"
-            >
-              {currentSlide.title}
-            </motion.h1>
-          </AnimatePresence>
+                {/* Top Active Gold Border Ribbon */}
+                {isActive && (
+                  <div
+                    className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#b77305] via-[#d4af37] to-[#b77305] z-10 transition-opacity duration-500"
+                  />
+                )}
+              </div>
 
-          {/* Action Button */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`btn-${currentSlide.id}`}
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.6, delay: 0.3, ease: [0.25, 1, 0.5, 1] }}
-            >
-              <Link
-                href={currentSlide.buttonLink}
-                className="inline-flex items-center gap-2 px-7 py-3.5 bg-[#b77305] hover:bg-[#965e04] text-white font-medium text-sm md:text-base rounded transition-all duration-300 shadow-md hover:scale-[1.03] active:scale-95"
-              >
-                {currentSlide.buttonText}
-              </Link>
-            </motion.div>
-          </AnimatePresence>
+              {/* COLLAPSED STATE VIEW (When panel is inactive) */}
+              {!isActive && (
+                <div className="relative z-10 w-full h-full flex flex-col justify-between p-6 md:p-8">
+                  {/* Category Number Badge */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-[#b77305] font-mono">
+                      {panel.num}
+                    </span>
+                    <span className="text-[10px] font-semibold tracking-wider text-stone-800 uppercase px-2.5 py-1 rounded bg-white/90 border border-stone-300 shadow-sm">
+                      {panel.badge}
+                    </span>
+                  </div>
 
-        </div>
+                  {/* Vertical / Horizontal Collapsed Category Name */}
+                  <div className="lg:my-auto lg:transform lg:-rotate-90 lg:origin-bottom-left lg:translate-x-12">
+                    <p className="text-[#b77305] text-xs font-semibold uppercase tracking-widest mb-1">
+                      {panel.category}
+                    </p>
+                    <h3 className="text-xl font-bold text-stone-900 whitespace-nowrap drop-shadow-sm">
+                      {panel.title}
+                    </h3>
+                  </div>
+
+                  {/* Bottom Arrow Indicator */}
+                  <div className="flex items-center justify-end text-[#b77305] group-hover:translate-x-1 transition-transform">
+                    <ChevronRight className="w-6 h-6 stroke-[2]" />
+                  </div>
+                </div>
+              )}
+
+              {/* EXPANDED STATE VIEW (When panel is active) */}
+              {isActive && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  className="relative z-10 w-full h-full flex flex-col justify-end p-6 sm:p-10 md:p-12 text-left max-w-xl"
+                >
+                  {/* Category Badge & Index */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-3xl font-bold text-[#b77305] font-mono">
+                      {panel.num}
+                    </span>
+                    <span className="px-3 py-1 rounded-full bg-white/90 border border-[#b77305]/40 text-[#b77305] text-xs font-semibold uppercase tracking-wider shadow-md">
+                      {panel.badge}
+                    </span>
+                  </div>
+
+                  {/* Category Tag */}
+                  <p className="text-[#b77305] text-xs md:text-sm font-bold uppercase tracking-widest mb-1.5">
+                    {panel.category}
+                  </p>
+
+                  {/* Main Title */}
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-stone-950 leading-tight mb-3 drop-shadow-sm">
+                    {panel.title}
+                  </h2>
+
+                  {/* Description */}
+                  <p className="text-stone-700 text-sm md:text-base leading-relaxed mb-6 max-w-lg font-medium">
+                    {panel.description}
+                  </p>
+
+                  {/* Action Button */}
+                  <div>
+                    <Link
+                      href={panel.buttonLink}
+                      className="inline-flex items-center gap-2.5 px-6 py-3 bg-[#b77305] hover:bg-[#965e04] text-white font-medium text-sm md:text-base rounded-lg transition-all duration-300 shadow-xl shadow-[#b77305]/20 hover:scale-[1.03] active:scale-95 group"
+                    >
+                      <span>{panel.buttonText}</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      {/* Navigation Arrows (Clean Icon Only - No Circle) */}
-      <button
-        onClick={prevSlide}
-        aria-label="Previous Slide"
-        className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-30 p-2 text-stone-800 hover:text-[#b77305] transition-all duration-300 group"
-      >
-        <ChevronLeft className="w-8 h-8 md:w-10 md:h-10 stroke-[1.75] group-hover:-translate-x-1 transition-transform" />
-      </button>
-
-      <button
-        onClick={nextSlide}
-        aria-label="Next Slide"
-        className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-30 p-2 text-stone-800 hover:text-[#b77305] transition-all duration-300 group"
-      >
-        <ChevronRight className="w-8 h-8 md:w-10 md:h-10 stroke-[1.75] group-hover:translate-x-1 transition-transform" />
-      </button>
+      {/* Bottom Panel Indicators Dots */}
+      <div className="absolute bottom-4 right-6 md:right-12 z-20 flex items-center gap-2">
+        {panels.map((panel, idx) => (
+          <button
+            key={panel.id}
+            onClick={() => setActiveIndex(idx)}
+            aria-label={`Go to panel ${idx + 1}`}
+            className="p-1 focus:outline-none"
+          >
+            <div
+              className={`h-1.5 rounded-full transition-all duration-500 ${
+                idx === activeIndex
+                  ? "w-8 bg-[#b77305]"
+                  : "w-3 bg-stone-300 hover:bg-stone-400"
+              }`}
+            />
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

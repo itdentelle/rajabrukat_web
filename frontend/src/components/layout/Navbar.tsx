@@ -2,21 +2,60 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingBag, Search, Menu, User, Heart, Package, ChevronDown, X } from "lucide-react";
+import { ShoppingBag, Search, Menu, User, Heart, Package, ChevronDown, X, ExternalLink, ArrowUpRight } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useSearchStore } from "@/store/searchStore";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+
+function ShopeeIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 32 32" fill="none">
+      <path
+        fill="#EE4D2D"
+        d="M26.4 9.6h-5.2V7.7C21.2 4.4 18.8 2 16 2S10.8 4.4 10.8 7.7v1.9H5.6C4.7 9.6 4 10.3 4 11.2l1.6 17.1c.1.9.8 1.7 1.7 1.7h17.4c.9 0 1.6-.7 1.7-1.7l1.6-17.1c0-.9-.7-1.6-1.6-1.6zM12.8 7.7c0-1.8 1.4-3.2 3.2-3.2s3.2 1.4 3.2 3.2v1.9h-6.4V7.7zm3.2 17.5c-2.4 0-4.3-.9-5.4-1.7l1.2-2.1c.9.7 2.4 1.4 4.1 1.4 1.7 0 2.5-.7 2.5-1.5 0-2.4-7.4-1.3-7.4-6.1 0-2.6 2.1-4.3 5-4.3 2.1 0 3.8.7 4.7 1.4l-1.1 2c-.8-.6-2.1-1.1-3.6-1.1-1.5 0-2.4.7-2.4 1.5 0 2.2 7.4 1.3 7.4 6 0 2.7-2.2 4.5-5 4.5z"
+      />
+    </svg>
+  );
+}
+
+function TokopediaIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 32 32" fill="none">
+      <path
+        fill="#03AC0E"
+        d="M27.2 8.4h-3.9L20.8 3.5c-.3-.4-.8-.6-1.3-.6H12.5c-.5 0-1 .2-1.3.6L8.7 8.4H4.8C3.8 8.4 3 9.2 3 10.2v16c0 1 .8 1.8 1.8 1.8h22.4c1 0 1.8-.8 1.8-1.8v-16c0-1-.8-1.8-1.8-1.8zM13.2 5.5h5.6l1.8 2.9h-9.2l1.8-2.9zm13.9 20.7H4.9V10.3h22.2v15.9z"
+      />
+      <circle cx="11.5" cy="15.5" r="2" fill="#03AC0E" />
+      <circle cx="20.5" cy="15.5" r="2" fill="#03AC0E" />
+      <path
+        stroke="#03AC0E"
+        strokeWidth="2"
+        strokeLinecap="round"
+        d="M12.5 20c1.2 1.2 3.8 1.8 6 0"
+      />
+    </svg>
+  );
+}
+
+function TikTokIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19.589 6.686a4.793 4.793 0 0 1-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 0 1-2.901 2.89 2.893 2.893 0 0 1-2.89-2.89 2.893 2.893 0 0 1 2.89-2.89c.376 0 .736.07 1.066.2v-3.52a6.38 6.38 0 0 0-1.066-.092 6.338 6.338 0 0 0-6.333 6.333A6.338 6.338 0 0 0 9.477 22a6.338 6.338 0 0 0 6.333-6.333V9.012a8.216 8.216 0 0 0 4.779 1.516v-3.48a4.819 4.819 0 0 1-1.000-.362z" />
+    </svg>
+  );
+}
 
 const CATEGORIES = [
-  { name: "Panel A Grade", href: "/shop?category=Panel A Grade" },
-  { name: "Panel B Grade", href: "/shop?category=Panel B Grade" },
+  { name: "Grade A", href: "/shop?category=Grade A" },
+  { name: "Grade B", href: "/shop?category=Grade B" },
   { name: "Tulle", href: "/shop?category=Tulle" },
-  { name: "Brukat Tile Mutiara", href: "/shop?category=Brukat Tile Mutiara" },
-  { name: "Renda Chantilly", href: "/shop?category=Renda Chantilly" },
-  { name: "Cornely 3D", href: "/shop?category=Cornely 3D" },
-  { name: "Silk & Satin Furing", href: "/shop?category=Furing %26 Silk" },
+  { name: "Brukat Tile Mutiara", href: "/shop?category=Grade A" },
+  { name: "Renda Chantilly", href: "/shop?category=Grade B" },
+  { name: "Cornely 3D", href: "/shop?category=Tulle" },
+  { name: "Silk & Satin Furing", href: "/shop?category=Tulle" },
 ];
 
 export default function Navbar() {
@@ -28,6 +67,7 @@ export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
+  const [isLogoHovered, setIsLogoHovered] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
   const pathname = usePathname();
@@ -79,9 +119,13 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* Left: Logo Only */}
-          <div className="flex-1 md:flex-none text-center md:text-left flex items-center">
-            <Link href="/" className="inline-flex items-center justify-center hover:opacity-80 transition-opacity group" aria-label="Raja Brukat Home">
+          {/* Left: Logo with Hover Marketplace Popover */}
+          <div 
+            className="relative flex-1 md:flex-none text-center md:text-left flex items-center"
+            onMouseEnter={() => setIsLogoHovered(true)}
+            onMouseLeave={() => setIsLogoHovered(false)}
+          >
+            <Link href="/" className="inline-flex items-center justify-center group" aria-label="Raja Brukat Home">
               <div className="relative h-9 md:h-11 w-auto flex items-center justify-center group-hover:scale-105 transition-transform">
                 <Image 
                   src="/images/logo_rajabrukat-removebg-preview.png" 
@@ -93,6 +137,65 @@ export default function Navbar() {
                 />
               </div>
             </Link>
+
+            {/* Hover Marketplace & Social Popover Card */}
+            <AnimatePresence>
+              {isLogoHovered && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="absolute top-full left-0 pt-2 z-50 min-w-[210px] hidden md:block"
+                >
+                  <div className="bg-white rounded-2xl shadow-2xl border border-stone-200 p-3 space-y-1.5">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-stone-400 px-2 pb-1 border-b border-stone-100 flex items-center justify-between">
+                      <span>Toko Resmi Raja Brukat</span>
+                      <ExternalLink className="w-3 h-3 text-[#b77305]" />
+                    </div>
+
+                    <a
+                      href="https://shopee.co.id/rajabrukat"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-orange-600 hover:bg-orange-50 transition-colors group/item"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <ShopeeIcon className="w-4 h-4 text-orange-500" />
+                        <span>Shopee Official</span>
+                      </div>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-orange-400 group-hover/item:translate-x-0.5 group-hover/item:-translate-y-0.5 transition-transform stroke-[2.5]" />
+                    </a>
+
+                    <a
+                      href="https://tokopedia.com/rajabrukat"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-emerald-600 hover:bg-emerald-50 transition-colors group/item"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <TokopediaIcon className="w-4 h-4 text-emerald-500" />
+                        <span>Tokopedia Official</span>
+                      </div>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400 group-hover/item:translate-x-0.5 group-hover/item:-translate-y-0.5 transition-transform stroke-[2.5]" />
+                    </a>
+
+                    <a
+                      href="https://tiktok.com/@rajabrukatofficial"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-stone-900 hover:bg-stone-100 transition-colors group/item"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <TikTokIcon className="w-4 h-4 text-stone-900" />
+                        <span>TikTok Official</span>
+                      </div>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-stone-400 group-hover/item:translate-x-0.5 group-hover/item:-translate-y-0.5 transition-transform stroke-[2.5]" />
+                    </a>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Desktop Navigation (Home, Shop, Categories ▾, FAQ, Contact Us) */}
@@ -100,21 +203,29 @@ export default function Navbar() {
             <Link 
               href="/" 
               className={cn(
-                "hover:text-[#b77305] transition-colors py-2",
-                pathname === "/" ? "text-[#b77305] font-semibold" : "text-stone-800"
+                "relative py-2 font-medium transition-colors group",
+                pathname === "/" ? "text-[#b77305]" : "text-stone-800 hover:text-[#b77305]"
               )}
             >
-              Home
+              <span>Home</span>
+              <span className={cn(
+                "absolute bottom-0 left-0 h-0.5 bg-[#b77305] transition-all duration-300 ease-out group-hover:w-full",
+                pathname === "/" ? "w-full" : "w-0"
+              )} />
             </Link>
 
             <Link 
               href="/shop" 
               className={cn(
-                "hover:text-[#b77305] transition-colors py-2",
-                pathname.startsWith("/shop") && !pathname.includes("category=") ? "text-[#b77305] font-semibold" : "text-stone-800"
+                "relative py-2 font-medium transition-colors group",
+                pathname.startsWith("/shop") && !pathname.includes("category=") ? "text-[#b77305]" : "text-stone-800 hover:text-[#b77305]"
               )}
             >
-              Shop
+              <span>Shop</span>
+              <span className={cn(
+                "absolute bottom-0 left-0 h-0.5 bg-[#b77305] transition-all duration-300 ease-out group-hover:w-full",
+                pathname.startsWith("/shop") && !pathname.includes("category=") ? "w-full" : "w-0"
+              )} />
             </Link>
 
             {/* Categories Dropdown */}
@@ -125,12 +236,16 @@ export default function Navbar() {
             >
               <button 
                 className={cn(
-                  "inline-flex items-center gap-1 hover:text-[#b77305] transition-colors text-[#b77305] font-medium focus:outline-none",
-                  pathname.includes("category=") || pathname.startsWith("/collections") ? "font-semibold" : ""
+                  "relative inline-flex items-center gap-1 font-medium transition-colors focus:outline-none",
+                  pathname.includes("category=") || pathname.startsWith("/collections") ? "text-[#b77305]" : "text-stone-800 hover:text-[#b77305]"
                 )}
               >
-                Categories
+                <span>Categories</span>
                 <ChevronDown className="w-4 h-4 text-[#b77305] group-hover:rotate-180 transition-transform duration-200" />
+                <span className={cn(
+                  "absolute bottom-0 left-0 h-0.5 bg-[#b77305] transition-all duration-300 ease-out group-hover:w-full",
+                  pathname.includes("category=") || pathname.startsWith("/collections") ? "w-full" : "w-0"
+                )} />
               </button>
 
               {/* Dropdown Card */}
@@ -154,21 +269,29 @@ export default function Navbar() {
             <Link 
               href="/pages/faq" 
               className={cn(
-                "hover:text-[#b77305] transition-colors py-2",
-                pathname === "/pages/faq" ? "text-[#b77305] font-semibold" : "text-stone-800"
+                "relative py-2 font-medium transition-colors group",
+                pathname === "/pages/faq" ? "text-[#b77305]" : "text-stone-800 hover:text-[#b77305]"
               )}
             >
-              FAQ
+              <span>FAQ</span>
+              <span className={cn(
+                "absolute bottom-0 left-0 h-0.5 bg-[#b77305] transition-all duration-300 ease-out group-hover:w-full",
+                pathname === "/pages/faq" ? "w-full" : "w-0"
+              )} />
             </Link>
 
             <Link 
               href="/pages/contact" 
               className={cn(
-                "hover:text-[#b77305] transition-colors py-2",
-                pathname === "/pages/contact" ? "text-[#b77305] font-semibold" : "text-stone-800"
+                "relative py-2 font-medium transition-colors group",
+                pathname === "/pages/contact" ? "text-[#b77305]" : "text-stone-800 hover:text-[#b77305]"
               )}
             >
-              Contact Us
+              <span>Contact Us</span>
+              <span className={cn(
+                "absolute bottom-0 left-0 h-0.5 bg-[#b77305] transition-all duration-300 ease-out group-hover:w-full",
+                pathname === "/pages/contact" ? "w-full" : "w-0"
+              )} />
             </Link>
           </nav>
 
@@ -315,4 +438,3 @@ export default function Navbar() {
     </>
   );
 }
-

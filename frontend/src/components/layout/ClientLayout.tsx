@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import FloatingSocialWidget from "./FloatingSocialWidget";
 
 import { useEffect, useState } from "react";
 
@@ -37,6 +38,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       {!isAdminRoute && <Navbar />}
       <main className="min-h-screen flex flex-col">{children}</main>
       {!isAdminRoute && <Footer />}
+      {!isAdminRoute && <FloatingSocialWidget />}
     </>
   );
 }

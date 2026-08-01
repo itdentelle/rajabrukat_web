@@ -1,110 +1,275 @@
 "use client";
 
-import { Reveal } from "@/components/ui/Reveal";
-import { Mail, MapPin } from "lucide-react";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Phone, Mail, MapPin, Clock, Send, MessageSquare, CheckCircle2 } from "lucide-react";
+import toast from "react-hot-toast";
+
+function TikTokIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19.589 6.686a4.793 4.793 0 0 1-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 0 1-2.901 2.89 2.893 2.893 0 0 1-2.89-2.89 2.893 2.893 0 0 1 2.89-2.89c.376 0 .736.07 1.066.2v-3.52a6.38 6.38 0 0 0-1.066-.092 6.338 6.338 0 0 0-6.333 6.333A6.338 6.338 0 0 0 9.477 22a6.338 6.338 0 0 0 6.333-6.333V9.012a8.216 8.216 0 0 0 4.779 1.516v-3.48a4.819 4.819 0 0 1-1.000-.362z" />
+    </svg>
+  );
+}
+
+function InstagramIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+    </svg>
+  );
+}
+
+function FacebookIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  );
+}
 
 export default function ContactPage() {
-  return (
-    <div className="min-h-screen bg-white text-black pt-32 pb-24">
-      <div className="container mx-auto px-4 max-w-6xl">
-        <Reveal>
-          <div className="mb-16">
-            <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none mb-6">
-              Contact Us
-            </h1>
-            <p className="text-gray-500 text-lg max-w-xl">
-              Have a question about an order, collaboration, or just want to say hi? Reach out to us below.
-            </p>
-          </div>
-        </Reveal>
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    needType: "Eceran Meteran",
+    message: "",
+  });
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
-          <Reveal delay={0.2}>
-            <div>
-              <form className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-bold uppercase tracking-widest mb-2">Name</label>
-                    <input 
-                      type="text" 
-                      className="w-full bg-gray-50 border border-gray-200 px-4 py-3 focus:outline-none focus:border-black transition-colors"
-                      placeholder="John Doe"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold uppercase tracking-widest mb-2">Email</label>
-                    <input 
-                      type="email" 
-                      className="w-full bg-gray-50 border border-gray-200 px-4 py-3 focus:outline-none focus:border-black transition-colors"
-                      placeholder="john@example.com"
-                    />
-                  </div>
-                </div>
-                
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.phone) {
+      toast.error("Mohon isi Nama Lengkap dan Nomor WhatsApp Anda.");
+      return;
+    }
+    toast.success("Pesan konsultasi Anda berhasil dikirim! Tim Raja Brukat akan segera menghubungi Anda.");
+    setFormData({ name: "", phone: "", email: "", needType: "Eceran Meteran", message: "" });
+  };
+
+  return (
+    <div className="min-h-screen bg-stone-50 text-stone-900 pt-28 pb-24">
+      {/* Top Header Banner */}
+      <div className="bg-white border-b border-stone-200 py-12 mb-12 shadow-sm">
+        <div className="container mx-auto px-6 max-w-4xl text-center">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-stone-900 mb-4">
+            Hubungi Raja Brukat
+          </h1>
+          
+          <p className="text-stone-600 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+            Konsultasikan kebutuhan kain brukat tile mutiara, Chantilly, Cornely 3D, meteran, grosir per roll, hingga seragam kebaya keluarga dengan tim layanan kami.
+          </p>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-6 max-w-6xl">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+          
+          {/* Left Column: Form Section */}
+          <div className="lg:col-span-7 bg-white p-8 sm:p-10 rounded-3xl border border-stone-200 shadow-md">
+            <h3 className="text-2xl font-bold uppercase tracking-tight mb-2 text-stone-900">
+              Formulir Konsultasi Kain
+            </h3>
+            <p className="text-stone-500 text-sm mb-8">
+              Isi data di bawah ini untuk berkonsultasi mengenai produk, sampel motif, atau pesanan khusus.
+            </p>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-bold uppercase tracking-widest mb-2">Subject</label>
-                  <input 
-                    type="text" 
-                    className="w-full bg-gray-50 border border-gray-200 px-4 py-3 focus:outline-none focus:border-black transition-colors"
-                    placeholder="Order Inquiry"
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-stone-700">
+                    Nama Lengkap <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#b77305] focus:ring-2 focus:ring-[#b77305]/20 transition-all"
+                    placeholder="Contoh: Siska Wijaya"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold uppercase tracking-widest mb-2">Message</label>
-                  <textarea 
-                    rows={6}
-                    className="w-full bg-gray-50 border border-gray-200 px-4 py-3 focus:outline-none focus:border-black transition-colors resize-none"
-                    placeholder="How can we help you?"
-                  ></textarea>
-                </div>
-
-                <button 
-                  type="button"
-                  className="w-full bg-black text-white font-bold uppercase tracking-widest py-4 hover:bg-gray-800 transition-colors"
-                >
-                  Send Message
-                </button>
-              </form>
-            </div>
-          </Reveal>
-
-          <Reveal delay={0.4}>
-            <div className="bg-gray-50 p-8 md:p-12 h-full flex flex-col justify-center">
-              <h3 className="text-2xl font-black uppercase tracking-tighter mb-8">Get In Touch</h3>
-              
-              <div className="space-y-6">
-                <div className="flex items-start gap-4">
-                  <Mail className="w-6 h-6 mt-1" />
-                  <div>
-                    <h4 className="font-bold uppercase tracking-widest text-sm mb-1">Email</h4>
-                    <p className="text-gray-500">support@dragonworm.com</p>
-                    <p className="text-gray-500">wholesale@dragonworm.com</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <MapPin className="w-6 h-6 mt-1" />
-                  <div>
-                    <h4 className="font-bold uppercase tracking-widest text-sm mb-1">Studio</h4>
-                    <p className="text-gray-500">Jl. Braga No. 123<br/>Bandung, West Java<br/>Indonesia 40111</p>
-                  </div>
-                </div>
-
-                <div className="pt-8 border-t border-gray-200 mt-8">
-                  <h4 className="font-bold uppercase tracking-widest text-sm mb-4">Follow Us</h4>
-                  <div className="flex gap-4">
-                    <a href="#" className="w-10 h-10 bg-black text-white font-bold text-xs flex items-center justify-center rounded-full hover:bg-gray-800 transition-colors">
-                      IG
-                    </a>
-                    <a href="#" className="w-10 h-10 bg-black text-white font-bold text-xs flex items-center justify-center rounded-full hover:bg-gray-800 transition-colors">
-                      TW
-                    </a>
-                  </div>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-stone-700">
+                    No. WhatsApp <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#b77305] focus:ring-2 focus:ring-[#b77305]/20 transition-all"
+                    placeholder="085881667778"
+                  />
                 </div>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-stone-700">
+                    Email (Opsional)
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#b77305] focus:ring-2 focus:ring-[#b77305]/20 transition-all"
+                    placeholder="nama@email.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-stone-700">
+                    Kategori Kebutuhan
+                  </label>
+                  <select
+                    value={formData.needType}
+                    onChange={(e) => setFormData({ ...formData, needType: e.target.value })}
+                    className="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#b77305] focus:ring-2 focus:ring-[#b77305]/20 transition-all"
+                  >
+                    <option value="Eceran Meteran">Pembelian Eceran Meteran</option>
+                    <option value="Grosir Roll">Pembelian Grosir Roll (15-50 yard)</option>
+                    <option value="Seragam Kebaya">Seragam Kebaya / Bridesmaid</option>
+                    <option value="Sampel Kain">Permintaan Sampel Kain & Katalog</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-2 text-stone-700">
+                  Detail Pesan / Pertanyaan
+                </label>
+                <textarea
+                  rows={4}
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  className="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#b77305] focus:ring-2 focus:ring-[#b77305]/20 transition-all resize-none"
+                  placeholder="Tuliskan pertanyaan atau spesifikasi kain yang Anda butuhkan..."
+                ></textarea>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-[#b77305] hover:bg-[#965e04] text-white font-bold uppercase tracking-wider text-sm py-4 rounded-xl transition-all duration-300 shadow-lg flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-95"
+              >
+                <Send className="w-4 h-4" />
+                <span>Kirim Pesan Konsultasi</span>
+              </button>
+            </form>
+          </div>
+
+          {/* Right Column: Direct Info & Hotline */}
+          <div className="lg:col-span-5 space-y-6">
+            
+            {/* Quick WhatsApp Contact Card */}
+            <div className="bg-gradient-to-br from-stone-900 via-stone-950 to-stone-900 text-white p-8 rounded-3xl shadow-xl relative overflow-hidden">
+              <span className="text-[#b77305] text-xs font-bold uppercase tracking-wider block mb-2">
+                ✦ CS Fast Response
+              </span>
+              <h4 className="text-2xl font-bold mb-3">Layanan Chat Langsung</h4>
+              <p className="text-stone-300 text-sm leading-relaxed mb-6">
+                Butuh respon cepat? Hubungi Tim Customer Service Raja Brukat langsung melalui WhatsApp Hotline.
+              </p>
+
+              <a
+                href="https://wa.me/6285881667778"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl transition-all shadow-lg hover:scale-105"
+              >
+                <MessageSquare className="w-5 h-5" />
+                <span>Chat Hotline: +62 858-8166-7778</span>
+              </a>
             </div>
-          </Reveal>
+
+            {/* Official Details List */}
+            <div className="bg-white p-8 rounded-3xl border border-stone-200 shadow-md space-y-6">
+              <h4 className="font-bold text-base uppercase tracking-wider text-stone-900 border-b border-stone-100 pb-3">
+                Informasi Kontak Resmi
+              </h4>
+
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-[#b77305]/10 text-[#b77305] flex items-center justify-center flex-shrink-0">
+                  <Phone className="w-5 h-5 stroke-[2]" />
+                </div>
+                <div>
+                  <h5 className="font-bold text-xs uppercase tracking-wider text-stone-700">Hot Line / WhatsApp</h5>
+                  <p className="text-stone-900 font-semibold text-sm">+62 858-8166-7778</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-[#b77305]/10 text-[#b77305] flex items-center justify-center flex-shrink-0">
+                  <Mail className="w-5 h-5 stroke-[2]" />
+                </div>
+                <div>
+                  <h5 className="font-bold text-xs uppercase tracking-wider text-stone-700">Email Resmi</h5>
+                  <p className="text-stone-900 font-semibold text-sm">info@rajabrukat.com</p>
+                  <p className="text-stone-500 text-xs">grosir@rajabrukat.com</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-[#b77305]/10 text-[#b77305] flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-5 h-5 stroke-[2]" />
+                </div>
+                <div>
+                  <h5 className="font-bold text-xs uppercase tracking-wider text-stone-700">Gudang & Pusat Distribusi</h5>
+                  <p className="text-stone-900 font-semibold text-sm">Pusat Tekstil Raja Brukat</p>
+                  <p className="text-stone-500 text-xs">Indonesia</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-[#b77305]/10 text-[#b77305] flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-5 h-5 stroke-[2]" />
+                </div>
+                <div>
+                  <h5 className="font-bold text-xs uppercase tracking-wider text-stone-700">Jam Operasional CS</h5>
+                  <p className="text-stone-900 font-semibold text-sm">Senin - Sabtu: 08:00 - 17:00 WIB</p>
+                  <p className="text-stone-500 text-xs">Minggu & Hari Libur: Slow Response</p>
+                </div>
+              </div>
+
+              {/* Social Media Buttons */}
+              <div className="pt-4 border-t border-stone-100">
+                <h5 className="font-bold text-xs uppercase tracking-wider text-stone-700 mb-3">Kunjungi Media Sosial</h5>
+                <div className="flex items-center gap-3">
+                  <a
+                    href="https://instagram.com/rajabrukat_id"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 rounded-full bg-stone-100 hover:bg-[#b77305] text-stone-700 hover:text-white border border-stone-200 flex items-center justify-center transition-all duration-300 shadow-sm"
+                  >
+                    <InstagramIcon className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://facebook.com/rajabrukat"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 rounded-full bg-stone-100 hover:bg-[#b77305] text-stone-700 hover:text-white border border-stone-200 flex items-center justify-center transition-all duration-300 shadow-sm"
+                  >
+                    <FacebookIcon className="w-4 h-4" />
+                  </a>
+                  <a
+                    href="https://tiktok.com/@rajabrukatofficial"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 rounded-full bg-stone-100 hover:bg-[#b77305] text-stone-700 hover:text-white border border-stone-200 flex items-center justify-center transition-all duration-300 shadow-sm"
+                  >
+                    <TikTokIcon className="w-4 h-4" />
+                  </a>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
         </div>
       </div>
     </div>

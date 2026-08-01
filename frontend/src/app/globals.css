@@ -53,3 +53,17 @@ body {
   background: var(--accent);
 }
 
+/* GPU Hardware Acceleration for 60fps animations */
+.transform-gpu {
+  transform: translate3d(0, 0, 0);
+  will-change: transform, opacity;
+}
+
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-flex {
+  will-change: flex, width;
+}
+

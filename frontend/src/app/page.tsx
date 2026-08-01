@@ -1,12 +1,12 @@
 import HeroBanner from "@/components/home/HeroBanner";
 import FeaturedCategories from "@/components/home/FeaturedCategories";
 import AboutBrand from "@/components/home/AboutBrand";
+import DealsAndRecommendations from "@/components/home/DealsAndRecommendations";
 import LatestDrops from "@/components/home/LatestDrops";
 import BestSellers from "@/components/home/BestSellers";
 
 async function getProducts() {
   try {
-    // Using no-store to ensure we always get fresh products (or you can use revalidate: 60)
     const res = await fetch("http://localhost:5000/api/products", { cache: 'no-store' });
     if (!res.ok) throw new Error("Failed to fetch products");
     const data = await res.json();
@@ -36,6 +36,7 @@ export default async function Home() {
       <HeroBanner config={config} />
       <FeaturedCategories />
       <AboutBrand />
+      <DealsAndRecommendations products={products} />
       <LatestDrops products={products} />
       <BestSellers products={products} />
     </div>
