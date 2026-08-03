@@ -1069,7 +1069,7 @@ app.get('/api/wishlist', authenticateToken, async (req: Request, res: Response) 
     });
     
     // Return array of products directly
-    res.json(wishlistItems.map(w => w.product));
+    res.json(wishlistItems.map((w: any) => w.product));
   } catch (error) {
     console.error("Error fetching wishlist:", error);
     res.status(500).json({ error: "Failed to fetch wishlist" });
@@ -1211,14 +1211,14 @@ app.get('/api/admin/stats', authenticateToken, async (req: Request, res: Respons
 
     // Calculate total revenue (only from COMPLETED orders)
     const totalRevenue = allOrders
-      .filter(o => o.status === 'COMPLETED')
-      .reduce((sum, order) => sum + order.totalAmount, 0);
+      .filter((o: any) => o.status === 'COMPLETED')
+      .reduce((sum: number, order: any) => sum + order.totalAmount, 0);
 
     // Group Order Status
     const statusCounts: Record<string, number> = {
       PENDING: 0, PROCESSING: 0, SHIPPED: 0, COMPLETED: 0, CANCELLED: 0
     };
-    allOrders.forEach(o => {
+    allOrders.forEach((o: any) => {
       if (statusCounts[o.status] !== undefined) statusCounts[o.status]++;
       else statusCounts[o.status] = 1;
     });
@@ -1236,14 +1236,14 @@ app.get('/api/admin/stats', authenticateToken, async (req: Request, res: Respons
       const monthName = months[d.getMonth()];
       const year = d.getFullYear();
       
-      const monthOrders = allOrders.filter(o => {
+      const monthOrders = allOrders.filter((o: any) => {
         const orderDate = new Date(o.createdAt);
         return orderDate.getMonth() === d.getMonth() && 
                orderDate.getFullYear() === year && 
                o.status === 'COMPLETED';
       });
       
-      const monthRevenue = monthOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+      const monthRevenue = monthOrders.reduce((sum: number, o: any) => sum + o.totalAmount, 0);
       revenueData.push({
         name: `${monthName} ${year}`,
         revenue: monthRevenue
@@ -1537,7 +1537,7 @@ app.post('/api/webhooks/midtrans', express.json(), async (req: Request, res: Res
 
     // Send Payment Success Email
     if (newStatus === "PROCESSING" && existingOrder.status !== "PROCESSING" && existingOrder.user?.email) {
-      const itemsList = existingOrder.items.map(item => 
+      const itemsList = existingOrder.items.map((item: any) => 
         `<li><b>${item.product.name}</b> (Qty: ${item.quantity})</li>`
       ).join('');
 
@@ -2072,7 +2072,7 @@ cron.schedule('0 * * * *', async () => {
     for (const cart of abandonedCarts) {
       if (!cart.user.email) continue;
       
-      const itemsList = cart.items.map(item => 
+      const itemsList = cart.items.map((item: any) => 
         `<li><b>${item.product.name}</b> (Qty: ${item.quantity}) - Rp ${item.product.price.toLocaleString('id-ID')}</li>`
       ).join('');
 
