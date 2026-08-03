@@ -247,23 +247,6 @@ export default function FeaturedCategories() {
                 </div>
               </motion.div>
 
-              {/* Floating Badge Top */}
-              <motion.div 
-                animate={{ y: activeCardId === "center" ? [0, -4, 0] : 0 }}
-                transition={{ repeat: Infinity, duration: 3 }}
-                className="absolute top-2 right-10 z-40 bg-white/95 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-stone-100 flex items-center gap-2 pointer-events-none"
-              >
-                <span className="w-2 h-2 rounded-full bg-[#b77305] animate-pulse" />
-                <span className="text-xs font-semibold text-stone-800">{activeCard.badgeTop}</span>
-              </motion.div>
-
-              {/* Floating Badge Bottom */}
-              <motion.div 
-                className="absolute bottom-4 left-4 z-40 bg-white/95 backdrop-blur-md px-5 py-2.5 rounded-2xl shadow-xl border border-stone-100 pointer-events-none"
-              >
-                <p className="text-xs font-semibold text-stone-900 tracking-wide">{activeCard.badgeBottom}</p>
-              </motion.div>
-
               {/* Vertical Scroll Controls */}
               <div className="absolute -right-4 md:-right-8 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-3">
                 <button

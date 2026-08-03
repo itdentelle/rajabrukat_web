@@ -4,6 +4,7 @@ import HeroBanner from "@/components/home/HeroBanner";
 import FeaturedCategories from "@/components/home/FeaturedCategories";
 import AboutBrand from "@/components/home/AboutBrand";
 import DealsAndRecommendations from "@/components/home/DealsAndRecommendations";
+import ShopTheLook from "@/components/home/ShopTheLook";
 import LatestDrops from "@/components/home/LatestDrops";
 import BestSellers from "@/components/home/BestSellers";
 
@@ -39,6 +40,7 @@ export default async function Home() {
       <FeaturedCategories />
       <AboutBrand />
       <DealsAndRecommendations products={products} />
+      <ShopTheLook />
       <LatestDrops products={products} />
       <BestSellers products={products} />
     </div>

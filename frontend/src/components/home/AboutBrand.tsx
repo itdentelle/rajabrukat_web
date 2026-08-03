@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -61,41 +61,89 @@ export default function AboutBrand() {
       .catch((err) => console.warn("Could not load brand config from server, using default UI:", err));
   }, []);
 
+  // Sticky Scroll Pinning specifically for the Big Text Header & Ribbon Animation
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start end", "end start"],
+    offset: ["start start", "end end"],
   });
 
-  const marqueeX = useTransform(scrollYProgress, [0, 1], ["0%", "-30%"]);
-  const marqueeXReverse = useTransform(scrollYProgress, [0, 1], ["-30%", "0%"]);
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 90,
+    damping: 26,
+    restDelta: 0.001,
+  });
+
+  // Animates ribbon from 0 to 1 during the pinned scroll of the big text header
+  const pathLengthProgress = useTransform(smoothProgress, [0, 0.85], [0, 1]);
 
   return (
-    <section ref={containerRef} className="py-20 lg:py-28 bg-white text-black overflow-hidden relative">
-      {/* Marquee Background */}
-      <div className="absolute inset-0 z-0 opacity-[0.05] flex flex-col justify-between py-12 pointer-events-none overflow-hidden select-none">
-        <motion.div style={{ x: marqueeX }} className="whitespace-nowrap text-[18vw] font-black uppercase leading-none tracking-tighter text-amber-900">
-          RAJA BRUKAT RAJA BRUKAT RAJA BRUKAT
-        </motion.div>
-        <motion.div style={{ x: marqueeXReverse }} className="whitespace-nowrap text-[18vw] font-black uppercase leading-none tracking-tighter text-amber-800">
-          LUXURY LACE & FABRICS LUXURY LACE
-        </motion.div>
-      </div>
+    <section className="bg-white text-black relative">
+      
+      {/* Pinned Scroll Track: Big Text Header stays centered while ribbon animation draws */}
+      <div ref={containerRef} className="relative h-[170vh]">
+        <div className="sticky top-0 h-screen flex flex-col items-center justify-center overflow-hidden">
+          
+          {/* Header Box framed by SVG Ribbon */}
+          <div className="relative w-full max-w-5xl mx-auto px-4 py-12 flex flex-col items-center justify-center">
+            
+            {/* Fabric Strand SVG Framing OUTSIDE The Big Header Text */}
+            <div className="absolute inset-0 pointer-events-none z-0 flex items-center justify-center select-none">
+              <svg
+                className="w-full h-full min-h-[280px] opacity-85 md:opacity-95"
+                viewBox="0 0 1000 300"
+                fill="none"
+                preserveAspectRatio="xMidYMid meet"
+              >
+                <defs>
+                  <linearGradient id="calligraphyGold" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#b77305" stopOpacity="0.15" />
+                    <stop offset="25%" stopColor="#f59e0b" stopOpacity="0.95" />
+                    <stop offset="65%" stopColor="#d97706" stopOpacity="0.95" />
+                    <stop offset="100%" stopColor="#b77305" stopOpacity="0.2" />
+                  </linearGradient>
+                </defs>
 
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-7xl mx-auto">
-          {/* Section Header */}
-          <div className="relative w-full flex flex-col justify-center items-center py-6 md:py-12 mb-8">
-            <div className="w-full text-center relative z-30">
+                {/* Main Calligraphic Ribbon Strand */}
+                <motion.path
+                  d="M 50 45 C 250 15, 750 15, 900 45 S 980 180, 880 220 S 680 260, 640 230 S 720 185, 770 210 S 400 270, 50 240"
+                  stroke="url(#calligraphyGold)"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  style={{ pathLength: pathLengthProgress }}
+                />
+
+                {/* Secondary Parallel Dashed Ribbon Accent */}
+                <motion.path
+                  d="M 35 58 C 240 30, 760 30, 915 58 S 995 193, 895 233 S 695 273, 655 243 S 735 198, 785 223 S 415 283, 35 253"
+                  stroke="url(#calligraphyGold)"
+                  strokeWidth="1.5"
+                  strokeDasharray="6 6"
+                  strokeLinecap="round"
+                  style={{ pathLength: pathLengthProgress }}
+                />
+              </svg>
+            </div>
+
+            {/* Big Text Header */}
+            <div className="w-full text-center relative z-10 px-4">
               <Reveal>
-                <h3 className="text-3xl md:text-5xl font-black uppercase tracking-tighter leading-tight mb-4">
+                <h3 className="text-3xl sm:text-5xl md:text-6xl font-black uppercase tracking-tighter leading-tight">
                   <span className="block text-stone-900">Didedikasikan Untuk</span>
-                  <span className="block text-[#b77305] mt-1">
+                  <span className="block text-[#b77305] mt-2">
                     Keindahan Kebaya & Gaun Mewah
                   </span>
                 </h3>
               </Reveal>
             </div>
+
           </div>
+
+        </div>
+      </div>
+
+      {/* Subsequent Content: Swatches & Feature Cards (Scrolls naturally after header ribbon animation) */}
+      <div className="container mx-auto px-4 pb-24 pt-8 relative z-10 border-t border-stone-100">
+        <div className="max-w-7xl mx-auto">
 
           {/* Circular Fabric Categories Swatch Row */}
           <div className="mb-20">
@@ -184,8 +232,10 @@ export default function AboutBrand() {
               </span>
             </Link>
           </motion.div>
+
         </div>
       </div>
+
     </section>
   );
 }

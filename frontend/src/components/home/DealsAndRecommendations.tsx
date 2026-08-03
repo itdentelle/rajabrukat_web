@@ -298,3 +298,4 @@ export default function DealsAndRecommendations({ products = [] }: DealsProps) {
     </section>
   );
 }
+
