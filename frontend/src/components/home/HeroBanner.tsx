@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Sparkles, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface HeroConfig {
@@ -22,24 +22,24 @@ const CATEGORY_PANELS = [
   {
     id: 1,
     num: "01",
-    category: "BRUKAT TILE MUTIARA 3D",
-    title: "Brukat Tile Mutiara",
-    description: "Seni bordir tile bertabur payet mutiara kristal mewah untuk kebaya & gaun pesta.",
-    buttonText: "Lihat Koleksi",
+    category: "KOLEKSI EKSKLUSIF 2026",
+    title: "Keanggunan Kain Brukat & Lace Premium",
+    description: "Seni bordir tile bertabur payet mutiara kristal mewah untuk kebaya & gaun pesta istimewa Anda.",
+    buttonText: "Shop Now",
     buttonLink: "/shop?category=Brukat Tile Mutiara",
     image: "/images/brukat_tile_mutiara.png",
-    badge: "Grade A",
+    badge: "BRUKAT 3D",
   },
   {
     id: 2,
     num: "02",
     category: "RENDA CHANTILLY FRENCH",
     title: "Renda Chantilly Impor",
-    description: "Kehalusan renda Prancis bertkstur ultra-soft yang jatuh lembut di kulit.",
+    description: "Kehalusan renda Prancis bertekstur ultra-soft yang jatuh lembut dan mewah di kulit.",
     buttonText: "Lihat Koleksi",
     buttonLink: "/shop?category=Renda Chantilly",
     image: "/images/renda_chantilly_french.png",
-    badge: "Grade B",
+    badge: "CHANTILLY",
   },
   {
     id: 3,
@@ -50,7 +50,7 @@ const CATEGORY_PANELS = [
     buttonText: "Lihat Koleksi",
     buttonLink: "/shop?category=Cornely 3D",
     image: "/images/cornely_silk_satin.png",
-    badge: "Tulle",
+    badge: "SILK SATIN",
   },
 ];
 
@@ -61,12 +61,11 @@ export default function HeroBanner({ config }: HeroBannerProps) {
       num: "01",
       category: config.subtitle || "KOLEKSI EKSKLUSIF 2026",
       title: config.title.replace(/\n/g, ", "),
-      subtitle: "Koleksi Tekstil Premium Raja Brukat",
       description: "Koleksi kain brukat dan renda pilihan dengan standar kualitas terbaik untuk gaun pesta & kebaya istimewa Anda.",
       buttonText: config.buttonText || "Shop Now",
       buttonLink: config.buttonLink || "/shop",
       image: "/images/brukat_tile_mutiara.png",
-      badge: "Grade A",
+      badge: "BRUKAT 3D",
     },
     ...CATEGORY_PANELS.slice(1)
   ] : CATEGORY_PANELS;
@@ -89,7 +88,7 @@ export default function HeroBanner({ config }: HeroBannerProps) {
 
   return (
     <div
-      className="relative w-full h-screen min-h-[650px] bg-stone-100 overflow-hidden flex flex-col pt-20"
+      className="relative w-full h-screen min-h-[650px] bg-white overflow-hidden flex flex-col pt-[60px] md:pt-[68px]"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -103,9 +102,9 @@ export default function HeroBanner({ config }: HeroBannerProps) {
               key={panel.id}
               onClick={() => setActiveIndex(idx)}
               onMouseEnter={() => setActiveIndex(idx)}
-              className={`relative h-full transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer overflow-hidden group border-b lg:border-b-0 lg:border-r border-stone-200/90 transform-gpu will-change-flex ${isActive
-                  ? "flex-[3.5] lg:flex-[3.5] shadow-2xl"
-                  : "flex-1 lg:flex-1 opacity-80 hover:opacity-100 hover:flex-[1.3]"
+              className={`relative h-full transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer overflow-hidden group border-b lg:border-b-0 lg:border-r border-white/10 transform-gpu will-change-flex ${isActive
+                  ? "flex-[3.5] lg:flex-[3.5] shadow-2xl z-10"
+                  : "flex-1 lg:flex-1 opacity-90 hover:opacity-100 hover:flex-[1.25]"
                 }`}
             >
               {/* Background Fabric Image with Soft Zoom */}
@@ -120,89 +119,113 @@ export default function HeroBanner({ config }: HeroBannerProps) {
                     }`}
                 />
 
-                {/* Tight Compact Soft Radial Glow at Bottom-Left */}
+                {/* Dark Scrim Gradient Overlay for Maximum Legibility & WCAG Compliance */}
                 <div
                   className={`absolute inset-0 pointer-events-none transition-opacity duration-700 ${isActive
-                      ? "bg-[radial-gradient(ellipse_at_bottom_left,_rgba(255,255,255,0.92)_0%,_rgba(255,255,255,0.3)_25%,_transparent_45%)] opacity-95"
-                      : "bg-[radial-gradient(ellipse_at_bottom_left,_rgba(255,255,255,0.85)_0%,_rgba(255,255,255,0.2)_20%,_transparent_40%)] opacity-90 group-hover:opacity-75"
+                      ? "bg-gradient-to-t from-stone-950/95 via-stone-950/45 to-black/30 opacity-100"
+                      : "bg-gradient-to-t from-stone-950/90 via-stone-950/50 to-black/40 opacity-90 group-hover:opacity-75"
                     }`}
                 />
 
                 {/* Top Active Gold Border Ribbon */}
                 {isActive && (
                   <div
-                    className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#b77305] via-[#d4af37] to-[#b77305] z-10 transition-opacity duration-500"
+                    className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#b77305] via-[#f3e5ab] to-[#b77305] z-10 transition-opacity duration-500 shadow-md"
                   />
                 )}
               </div>
 
-              {/* COLLAPSED STATE VIEW (When panel is inactive) */}
+              {/* COLLAPSED STATE VIEW (Upright Legible Text) */}
               {!isActive && (
-                <div className="relative z-10 w-full h-full flex flex-col justify-between p-6 md:p-8">
-                  {/* Category Number Badge */}
+                <div className="relative z-10 w-full h-full flex flex-col justify-between p-5 md:p-7 text-white">
+                  {/* Top Badge & Number */}
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-[#b77305] font-mono">
+                    <span className="text-2xl font-bold text-[#e2b744] font-mono drop-shadow">
                       {panel.num}
                     </span>
-                    <span className="text-[10px] font-semibold tracking-wider text-stone-800 uppercase px-2.5 py-1 rounded bg-white/90 border border-stone-300 shadow-sm">
+                    <span className="text-[10px] font-bold tracking-widest text-amber-200 uppercase px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-md border border-amber-500/30 shadow-md">
                       {panel.badge}
                     </span>
                   </div>
 
-                  {/* Vertical / Horizontal Collapsed Category Name */}
-                  <div className="lg:my-auto lg:transform lg:-rotate-90 lg:origin-bottom-left lg:translate-x-12">
-                    <p className="text-[#b77305] text-xs font-semibold uppercase tracking-widest mb-1">
+                  {/* Upright Stacked Category Title */}
+                  <div className="my-auto py-4">
+                    <p className="text-[#e2b744] text-[11px] font-bold uppercase tracking-[0.18em] mb-1.5 opacity-90">
                       {panel.category}
                     </p>
-                    <h3 className="text-xl font-bold text-stone-900 whitespace-nowrap drop-shadow-sm">
+                    <h3 className="text-xl md:text-2xl font-serif font-medium text-white drop-shadow-md leading-tight group-hover:text-amber-100 transition-colors">
                       {panel.title}
                     </h3>
                   </div>
 
-                  {/* Bottom Arrow Indicator */}
-                  <div className="flex items-center justify-end text-[#b77305] group-hover:translate-x-1 transition-transform">
-                    <ChevronRight className="w-6 h-6 stroke-[2]" />
+                  {/* Bottom Explore CTA Link */}
+                  <div className="flex items-center justify-between text-[#e2b744] group-hover:translate-x-1 transition-transform pt-3 border-t border-white/10">
+                    <span className="text-[11px] font-medium tracking-wider uppercase text-stone-300">Eksplorasi</span>
+                    <ChevronRight className="w-5 h-5 stroke-[2]" />
                   </div>
                 </div>
               )}
 
-              {/* EXPANDED STATE VIEW (When panel is active) */}
+              {/* EXPANDED STATE VIEW (Luxury Serif & Clear Hierarchy) */}
               {isActive && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, ease: "easeOut" }}
-                  className="relative z-10 w-full h-full flex flex-col justify-end p-6 sm:p-10 md:p-12 text-left max-w-xl"
+                  className="relative z-10 w-full h-full flex flex-col justify-end p-6 sm:p-10 md:p-12 text-left max-w-xl text-white"
                 >
                   {/* Category Badge & Index */}
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="text-3xl font-bold text-[#b77305] font-mono">
+                    <span className="text-3xl font-bold text-[#e2b744] font-mono drop-shadow">
                       {panel.num}
                     </span>
-                    <span className="px-3 py-1 rounded-full bg-white/90 border border-[#b77305]/40 text-[#b77305] text-xs font-semibold uppercase tracking-wider shadow-md">
+                    <span className="px-3.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-[#e2b744]/40 text-[#e2b744] text-xs font-semibold uppercase tracking-wider shadow-lg">
                       {panel.badge}
                     </span>
                   </div>
 
                   {/* Category Tag */}
-                  <p className="text-[#b77305] text-xs md:text-sm font-bold uppercase tracking-widest mb-1.5">
+                  <p className="text-[#e2b744] text-xs md:text-sm font-semibold uppercase tracking-[0.2em] mb-2 drop-shadow-sm">
                     {panel.category}
                   </p>
 
-                  {/* Main Title */}
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-stone-950 leading-tight mb-6 drop-shadow-sm">
+                  {/* Main Serif Luxury Title */}
+                  <h2 className="text-2xl sm:text-4xl md:text-5xl font-serif font-medium text-white leading-[1.18] mb-6 drop-shadow-lg">
                     {panel.title}
                   </h2>
 
-                  {/* Action Button */}
-                  <div>
+                  {/* Action Button & Integrated Slider Progress Dots */}
+                  <div className="flex items-center flex-wrap gap-4 sm:gap-5 mt-2">
                     <Link
                       href={panel.buttonLink}
-                      className="inline-flex items-center gap-2.5 px-6 py-3 bg-[#b77305] hover:bg-[#965e04] text-white font-medium text-sm md:text-base rounded-lg transition-all duration-300 shadow-xl shadow-[#b77305]/20 hover:scale-[1.03] active:scale-95 group"
+                      className="inline-flex items-center gap-2.5 px-7 py-3.5 bg-gradient-to-r from-[#b77305] via-[#c58c1b] to-[#d4af37] hover:from-[#965e04] hover:to-[#b77305] text-white font-medium text-sm md:text-base rounded-full transition-all duration-300 shadow-xl shadow-black/50 hover:scale-[1.03] active:scale-95 group border border-amber-300/30"
                     >
                       <span>{panel.buttonText}</span>
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </Link>
+
+                    {/* Integrated Slider Dots for Active Panel */}
+                    <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-2.5 rounded-full border border-white/15 shadow-lg">
+                      {panels.map((p, pIdx) => (
+                        <button
+                          key={p.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveIndex(pIdx);
+                          }}
+                          aria-label={`Go to slide ${pIdx + 1}`}
+                          className="p-1 focus:outline-none"
+                        >
+                          <div
+                            className={`h-2 rounded-full transition-all duration-500 ${
+                              pIdx === activeIndex
+                                ? "w-7 bg-[#e2b744]"
+                                : "w-2.5 bg-white/40 hover:bg-white/70"
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -210,25 +233,7 @@ export default function HeroBanner({ config }: HeroBannerProps) {
           );
         })}
       </div>
-
-      {/* Bottom Panel Indicators Dots */}
-      <div className="absolute bottom-4 right-6 md:right-12 z-20 flex items-center gap-2">
-        {panels.map((panel, idx) => (
-          <button
-            key={panel.id}
-            onClick={() => setActiveIndex(idx)}
-            aria-label={`Go to panel ${idx + 1}`}
-            className="p-1 focus:outline-none"
-          >
-            <div
-              className={`h-1.5 rounded-full transition-all duration-500 ${idx === activeIndex
-                  ? "w-8 bg-[#b77305]"
-                  : "w-3 bg-stone-300 hover:bg-stone-400"
-                }`}
-            />
-          </button>
-        ))}
-      </div>
     </div>
   );
 }
+

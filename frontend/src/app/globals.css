@@ -25,6 +25,11 @@
   --color-muted: var(--muted);
   --color-border: var(--border);
   --font-sans: var(--font-inter);
+  --font-serif: var(--font-serif);
+}
+
+.font-serif {
+  font-family: var(--font-serif), Georgia, serif;
 }
 
 html {

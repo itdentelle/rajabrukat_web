@@ -5,6 +5,7 @@ import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/ui/Reveal";
+import { ArrowRight, Sparkles, Feather, Palette } from "lucide-react";
 
 interface SiteConfig {
   aboutTitle: string;
@@ -34,13 +35,13 @@ const FABRIC_CIRCLES = [
   {
     id: 4,
     name: "Silk Satin Furing",
-    image: "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=600&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=600&auto=format&fit=crop",
     link: "/shop?category=Furing %26 Silk",
   },
   {
     id: 5,
     name: "Organza & Tulle",
-    image: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1528459801416-a9e53bbf4e17?q=80&w=600&auto=format&fit=crop",
     link: "/shop",
   },
 ];
@@ -83,14 +84,14 @@ export default function AboutBrand() {
       <div ref={containerRef} className="relative h-[170vh]">
         <div className="sticky top-0 h-screen flex flex-col items-center justify-center overflow-hidden">
           
-          {/* Header Box framed by SVG Ribbon */}
-          <div className="relative w-full max-w-5xl mx-auto px-4 py-12 flex flex-col items-center justify-center">
+          {/* Header Box framed by Refined Calligraphic Ribbon */}
+          <div className="relative w-full max-w-4xl mx-auto px-6 py-12 md:py-16 flex flex-col items-center justify-center">
             
             {/* Fabric Strand SVG Framing OUTSIDE The Big Header Text */}
-            <div className="absolute inset-0 pointer-events-none z-0 flex items-center justify-center select-none">
+            <div className="absolute -inset-6 sm:-inset-12 pointer-events-none z-0 flex items-center justify-center select-none overflow-visible">
               <svg
-                className="w-full h-full min-h-[280px] opacity-85 md:opacity-95"
-                viewBox="0 0 1000 300"
+                className="w-full h-full min-h-[320px] md:min-h-[380px] opacity-85 md:opacity-95 overflow-visible"
+                viewBox="0 0 1080 360"
                 fill="none"
                 preserveAspectRatio="xMidYMid meet"
               >
@@ -103,9 +104,9 @@ export default function AboutBrand() {
                   </linearGradient>
                 </defs>
 
-                {/* Main Calligraphic Ribbon Strand */}
+                {/* Main Calligraphic Ribbon Strand with Equal Top & Bottom Spacing Buffer */}
                 <motion.path
-                  d="M 50 45 C 250 15, 750 15, 900 45 S 980 180, 880 220 S 680 260, 640 230 S 720 185, 770 210 S 400 270, 50 240"
+                  d="M 80 48 C 280 20, 780 20, 905 48 S 975 190, 870 260 S 670 335, 630 300 S 710 260, 760 280 S 390 330, 80 300"
                   stroke="url(#calligraphyGold)"
                   strokeWidth="3.5"
                   strokeLinecap="round"
@@ -114,7 +115,7 @@ export default function AboutBrand() {
 
                 {/* Secondary Parallel Dashed Ribbon Accent */}
                 <motion.path
-                  d="M 35 58 C 240 30, 760 30, 915 58 S 995 193, 895 233 S 695 273, 655 243 S 735 198, 785 223 S 415 283, 35 253"
+                  d="M 65 60 C 270 32, 770 32, 920 60 S 990 202, 885 272 S 685 347, 645 312 S 725 272, 775 292 S 405 342, 65 312"
                   stroke="url(#calligraphyGold)"
                   strokeWidth="1.5"
                   strokeDasharray="6 6"
@@ -124,15 +125,20 @@ export default function AboutBrand() {
               </svg>
             </div>
 
-            {/* Big Text Header */}
-            <div className="w-full text-center relative z-10 px-4">
+            {/* Big Text Header with Luxury Serif Typography */}
+            <div className="w-full text-center relative z-10 px-4 py-4 my-auto">
               <Reveal>
-                <h3 className="text-3xl sm:text-5xl md:text-6xl font-black uppercase tracking-tighter leading-tight">
-                  <span className="block text-stone-900">Didedikasikan Untuk</span>
-                  <span className="block text-[#b77305] mt-2">
-                    Keindahan Kebaya & Gaun Mewah
+                <div className="flex flex-col items-center justify-center">
+                  <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-[#b77305] mb-3">
+                    Koleksi Tekstil Eksklusif
                   </span>
-                </h3>
+                  <h3 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-medium tracking-wide leading-[1.25] text-stone-950 max-w-2xl sm:max-w-3xl">
+                    <span className="block">Didedikasikan Untuk</span>
+                    <span className="block text-[#b77305] italic font-serif mt-1.5">
+                      Keindahan Kebaya & Gaun Mewah
+                    </span>
+                  </h3>
+                </div>
               </Reveal>
             </div>
 
@@ -142,21 +148,21 @@ export default function AboutBrand() {
       </div>
 
       {/* Subsequent Content: Swatches & Feature Cards (Scrolls naturally after header ribbon animation) */}
-      <div className="container mx-auto px-4 pb-24 pt-8 relative z-10 border-t border-stone-100">
+      <div className="container mx-auto px-4 pb-24 pt-12 relative z-10 border-t border-stone-100">
         <div className="max-w-7xl mx-auto">
 
           {/* Circular Fabric Categories Swatch Row */}
-          <div className="mb-20">
+          <div className="mb-24">
             <Reveal>
               <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 md:gap-14 py-4">
-                {FABRIC_CIRCLES.map((item, idx) => (
+                {FABRIC_CIRCLES.map((item) => (
                   <Link
                     key={item.id}
                     href={item.link}
                     className="group flex flex-col items-center gap-3.5 text-center transition-transform duration-300"
                   >
-                    {/* Circle Swatch Container */}
-                    <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden shadow-xl border-4 border-stone-200 group-hover:border-[#b77305] group-hover:shadow-2xl transition-all duration-500 transform group-hover:scale-110">
+                    {/* Circle Swatch Container with Double Gold Ring & Glow */}
+                    <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden shadow-lg border-2 border-stone-200 group-hover:border-[#b77305] group-hover:ring-4 group-hover:ring-[#b77305]/30 group-hover:shadow-2xl transition-all duration-500 transform group-hover:scale-105">
                       <Image
                         src={item.image}
                         alt={item.name}
@@ -167,8 +173,8 @@ export default function AboutBrand() {
                       <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
                     </div>
 
-                    {/* Category Name Label */}
-                    <span className="text-sm md:text-base font-bold text-stone-900 group-hover:text-[#b77305] transition-colors tracking-tight">
+                    {/* Category Name Label in Luxury Serif Typography */}
+                    <span className="text-sm sm:text-base font-serif font-medium text-stone-900 group-hover:text-[#b77305] transition-colors tracking-wide">
                       {item.name}
                     </span>
                   </Link>
@@ -177,42 +183,57 @@ export default function AboutBrand() {
             </Reveal>
           </div>
 
-          {/* Animated Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left relative z-20">
+          {/* Animated Feature Cards Grid with Custom Gold Emblem Icons */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left relative z-20">
             {[
               {
                 title: "Detail Brukat Mutiara",
                 desc: "Setiap helai kain diperkaya dengan motif bordir rapat, taburan mutiara timbul, dan payet kilau berkualitas tinggi.",
+                icon: Sparkles,
               },
               {
                 title: "Bahan Halus & Nyaman",
                 desc: "Serat renda Chantilly dan tile kualitas ekspor yang lembut di kulit, tidak gatal, serta jatuh secara sempurna.",
+                icon: Feather,
               },
               {
                 title: "Pilihan Warna Lengkap",
                 desc: "Tersedia puluhan varian warna anggun mulai dari pastel lembut, rose gold, nude, champagne, hingga warna royal tajam.",
+                icon: Palette,
               },
-            ].map((feature, i) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: false, margin: "-100px" }}
-                transition={{ duration: 0.7, delay: i * 0.15, ease: "easeOut" }}
-                className="p-8 border border-[#b77305]/20 hover:border-[#b77305] transition-all duration-500 bg-[#b77305]/5 backdrop-blur-sm group hover:-translate-y-2 shadow-sm rounded-lg"
-              >
-                <div className="w-12 h-[2px] bg-[#b77305] mb-8 transform origin-left group-hover:scale-x-150 transition-all duration-500"></div>
-                <h4 className="text-lg font-bold uppercase tracking-wider mb-4 text-stone-900 group-hover:text-[#b77305] transition-colors">
-                  {feature.title}
-                </h4>
-                <p className="text-stone-600 text-sm leading-relaxed group-hover:text-stone-800 transition-colors">
-                  {feature.desc}
-                </p>
-              </motion.div>
-            ))}
+            ].map((feature, i) => {
+              const Icon = feature.icon;
+              return (
+                <motion.div
+                  key={feature.title}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: false, margin: "-100px" }}
+                  transition={{ duration: 0.7, delay: i * 0.15, ease: "easeOut" }}
+                  className="p-8 border border-[#e8ded2] hover:border-[#b77305]/60 transition-all duration-500 bg-gradient-to-b from-[#faf8f5] to-[#f6f0ea] backdrop-blur-sm group hover:-translate-y-2 shadow-sm hover:shadow-xl rounded-2xl relative overflow-hidden flex flex-col justify-between"
+                >
+                  {/* Top Gold Highlight Accent Bar */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#b77305]/40 to-transparent group-hover:via-[#b77305] transition-all duration-500" />
+
+                  <div>
+                    {/* Gold Icon Emblem Badge */}
+                    <div className="w-12 h-12 rounded-full bg-[#b77305]/10 border border-[#b77305]/30 flex items-center justify-center text-[#b77305] mb-6 group-hover:bg-[#b77305] group-hover:text-white group-hover:scale-110 transition-all duration-300 shadow-sm">
+                      <Icon className="w-5 h-5" />
+                    </div>
+
+                    <h4 className="text-xl font-serif font-medium tracking-wide mb-3 text-stone-950 group-hover:text-[#b77305] transition-colors">
+                      {feature.title}
+                    </h4>
+                    <p className="text-stone-600 text-sm leading-relaxed font-light group-hover:text-stone-800 transition-colors">
+                      {feature.desc}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
 
-          {/* Call To Action */}
+          {/* Call To Action Button */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -222,14 +243,12 @@ export default function AboutBrand() {
           >
             <Link
               href="/shop"
-              className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-black transition-all duration-200 bg-black/5 border border-black/20 hover:bg-black hover:text-white rounded-md overflow-hidden"
+              className="px-10 py-4 font-medium text-white transition-all duration-300 bg-gradient-to-r from-[#b77305] via-[#c58c1b] to-[#d4af37] hover:from-[#965e04] hover:to-[#b77305] rounded-full shadow-xl shadow-[#b77305]/25 hover:shadow-2xl hover:shadow-[#b77305]/40 hover:scale-[1.03] active:scale-95 group inline-flex items-center gap-3"
             >
-              <span className="relative z-10 uppercase tracking-widest text-sm flex items-center gap-3">
-                Explore Collection
-                <svg className="w-4 h-4 transform group-hover:translate-y-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                </svg>
+              <span className="uppercase tracking-widest text-xs font-bold">
+                Eksplor Koleksi Lengkap
               </span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </motion.div>
 
