@@ -27,7 +27,10 @@ const genAI = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
 
 
 // --- DATABASE SETUP ---
-const connectionString = `${process.env.DATABASE_URL}`;
+const connectionString = process.env.DATABASE_URL || '';
+if (!connectionString) {
+  console.error('[WARNING] DATABASE_URL environment variable is missing or empty!');
+}
 const pool = new Pool({ 
   connectionString,
   max: 10,
@@ -2418,6 +2421,6 @@ cron.schedule('0 * * * *', async () => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(Number(PORT), '0.0.0.0', () => {
+  console.log(`Server is running on port ${PORT} (0.0.0.0)`);
 });
