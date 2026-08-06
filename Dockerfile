@@ -24,14 +24,11 @@ WORKDIR /app
 RUN apt-get update -y && apt-get install -y openssl
 
 ENV NODE_ENV=production
-ENV PORT=5000
 
 COPY backend/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./
-
-EXPOSE 5000
 
 CMD ["node", "dist/index.js"]
