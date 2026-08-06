@@ -44,9 +44,9 @@ export default async function Home() {
       <FeaturedCategories />
       <CatalogFlipbookSection />
       <AboutBrand />
+      <LatestDrops products={products} />
       <DealsAndRecommendations products={products} />
       <ShopTheLook />
-      <LatestDrops products={products} />
       <BestSellers products={products} />
     </div>
   );
