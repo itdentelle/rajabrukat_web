@@ -11,6 +11,8 @@ import ProductSkeleton from "@/components/ui/ProductSkeleton";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Award, Filter, Sparkles, Grid, Layers, RotateCcw, X, Check, Tag, DollarSign, Store, ExternalLink, ShoppingBag } from "lucide-react";
 
+import { API_BASE_URL } from "@/lib/api";
+
 // Exact 3 Main Categories
 const MAIN_CATEGORIES = [
   "Semua Kategori",
@@ -77,7 +79,7 @@ function ShopContent() {
   useEffect(() => {
     let isMounted = true;
     // Fetch products from backend
-    fetch("http://localhost:5000/api/products?limit=200")
+    fetch(`${API_BASE_URL}/api/products?limit=200`)
       .then((res) => {
         const contentType = res.headers.get("content-type") || "";
         if (!res.ok || !contentType.includes("application/json")) return null;

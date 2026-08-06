@@ -7,6 +7,8 @@ import Link from "next/link";
 import { Reveal } from "@/components/ui/Reveal";
 import { ArrowRight, Sparkles, Feather, Palette } from "lucide-react";
 
+import { API_BASE_URL } from "@/lib/api";
+
 interface SiteConfig {
   aboutTitle: string;
   aboutSubtitle: string;
@@ -51,7 +53,7 @@ export default function AboutBrand() {
   const [config, setConfig] = useState<SiteConfig | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/config/hero")
+    fetch(`${API_BASE_URL}/api/config/hero`)
       .then((res) => {
         const contentType = res.headers.get("content-type") || "";
         if (!res.ok || !contentType.includes("application/json")) return null;

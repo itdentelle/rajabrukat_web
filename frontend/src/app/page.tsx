@@ -8,10 +8,11 @@ import ShopTheLook from "@/components/home/ShopTheLook";
 import LatestDrops from "@/components/home/LatestDrops";
 import BestSellers from "@/components/home/BestSellers";
 import CatalogFlipbookSection from "@/components/home/CatalogFlipbookSection";
+import { API_BASE_URL } from "@/lib/api";
 
 async function getProducts() {
   try {
-    const res = await fetch("http://localhost:5000/api/products", { next: { revalidate: 60 } });
+    const res = await fetch(`${API_BASE_URL}/api/products`, { next: { revalidate: 60 } });
     const contentType = res.headers.get("content-type") || "";
     if (!res.ok || !contentType.includes("application/json")) return [];
     const data = await res.json();
@@ -24,7 +25,7 @@ async function getProducts() {
 
 async function getHeroConfig() {
   try {
-    const res = await fetch("http://localhost:5000/api/config/hero", { next: { revalidate: 60 } });
+    const res = await fetch(`${API_BASE_URL}/api/config/hero`, { next: { revalidate: 60 } });
     const contentType = res.headers.get("content-type") || "";
     if (!res.ok || !contentType.includes("application/json")) return null;
     return await res.json();

@@ -6,6 +6,7 @@ import { Sparkles, X, Send, Image as ImageIcon, ArrowRight, Loader2 } from "luci
 import Image from "next/image";
 import Link from "next/link";
 import { cleanTitle } from "@/utils/cleanTitle";
+import { API_BASE_URL } from "@/lib/api";
 
 interface Product {
   id: string;
@@ -142,7 +143,7 @@ export default function AiChatWidget() {
           content: m.text,
         }));
 
-      const res = await fetch("http://localhost:5000/api/ai/chat", {
+      const res = await fetch(`${API_BASE_URL}/api/ai/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
