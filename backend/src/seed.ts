@@ -6,64 +6,115 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const connectionString = `${process.env.DATABASE_URL}`;
-const pool = new Pool({ connectionString });
+const pool = new Pool({ 
+  connectionString,
+  ssl: connectionString.includes('supabase') ? { rejectUnauthorized: false } : undefined
+});
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-const products = [
+const fabricProducts = [
   {
-    id: "1",
-    name: "Classic Logo Black T-Shirt",
+    id: "brukat-1",
+    name: "Brukat Tile Mutiara Royal French Grade A",
+    price: 125000,
+    discountPrice: 110000,
+    category: "Brukat Tile Mutiara",
+    description: "Kain Brukat Tile Mutiara mewah bertabur payet dan mutiara sintetis kilau tinggi. Sangat elegan untuk bahan Kebaya Wisuda, Kebaya Pengantin, dan Gaun Pesta Malam. Lebar kain 1.5 meter. Bahan jatuh, dingin, dan tidak gatal.",
+    image: "/images/brukat_tile_mutiara.png",
+    colors: ["Champagne Gold", "Rose Gold", "Sage Green", "Dusty Pink", "Navy Blue"],
+    stock: 250,
+    isActive: true,
+  },
+  {
+    id: "brukat-2",
+    name: "Renda Chantilly Premium Soft Lace Perancis",
     price: 185000,
-    category: "T-Shirt",
-    image: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?q=80&w=1287&auto=format&fit=crop",
-    description: "Our signature classic logo t-shirt made with premium 100% combed cotton. Built for daily wear and maximum comfort.",
+    discountPrice: 165000,
+    category: "Renda Chantilly",
+    description: "Kain Brukat Chantilly Perancis dengan karakter renda super lembut, benang halus, dan motif bunga renda klasik yang sangat mewah. Cocok untuk Gaun Pengantin Modern dan Kebaya Encim Eksklusif.",
+    image: "/images/renda_chantilly_french.png",
+    colors: ["Broken White", "Blush Pink", "Soft Lavender", "Maroon", "Gold"],
+    stock: 180,
+    isActive: true,
   },
   {
-    id: "2",
-    name: "Essential White Tee",
-    price: 175000,
-    category: "T-Shirt",
-    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=1480&auto=format&fit=crop",
-    description: "The essential white tee that fits perfectly into any wardrobe. Breathable, durable, and stylish.",
+    id: "brukat-3",
+    name: "Brukat Cornely Timbul 3D Silk Satin",
+    price: 165000,
+    discountPrice: null,
+    category: "Cornely 3D",
+    description: "Kain Brukat Cornely dengan bordir tali timbul 3D yang kokoh dan tegas. Motif kelopak bunga mekar yang artistik dan mewah. Cocok untuk kombinasi gamis pesta dan kebaya modern.",
+    image: "/images/cornely_silk_satin.png",
+    colors: ["Emerald Green", "Royal Navy", "Burgundy", "Silver Grey"],
+    stock: 200,
+    isActive: true,
   },
   {
-    id: "3",
-    name: "Urban Zip Hoodie",
-    price: 350000,
-    category: "Jacket",
-    image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=1287&auto=format&fit=crop",
-    description: "Stay warm in style with our Urban Zip Hoodie. Featuring a heavy-weight fleece fabric and a sleek design.",
+    id: "brukat-4",
+    name: "Brukat Cord Metallic Gold Edition",
+    price: 145000,
+    discountPrice: null,
+    category: "Brukat Cord",
+    description: "Kain Brukat Cord dengan lis benang emas metallic kusam (antique gold) yang memberikan kilau anggun khas adat tradisional & modern. Tekstur tebal dan presisi.",
+    image: "/images/brukat_tile_mutiara.png",
+    colors: ["Antique Gold", "Copper Bronze", "Black Emas", "Rose Champagne"],
+    stock: 300,
+    isActive: true,
   },
   {
-    id: "4",
-    name: "Canvas Tote Bag",
-    price: 120000,
-    category: "Accessories",
-    image: "https://images.unsplash.com/photo-1597523168239-2ce13f30b91e?q=80&w=1287&auto=format&fit=crop",
-    description: "A durable and spacious canvas tote bag perfect for carrying your daily essentials everywhere you go.",
+    id: "brukat-5",
+    name: "Kain Furing Satin Silk Companion",
+    price: 45000,
+    discountPrice: null,
+    category: "Silk & Satin",
+    description: "Kain Furing Silk Velvet super halus dan adem sebagai pasangan/dalaman kain brukat. Kilap doff yang mewah, menyerap keringat, dan membuat brukat terlihat makin kontras.",
+    image: "/images/cornely_silk_satin.png",
+    colors: ["Match Champagne", "Match Rose Gold", "Match Sage", "Match Nude", "Match White"],
+    stock: 500,
+    isActive: true,
+  },
+  {
+    id: "brukat-6",
+    name: "Brukat Bunga Timbul Sequins Premium",
+    price: 215000,
+    discountPrice: 195000,
+    category: "Brukat Premium",
+    description: "Brukat haute couture dengan taburan payet piringan (sequins) kilau mutiara dan aplikasi bunga 3D timbul. Didesain khusus untuk gaun resepsi malam dan busana desainer.",
+    image: "/images/renda_chantilly_french.png",
+    colors: ["Crystal Silver", "Midnight Black", "Rose Gold", "Sage Emerald"],
+    stock: 120,
+    isActive: true,
   },
 ];
 
 async function main() {
-  console.log("Start seeding...");
-  for (const p of products) {
-    const product = await prisma.product.upsert({
-      where: { id: p.id },
-      update: {},
-      create: p,
+  console.log("Cleaning old product data...");
+  // Delete all old order items, cart items, wishlist items before deleting products
+  await prisma.orderItem.deleteMany({});
+  await prisma.cartItem.deleteMany({});
+  await prisma.wishlistItem.deleteMany({});
+  await prisma.review.deleteMany({});
+  await prisma.product.deleteMany({});
+  console.log("Database products wiped clean.");
+
+  console.log("Seeding fresh RajaBrukat fabric catalog...");
+  for (const p of fabricProducts) {
+    const product = await prisma.product.create({
+      data: p,
     });
-    console.log(`Created product with id: ${product.id}`);
+    console.log(`Created fabric product: [${product.id}] ${product.name}`);
   }
-  console.log("Seeding finished.");
+  console.log("Seeding finished successfully ✨");
 }
 
 main()
   .then(async () => {
     await prisma.$disconnect();
+    process.exit(0);
   })
   .catch(async (e) => {
-    console.error(e);
+    console.error("Seeding error:", e);
     await prisma.$disconnect();
     process.exit(1);
   });

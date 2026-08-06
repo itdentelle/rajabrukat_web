@@ -11,12 +11,14 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  fallback: ["system-ui", "sans-serif"],
 });
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-serif",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  fallback: ["Georgia", "serif"],
 });
 
 export const metadata: Metadata = {
@@ -42,7 +44,7 @@ export default function RootLayout({
         <link rel="icon" href="/icon.png" type="image/png" sizes="any" />
         <link rel="apple-touch-icon" href="/icon.png" />
       </head>
-      <body className="min-h-full flex flex-col font-sans bg-[var(--background)] text-[var(--foreground)]">
+      <body className="min-h-full flex flex-col font-sans bg-[var(--background)] text-[var(--foreground)] overflow-x-hidden overscroll-x-none">
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
           <Toaster position="top-center" />
           <CartDrawer />

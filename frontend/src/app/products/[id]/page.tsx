@@ -6,7 +6,9 @@ import { ArrowLeft } from "lucide-react";
 import ProductDetailsClient from "./ProductDetailsClient";
 import ProductGalleryClient from "./ProductGalleryClient";
 import ProductCard from "@/components/products/ProductCard";
+import { cleanTitle } from "@/utils/cleanTitle";
 import ProductReviews from "@/components/products/ProductReviews";
+import FormattedDescription from "@/components/products/FormattedDescription";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +20,8 @@ async function getProduct(id: string) {
   try {
     const res = await fetch(`http://localhost:5000/api/products/${id}`, { cache: "no-store" });
     if (!res.ok) return null;
+    const contentType = res.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) return null;
     return await res.json();
   } catch (error) {
     console.error(`Failed to fetch product ${id}:`, error);
@@ -35,14 +39,20 @@ export default async function ProductDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  const { displayTitle, code } = cleanTitle(product.name);
+  const formattedTitle = code ? `${displayTitle} [ ${code} ]` : displayTitle;
+
   // Fetch all products to get recommendations
   let recommendedProducts = [];
   try {
     const res = await fetch(`http://localhost:5000/api/products`, { cache: "no-store" });
-    if (res.ok) {
+    const contentType = res.headers.get("content-type") || "";
+    if (res.ok && contentType.includes("application/json")) {
       const resData = await res.json();
       const allProducts = resData.products || resData;
-      recommendedProducts = allProducts.filter((p: any) => p.id !== id).slice(0, 4);
+      if (Array.isArray(allProducts)) {
+        recommendedProducts = allProducts.filter((p: any) => p.id !== id).slice(0, 4);
+      }
     }
   } catch (error) {
     console.error("Failed to fetch recommended products:", error);
@@ -52,7 +62,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
   let reviews = [];
   try {
     const revRes = await fetch(`http://localhost:5000/api/products/${id}/reviews`, { cache: "no-store" });
-    if (revRes.ok) {
+    const revContentType = revRes.headers.get("content-type") || "";
+    if (revRes.ok && revContentType.includes("application/json")) {
       reviews = await revRes.json();
     }
   } catch(e) {}
@@ -83,7 +94,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
         {/* Product Info */}
         <div className="flex flex-col">
           <p className="text-gray-500 uppercase tracking-widest text-sm font-bold mb-4">{product.category}</p>
-          <h1 className="text-3xl lg:text-5xl font-black uppercase tracking-tighter mb-4">{product.name}</h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-gray-900 leading-snug mb-4">{formattedTitle}</h1>
           
           {reviews.length > 0 && (
             <div className="flex items-center gap-2 mb-6">
@@ -106,10 +117,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
           ) : (
             <p className="text-3xl font-medium mb-8">{formatPrice(product.price)}</p>
           )}
-          <div className="mb-10">
-            <p className="text-gray-600 leading-relaxed">
-              {product.description || "Crafted from premium materials to provide comfort for your daily activities. DragonWorm focuses on high quality pieces that define true streetwear identity."}
-            </p>
+          <div className="mb-8">
+            <FormattedDescription description={product.description} />
           </div>
 
 
@@ -124,7 +133,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
             </div>
             <div>
               <h3 className="font-bold uppercase tracking-widest text-sm mb-2">Materials & Care</h3>
-              <p className="text-sm text-gray-500">100% Cotton. Machine wash cold, tumble dry low. Do not bleach.</p>
+              <p className="text-sm text-gray-500">Bahan Brukat & Kebaya Premium. Disarankan cuci lembut dengan tangan (hand wash), hindari penggunaan pemutih, dan jemur di tempat teduh.</p>
             </div>
           </div>
 

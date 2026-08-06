@@ -221,7 +221,7 @@ export default function DealsAndRecommendations({ products = [] }: DealsProps) {
                 </button>
 
                 <Link
-                  href="/shop"
+                  href={dealItem.id.startsWith("deal-") ? "/shop" : `/products/${dealItem.id}`}
                   className="px-8 py-4 border-2 border-[#b77305]/40 hover:border-[#b77305] text-stone-900 hover:text-[#b77305] text-xs sm:text-sm font-bold uppercase tracking-wider rounded-full transition-all duration-300 flex items-center justify-center gap-2 group"
                 >
                   <span>LIHAT DETAIL KAIN</span>

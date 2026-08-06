@@ -16,15 +16,33 @@ import cron from 'node-cron';
 import Redis from 'ioredis';
 import { Queue, Worker } from 'bullmq';
 import { RedisStore } from 'rate-limit-redis';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 const midtransClient = require('midtrans-client');
 
 dotenv.config();
 
+// --- GEMINI AI SETUP ---
+const geminiApiKey = process.env.GEMINI_API_KEY || '';
+const genAI = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
+
+
 // --- DATABASE SETUP ---
 const connectionString = `${process.env.DATABASE_URL}`;
-const pool = new Pool({ connectionString });
+const pool = new Pool({ 
+  connectionString,
+  max: 10,
+  idleTimeoutMillis: 10000,
+  connectionTimeoutMillis: 10000,
+  ssl: connectionString.includes('supabase') ? { rejectUnauthorized: false } : undefined
+});
+
+pool.on('error', (err) => {
+  console.error('Pg Pool Idle Connection Warning:', err.message);
+});
+
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
+
 
 // --- EXPRESS SETUP ---
 const PORT = process.env.PORT || 5000;
@@ -32,36 +50,49 @@ const app = express();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || 'placeholder');
 
 // --- REDIS SETUP ---
-const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
+const rawRedisUrl = process.env.REDIS_URL;
+const REDIS_URL = (rawRedisUrl && rawRedisUrl.trim() !== '') ? rawRedisUrl : null;
 let isRedisConnected = false;
+let redisClient: Redis | null = null;
+let emailQueue: Queue | null = null;
+let emailWorker: Worker | null = null;
 
-const redisClient = new Redis(REDIS_URL, {
-  maxRetriesPerRequest: null,
-  retryStrategy(times) {
-    if (times > 3) {
-      return null; // Stop reconnecting after 3 failed attempts
-    }
-    return Math.min(times * 200, 2000);
-  },
-  enableOfflineQueue: false,
-});
+if (REDIS_URL) {
+  try {
+    redisClient = new Redis(REDIS_URL, {
+      maxRetriesPerRequest: null,
+      retryStrategy(times) {
+        if (times > 2) {
+          return null; // Stop reconnecting after 2 failed attempts
+        }
+        return Math.min(times * 200, 2000);
+      },
+      enableOfflineQueue: false,
+    });
 
-redisClient.on('connect', () => {
-  isRedisConnected = true;
-  console.log('Redis Connected Successfully 🚀');
-});
-redisClient.on('error', (err) => {
-  isRedisConnected = false;
-  console.error('Redis Connection Warning (Bypassing Redis cache):', err.message);
-});
+    redisClient.on('connect', () => {
+      isRedisConnected = true;
+      console.log('Redis Connected Successfully 🚀');
+    });
 
-// --- BULLMQ QUEUE SETUP ---
-const emailQueue = new Queue('emailQueue', { connection: redisClient as any });
+    redisClient.on('error', (err) => {
+      isRedisConnected = false;
+      // Silent warning to prevent log noise when Redis is unreachable
+    });
+
+    emailQueue = new Queue('emailQueue', { connection: redisClient as any });
+  } catch (err) {
+    console.log('Redis initialized in offline/bypassed mode.');
+  }
+} else {
+  console.log('Redis disabled (No REDIS_URL set). Running in memory-direct mode.');
+}
+
 
 // --- CACHING MIDDLEWARE ---
 const cacheMiddleware = (ttlSeconds: number) => {
   return async (req: Request, res: Response, next: express.NextFunction) => {
-    if (req.method !== 'GET' || !isRedisConnected || redisClient.status !== 'ready') {
+    if (req.method !== 'GET' || !isRedisConnected || !redisClient || redisClient.status !== 'ready') {
       return next();
     }
     
@@ -73,7 +104,7 @@ const cacheMiddleware = (ttlSeconds: number) => {
       } else {
         const originalJson = res.json.bind(res);
         res.json = (body: any) => {
-          if (isRedisConnected && redisClient.status === 'ready') {
+          if (isRedisConnected && redisClient && redisClient.status === 'ready') {
             redisClient.setex(key, ttlSeconds, JSON.stringify(body)).catch(() => {});
           }
           return originalJson(body);
@@ -110,14 +141,19 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Serve scraped product images directly from scraping output directory
+const SCRAPED_IMAGES_DIR = `C:\\Users\\DWIKY SUMARLIN\\Documents\\PORTOFOLIO\\web-scrapping-rb\\hasil_scraping`;
+app.use('/scraped-images', express.static(SCRAPED_IMAGES_DIR));
+
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
   max: 10, 
   message: { error: 'Terlalu banyak percobaan login/register, silakan coba lagi setelah 15 menit.' },
   standardHeaders: true, 
   legacyHeaders: false,
-  store: isRedisConnected ? new RedisStore({
-    sendCommand: (...args: string[]) => redisClient.call(args[0], ...args.slice(1)) as any,
+  store: (isRedisConnected && redisClient) ? new RedisStore({
+    sendCommand: (...args: string[]) => redisClient!.call(args[0], ...args.slice(1)) as any,
   }) : undefined,
 });
 
@@ -179,68 +215,69 @@ const getEmailTemplate = (title: string, bodyHTML: string, buttonText?: string, 
 
 // --- EMAIL QUEUE FUNCTIONS ---
 const sendNotificationEmail = async (email: string, subject: string, title: string, bodyHTML: string, buttonText?: string, buttonUrl?: string) => {
-  await emailQueue.add('send-notification', { email, subject, title, bodyHTML, buttonText, buttonUrl });
-  console.log(`[EMAIL QUEUE] Queued notification email for ${email} - Subject: ${subject}`);
-};
-
-const sendOTPEmail = async (email: string, otp: string) => {
-  await emailQueue.add('send-otp', { email, otp });
-  console.log(`[EMAIL QUEUE] Queued OTP email for ${email}`);
-};
-
-// --- BULLMQ EMAIL WORKER ---
-const emailWorker = new Worker('emailQueue', async job => {
-  if (job.name === 'send-notification') {
-    const { email, subject, title, bodyHTML, buttonText, buttonUrl } = job.data;
+  if (emailQueue && isRedisConnected) {
+    await emailQueue.add('send-notification', { email, subject, title, bodyHTML, buttonText, buttonUrl });
+    console.log(`[EMAIL QUEUE] Queued notification email for ${email} - Subject: ${subject}`);
+  } else {
     const html = getEmailTemplate(title, bodyHTML, buttonText, buttonUrl);
-    const mailOptions = {
-      from: `"DragonWorm" <${process.env.EMAIL_USER}>`,
+    transporter.sendMail({
+      from: `"RajaBrukat" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: subject,
       html: html
-    };
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
+    }).catch((err: any) => console.error("Direct Email Error:", err?.message || err));
+  }
+};
 
-    try {
-      await transporter.sendMail(mailOptions);
-      console.log(`[EMAIL WORKER] Successfully sent "${subject}" to ${email}`);
-    } catch (error) {
-      console.error(`[EMAIL WORKER] Failed to send "${subject}" to ${email}:`, error);
-      throw error; 
-    }
-  } else if (job.name === 'send-otp') {
-    const { email, otp } = job.data;
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log(`\n=========================================\n[DUMMY EMAIL WORKER] OTP for ${email} is: ${otp}\n=========================================\n`);
-      return;
-    }
-    
-    const mailOptions = {
-      from: `"DragonWorm" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: 'Your Login/Register OTP Code',
-      text: `Your DragonWorm OTP code is: ${otp}. It will expire in 5 minutes.`
-    };
-    
-    try {
-      await transporter.sendMail(mailOptions);
-      console.log(`\n=========================================\n[DEVELOPMENT WORKER] OTP for ${email} is: ${otp}\n=========================================\n`);
-    } catch (error) {
-      console.error("[EMAIL WORKER] Failed to send OTP email:", error);
-      console.log(`\n=========================================\n[DUMMY EMAIL WORKER] OTP for ${email} is: ${otp}\n=========================================\n`);
-      throw error;
+const sendOTPEmail = async (email: string, otp: string) => {
+  if (emailQueue && isRedisConnected) {
+    await emailQueue.add('send-otp', { email, otp });
+    console.log(`[EMAIL QUEUE] Queued OTP email for ${email}`);
+  } else {
+    console.log(`\n=========================================\n[DIRECT OTP EMAIL] OTP for ${email} is: ${otp}\n=========================================\n`);
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      transporter.sendMail({
+        from: `"RajaBrukat" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Your Login/Register OTP Code',
+        text: `Your RajaBrukat OTP code is: ${otp}. It will expire in 5 minutes.`
+      }).catch((err: any) => console.error("Direct OTP Email Error:", err?.message || err));
     }
   }
-}, { connection: redisClient as any });
+};
 
-emailWorker.on('completed', job => {
-  console.log(`[BULLMQ] Job ${job.id} has completed!`);
-});
+// --- BULLMQ EMAIL WORKER ---
+if (REDIS_URL && redisClient) {
+  try {
+    emailWorker = new Worker('emailQueue', async job => {
+      if (job.name === 'send-notification') {
+        const { email, subject, title, bodyHTML, buttonText, buttonUrl } = job.data;
+        const html = getEmailTemplate(title, bodyHTML, buttonText, buttonUrl);
+        const mailOptions = {
+          from: `"RajaBrukat" <${process.env.EMAIL_USER}>`,
+          to: email,
+          subject: subject,
+          html: html
+        };
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await transporter.sendMail(mailOptions);
+      } else if (job.name === 'send-otp') {
+        const { email, otp } = job.data;
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+          console.log(`\n=========================================\n[DUMMY EMAIL WORKER] OTP for ${email} is: ${otp}\n=========================================\n`);
+          return;
+        }
+        await transporter.sendMail({
+          from: `"RajaBrukat" <${process.env.EMAIL_USER}>`,
+          to: email,
+          subject: 'Your Login/Register OTP Code',
+          text: `Your RajaBrukat OTP code is: ${otp}.`
+        });
+      }
+    }, { connection: redisClient as any });
+  } catch (err) {}
+}// --- ADMIN INITIALIZATION ---
 
-emailWorker.on('failed', (job, err) => {
-  console.error(`[BULLMQ] Job ${job?.id} has failed with ${err.message}`);
-});
 
 const initializeAdmin = async () => {
   try {
@@ -546,7 +583,7 @@ app.put('/api/admin/settings', authenticateToken, async (req: Request, res: Resp
 app.get('/api/products', cacheMiddleware(3600), async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 50; // default to 50 for now to not break too many things
+    const limit = parseInt(req.query.limit as string) || 200;
     const all = req.query.all === 'true';
     const skip = (page - 1) * limit;
 
@@ -624,8 +661,10 @@ app.post('/api/products', authenticateToken, async (req: Request, res: Response)
     const product = await prisma.product.create({
       data: { name, price: Number(price), discountPrice: discountPrice ? Number(discountPrice) : null, category, description, image, galleryImages: galleryImages || [], colors: colors || [], sizeGuide, stock: stock !== undefined ? Number(stock) : 100 }
     });
-    const keys = await redisClient.keys('cache:/api/products*');
-    if (keys.length > 0) await redisClient.del(...keys);
+    if (redisClient) {
+      const keys = await redisClient.keys('cache:/api/products*');
+      if (keys.length > 0) await redisClient.del(...keys);
+    }
     res.status(201).json(product);
   } catch (error) {
     console.error("Error creating product:", error);
@@ -642,8 +681,10 @@ app.put('/api/products/:id', authenticateToken, async (req: Request, res: Respon
       where: { id },
       data: { name, price: Number(price), discountPrice: discountPrice ? Number(discountPrice) : null, category, description, image, galleryImages: galleryImages || [], colors: colors || [], sizeGuide, stock: stock !== undefined ? Number(stock) : undefined }
     });
-    const keys = await redisClient.keys('cache:/api/products*');
-    if (keys.length > 0) await redisClient.del(...keys);
+    if (redisClient) {
+      const keys = await redisClient.keys('cache:/api/products*');
+      if (keys.length > 0) await redisClient.del(...keys);
+    }
     res.json(product);
   } catch (error) {
     console.error("Error updating product:", error);
@@ -659,8 +700,10 @@ app.delete('/api/products/:id', authenticateToken, async (req: Request, res: Res
       where: { id },
       data: { isActive: false }
     });
-    const keys = await redisClient.keys('cache:/api/products*');
-    if (keys.length > 0) await redisClient.del(...keys);
+    if (redisClient) {
+      const keys = await redisClient.keys('cache:/api/products*');
+      if (keys.length > 0) await redisClient.del(...keys);
+    }
     res.json({ message: "Product archived successfully" });
   } catch (error) {
     console.error("Error archiving product:", error);
@@ -676,8 +719,10 @@ app.put('/api/products/:id/restore', authenticateToken, async (req: Request, res
       where: { id },
       data: { isActive: true }
     });
-    const keys = await redisClient.keys('cache:/api/products*');
-    if (keys.length > 0) await redisClient.del(...keys);
+    if (redisClient) {
+      const keys = await redisClient.keys('cache:/api/products*');
+      if (keys.length > 0) await redisClient.del(...keys);
+    }
     res.json({ message: "Product restored successfully" });
   } catch (error) {
     console.error("Error restoring product:", error);
@@ -692,22 +737,22 @@ app.post('/api/orders', async (req: Request, res: Response) => {
     
     // Idempotency check to prevent double-checkout
     const idempotencyKey = `checkout_lock:${email}`;
-    const isLocked = await redisClient.get(idempotencyKey);
+    const isLocked = redisClient ? await redisClient.get(idempotencyKey) : null;
     if (isLocked) {
       return res.status(429).json({ error: "Terlalu banyak permintaan checkout. Mohon tunggu beberapa detik." });
     }
-    await redisClient.setex(idempotencyKey, 5, 'locked');
+    if (redisClient) await redisClient.setex(idempotencyKey, 5, 'locked');
     
     // items should be an array of { productId, quantity, price }
     // Verify stock first
     for (const item of items) {
       const product = await prisma.product.findUnique({ where: { id: item.productId } });
       if (!product) {
-        await redisClient.del(idempotencyKey);
+        if (redisClient) await redisClient.del(idempotencyKey);
         return res.status(404).json({ error: `Produk tidak ditemukan.` });
       }
       if (product.stock < item.quantity) {
-        await redisClient.del(idempotencyKey);
+        if (redisClient) await redisClient.del(idempotencyKey);
         return res.status(400).json({ error: `Stok tidak mencukupi untuk ${product.name}. Tersisa: ${product.stock}` });
       }
     }
@@ -1893,23 +1938,23 @@ app.delete('/api/cart', authenticateToken, async (req: Request, res: Response) =
 app.get('/api/config/hero', cacheMiddleware(86400), async (req: Request, res: Response) => {
   try {
     let config = await prisma.siteConfig.findUnique({ where: { id: "hero-banner" } });
-    if (!config || config.title === "Define Your Street.") {
+    if (!config || config.title === "Define Your Street." || config.title === "Keanggunan Kain Brukat & Lace Premium") {
       config = await prisma.siteConfig.upsert({
         where: { id: "hero-banner" },
         update: {
-          title: "Keanggunan Kain Brukat & Lace Premium",
+          title: "Keanggunan Kain Semi Prancis 3D Premium",
           subtitle: "KOLEKSI RAJA BRUKAT 2026",
           buttonText: "Shop Now",
           buttonLink: "/shop",
-          imageUrl: "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=2400&auto=format&fit=crop"
+          imageUrl: "/images/white_lace_hero.jpg"
         },
         create: {
           id: "hero-banner",
-          title: "Keanggunan Kain Brukat & Lace Premium",
+          title: "Keanggunan Kain Semi Prancis 3D Premium",
           subtitle: "KOLEKSI RAJA BRUKAT 2026",
           buttonText: "Shop Now",
           buttonLink: "/shop",
-          imageUrl: "https://images.unsplash.com/photo-1544441893-675973e31985?q=80&w=2400&auto=format&fit=crop"
+          imageUrl: "/images/white_lace_hero.jpg"
         }
       });
     }
@@ -1956,7 +2001,7 @@ app.put('/api/config/hero', authenticateToken, async (req: Request, res: Respons
       }
     });
 
-    await redisClient.del('cache:/api/config/hero');
+    if (redisClient) await redisClient.del('cache:/api/config/hero');
     res.json(updatedConfig);
   } catch (error) {
     console.error("Error updating hero config:", error);
@@ -2006,7 +2051,7 @@ app.post('/api/collections', authenticateToken, async (req: Request, res: Respon
       }
     });
 
-    await redisClient.del('cache:/api/collections');
+    if (redisClient) await redisClient.del('cache:/api/collections');
     res.status(201).json(collection);
   } catch (error) {
     console.error("Error creating collection:", error);
@@ -2028,7 +2073,7 @@ app.put('/api/collections/:id', authenticateToken, async (req: Request, res: Res
       data: { title, subtitle, description, imageUrl, color, isActive }
     });
 
-    await redisClient.del('cache:/api/collections');
+    if (redisClient) await redisClient.del('cache:/api/collections');
     res.json(collection);
   } catch (error) {
     console.error("Error updating collection:", error);
@@ -2045,11 +2090,274 @@ app.delete('/api/collections/:id', authenticateToken, async (req: Request, res: 
     const id = req.params.id as string;
     await prisma.collection.delete({ where: { id } });
 
-    await redisClient.del('cache:/api/collections');
+    if (redisClient) await redisClient.del('cache:/api/collections');
     res.json({ message: "Collection deleted successfully" });
   } catch (error) {
     console.error("Error deleting collection:", error);
     res.status(500).json({ error: "Failed to delete collection" });
+  }
+});
+
+// --- GEMINI MODEL FALLBACK LIST ---
+const FALLBACK_MODELS = [
+  "gemini-flash-latest",
+  "gemini-2.0-flash",
+  "gemini-2.5-flash",
+  "gemini-2.0-flash-lite",
+  "gemini-1.5-flash-8b"
+];
+
+async function generateContentWithFallback(genAIInstance: any, contentsPayload: any[]) {
+  let lastError: any = null;
+  for (const modelName of FALLBACK_MODELS) {
+    try {
+      const model = genAIInstance.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent(contentsPayload);
+      const text = result.response.text().trim();
+      if (text) {
+        return { text, usedModel: modelName };
+      }
+    } catch (err: any) {
+      lastError = err;
+      console.warn(`[AI Fallback] Model ${modelName} hit limit or failed (${err?.message?.substring(0, 80)}). Retrying with next model...`);
+    }
+  }
+  throw lastError || new Error("All Gemini AI models failed or hit quota limits.");
+}
+
+// --- AI ASSISTANT ENDPOINTS ---
+
+// 1. AI Chatbot Assistant Endpoint
+app.post('/api/ai/chat', async (req: Request, res: Response) => {
+  try {
+    const { message, history = [], image } = req.body;
+    if (!message && !image) {
+      return res.status(400).json({ error: "Message or image is required" });
+    }
+
+    // Retrieve active products from database
+    const products = await prisma.product.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        discountPrice: true,
+        category: true,
+        description: true,
+        colors: true,
+        image: true,
+        stock: true,
+      }
+    });
+
+    let aiReply = "";
+    let recommendedProductIds: string[] = [];
+
+    if (genAI && process.env.GEMINI_API_KEY) {
+      try {
+        const catalogContext = products.length > 0 
+          ? products.map(p => {
+              const validColors = p.colors.filter(c => 
+                !c.toLowerCase().includes('gambar utama') && 
+                !c.toLowerCase().includes('manekin') &&
+                !c.toLowerCase().includes('gantung') &&
+                !c.toLowerCase().includes('foto')
+              );
+              return `ID: ${p.id} | Nama: ${p.name} | Kategori: ${p.category} | Warna: ${validColors.join(', ')} | Harga: Rp${p.price} | Diskon: ${p.discountPrice ? 'Rp'+p.discountPrice : 'Tidak ada'} | Deskripsi: ${p.description || '-'}`;
+            }).join('\n')
+          : "PERHATIAN KRUSIAL: SAAT INI KATALOG TOKO SEDANG KOSONG (0 PRODUK). JIKA PELANGGAN MENANYAKAN PRODUK / STOK / KATALOG, BERITAHUKAN DENGAN RAMAH BAHWA KATALOG TOKO RAJABRUKAT SAAT INI SEDANG DALAM PROSES UPDATE / RE-STOCK DENGAN MOTIF TERBARU.";
+
+        const systemPrompt = `Anda adalah "RajaBot", AI Fashion Advisor resmi dari toko RajaBrukat (spesialis kain brokat, tile, chantilly, lace premium Indonesia).
+Tugas Anda:
+1. Menjawab pertanyaan pelanggan dengan sangat ramah, elegan, dan membantu dalam bahasa Indonesia.
+2. Menganalisis permintaan pelanggan (warna, model, kategori, acara seperti wisuda/kondangan/akad, budget).
+3. Jika katalog memiliki produk, rekomendasikan ID produk yang cocok. Jika katalog KOSONG, beritahukan pelanggan dengan ramah bahwa katalog sedang update/re-stock dan belum ada produk aktif.
+
+--- KATALOG PRODUK RAJABRUKAT ---
+${catalogContext}
+--- AKHIR KATALOG ---
+
+Instruksi Output:
+Kembalikan respon hanya dalam format JSON valid berikut (tanpa pembungkus markdown):
+{
+  "reply": "Pesan balasan ramah dan informatif untuk pelanggan...",
+  "recommendedProductIds": []
+}
+
+Jika pelanggan mengunggah gambar, analisis warna dan pola kain pada gambar lalu cocokkan dengan katalog.`;
+
+
+
+        let contents: any[] = [];
+        if (image) {
+          const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
+          contents = [
+            systemPrompt,
+            ...history.map((h: any) => `${h.role === 'user' ? 'Customer' : 'RajaBot'}: ${h.content}`),
+            {
+              inlineData: {
+                data: base64Data,
+                mimeType: "image/jpeg"
+              }
+            },
+            `Customer: ${message || "Tunjukkan produk yang mirip dengan foto ini"}`
+          ];
+        } else {
+          contents = [
+            systemPrompt,
+            ...history.map((h: any) => `${h.role === 'user' ? 'Customer' : 'RajaBot'}: ${h.content}`),
+            `Customer: ${message}`
+          ];
+        }
+
+        const { text: responseText, usedModel } = await generateContentWithFallback(genAI, contents);
+        console.log(`[AI Chat] Generated response successfully using model: ${usedModel}`);
+        
+        try {
+          const cleanJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+          const parsed = JSON.parse(cleanJson);
+          aiReply = parsed.reply || responseText;
+          recommendedProductIds = parsed.recommendedProductIds || [];
+        } catch {
+          aiReply = responseText;
+        }
+      } catch (geminiError: any) {
+        console.error("All Gemini API models failed, falling back to smart filter:", geminiError?.message || geminiError);
+      }
+    }
+
+    // Smart Filter Rule Engine if AI response empty or no API key set
+    if (!aiReply) {
+      const lowerQuery = (message || "").toLowerCase();
+      const matchedProducts = products.filter(p => {
+        const nameMatch = p.name.toLowerCase().includes(lowerQuery);
+        const catMatch = p.category.toLowerCase().includes(lowerQuery);
+        const descMatch = (p.description || "").toLowerCase().includes(lowerQuery);
+        const colorMatch = p.colors.some(c => lowerQuery.includes(c.toLowerCase()) || c.toLowerCase().includes(lowerQuery));
+        return nameMatch || catMatch || descMatch || colorMatch;
+      });
+
+      recommendedProductIds = matchedProducts.slice(0, 4).map(p => p.id);
+
+      if (recommendedProductIds.length > 0) {
+        aiReply = `Halo Kak! ✨ Berdasarkan pencarian Anda "${message}", berikut adalah pilihan produk RajaBrukat yang cocok:`;
+      } else {
+        recommendedProductIds = [];
+        aiReply = `Halo Kak! Terima kasih sudah bertanya. 😊 Saat ini kami belum menemukan produk yang persis sama dengan "${message}". Silakan tanyakan warna atau model lain ya!`;
+      }
+    }
+
+    const recommendedProducts = products.filter(p => recommendedProductIds.includes(p.id));
+
+    res.json({
+      reply: aiReply,
+      products: recommendedProducts
+    });
+
+  } catch (error) {
+    console.error("AI Chat Error:", error);
+    res.status(500).json({ error: "Gagal memproses permintaan AI Chat" });
+  }
+});
+
+// 2. AI Smart Search Endpoint
+app.post('/api/ai/smart-search', async (req: Request, res: Response) => {
+  try {
+    const { query } = req.body;
+    if (!query) return res.status(400).json({ error: "Query is required" });
+
+    const products = await prisma.product.findMany({
+      where: { isActive: true }
+    });
+
+    const lower = query.toLowerCase();
+    const matchedProducts = products.filter(p => {
+      const inName = p.name.toLowerCase().includes(lower);
+      const inCategory = p.category.toLowerCase().includes(lower);
+      const inDesc = (p.description || "").toLowerCase().includes(lower);
+      const inColors = p.colors.some(c => lower.includes(c.toLowerCase()) || c.toLowerCase().includes(lower));
+      return inName || inCategory || inDesc || inColors;
+    });
+
+    let aiSummary = `Menampilkan ${matchedProducts.length} hasil terbaik untuk "${query}".`;
+    if (matchedProducts.length > 0) {
+      const topCategories = Array.from(new Set(matchedProducts.map(p => p.category))).join(', ');
+      aiSummary = `AI menemukan ${matchedProducts.length} produk pilihan dalam kategori ${topCategories} yang sesuai dengan kriteria warna & model pencarian Anda.`;
+    }
+
+    res.json({
+      aiSummary,
+      products: matchedProducts
+    });
+  } catch (error) {
+    console.error("AI Smart Search Error:", error);
+    res.status(500).json({ error: "Failed to perform AI smart search" });
+  }
+});
+
+// 3. AI Visual Search Endpoint (Upload Image)
+app.post('/api/ai/visual-search', async (req: Request, res: Response) => {
+  try {
+    const { image } = req.body;
+    if (!image) return res.status(400).json({ error: "Image is required" });
+
+    const products = await prisma.product.findMany({
+      where: { isActive: true }
+    });
+
+    let analysis = "";
+    let matchedIds: string[] = [];
+
+    if (genAI && process.env.GEMINI_API_KEY) {
+      try {
+        const catalogText = products.map(p => `ID: ${p.id} | Nama: ${p.name} | Warna: ${p.colors.join(', ')} | Kategori: ${p.category}`).join('\n');
+        
+        const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
+        const prompt = `Analisis foto kain/brokat ini. Sebutkan warna dominan, tekstur/motif brokat, dan kecocokan model. Lalu pilih ID produk dari katalog berikut yang paling mirip:
+${catalogText}
+
+Kembalikan format JSON:
+{
+  "analysis": "Deskripsi singkat mengenai warna dan pola yang terdeteksi pada gambar...",
+  "matchedIds": ["id1", "id2"]
+}`;
+
+
+        const { text: responseText, usedModel } = await generateContentWithFallback(genAI, [
+          prompt,
+          {
+            inlineData: {
+              data: base64Data,
+              mimeType: "image/jpeg"
+            }
+          }
+        ]);
+        console.log(`[AI Visual Search] Successfully analyzed image using model: ${usedModel}`);
+
+        const cleanJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanJson);
+        analysis = parsed.analysis || "Foto berhasil dianalisis oleh AI.";
+        matchedIds = parsed.matchedIds || [];
+      } catch (err: any) {
+        console.error("Gemini Visual Search Error:", err?.message || err);
+      }
+    }
+
+    if (matchedIds.length === 0 && !analysis) {
+      analysis = "Foto berhasil dianalisis oleh AI, namun saat ini belum ditemukan pola kain yang mirip di dalam katalog.";
+    }
+
+    const recommended = products.filter(p => matchedIds.includes(p.id));
+
+    res.json({
+      analysis,
+      products: recommended
+    });
+
+  } catch (error) {
+    console.error("AI Visual Search Error:", error);
+    res.status(500).json({ error: "Failed to perform AI visual search" });
   }
 });
 

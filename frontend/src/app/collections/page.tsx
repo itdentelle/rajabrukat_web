@@ -22,7 +22,11 @@ export default function CollectionsPage() {
 
   useEffect(() => {
     fetch("http://localhost:5000/api/collections")
-      .then(res => res.json())
+      .then(res => {
+        const contentType = res.headers.get("content-type") || "";
+        if (!res.ok || !contentType.includes("application/json")) return [];
+        return res.json();
+      })
       .then(data => {
         // Filter out inactive collections
         setCollections(data.filter((c: Collection) => c.isActive));

@@ -23,34 +23,34 @@ const CATEGORY_PANELS = [
     id: 1,
     num: "01",
     category: "KOLEKSI EKSKLUSIF 2026",
-    title: "Keanggunan Kain Brukat & Lace Premium",
+    title: "Keanggunan Kain Semi Prancis 3D Premium",
     description: "Seni bordir tile bertabur payet mutiara kristal mewah untuk kebaya & gaun pesta istimewa Anda.",
     buttonText: "Shop Now",
     buttonLink: "/shop?category=Brukat Tile Mutiara",
-    image: "/images/brukat_tile_mutiara.png",
+    image: "/images/white_lace_hero.jpg",
     badge: "BRUKAT 3D",
   },
   {
     id: 2,
     num: "02",
     category: "RENDA CHANTILLY FRENCH",
-    title: "Renda Chantilly Impor",
+    title: "Panel Brukat Chantily",
     description: "Kehalusan renda Prancis bertekstur ultra-soft yang jatuh lembut dan mewah di kulit.",
     buttonText: "Lihat Koleksi",
     buttonLink: "/shop?category=Renda Chantilly",
-    image: "/images/renda_chantilly_french.png",
+    image: "/images/beige_lace_hero.jpg",
     badge: "CHANTILLY",
   },
   {
     id: 3,
     num: "03",
-    category: "CORNELY 3D & SILK SATIN",
-    title: "Cornely 3D & Silk Satin",
-    description: "Dimensi bordir 3D timbul dipadu furing silk satin bernapas untuk kenyamanan maksimal.",
+    category: "METALLIC LACE ELEGANT",
+    title: "Panel Metallic Ellegant",
+    description: "Seni bordir metallic berkilau dengan detail mewah dan elegan untuk gaun pesta istimewa Anda.",
     buttonText: "Lihat Koleksi",
-    buttonLink: "/shop?category=Cornely 3D",
-    image: "/images/cornely_silk_satin.png",
-    badge: "SILK SATIN",
+    buttonLink: "/shop?category=Metallic",
+    image: "/images/metallic_lace_hero.jpg",
+    badge: "METALLIC",
   },
 ];
 
@@ -60,11 +60,13 @@ export default function HeroBanner({ config }: HeroBannerProps) {
       id: 1,
       num: "01",
       category: config.subtitle || "KOLEKSI EKSKLUSIF 2026",
-      title: config.title.replace(/\n/g, ", "),
+      title: config.title === "Keanggunan Kain Brukat & Lace Premium" 
+        ? "Keanggunan Kain Semi Prancis 3D Premium" 
+        : config.title.replace(/\n/g, ", "),
       description: "Koleksi kain brukat dan renda pilihan dengan standar kualitas terbaik untuk gaun pesta & kebaya istimewa Anda.",
       buttonText: config.buttonText || "Shop Now",
       buttonLink: config.buttonLink || "/shop",
-      image: "/images/brukat_tile_mutiara.png",
+      image: "/images/white_lace_hero.jpg",
       badge: "BRUKAT 3D",
     },
     ...CATEGORY_PANELS.slice(1)
@@ -138,11 +140,8 @@ export default function HeroBanner({ config }: HeroBannerProps) {
               {/* COLLAPSED STATE VIEW (Upright Legible Text) */}
               {!isActive && (
                 <div className="relative z-10 w-full h-full flex flex-col justify-between p-5 md:p-7 text-white">
-                  {/* Top Badge & Number */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-[#e2b744] font-mono drop-shadow">
-                      {panel.num}
-                    </span>
+                  {/* Top Badge */}
+                  <div className="flex items-center justify-end">
                     <span className="text-[10px] font-bold tracking-widest text-amber-200 uppercase px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-md border border-amber-500/30 shadow-md">
                       {panel.badge}
                     </span>
@@ -174,11 +173,8 @@ export default function HeroBanner({ config }: HeroBannerProps) {
                   transition={{ duration: 0.5, ease: "easeOut" }}
                   className="relative z-10 w-full h-full flex flex-col justify-end p-6 sm:p-10 md:p-12 text-left max-w-xl text-white"
                 >
-                  {/* Category Badge & Index */}
+                  {/* Category Badge */}
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="text-3xl font-bold text-[#e2b744] font-mono drop-shadow">
-                      {panel.num}
-                    </span>
                     <span className="px-3.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-[#e2b744]/40 text-[#e2b744] text-xs font-semibold uppercase tracking-wider shadow-lg">
                       {panel.badge}
                     </span>

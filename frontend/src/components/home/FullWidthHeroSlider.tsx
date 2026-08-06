@@ -21,27 +21,27 @@ interface FullWidthHeroSliderProps {
 const DEFAULT_SLIDES = [
   {
     id: 1,
-    title: "Koleksi Brukat Tile Mutiara 3D Kualitas Impor Spesial",
+    title: "Keanggunan Kain Semi Prancis 3D Premium",
     category: "KOLEKSI TERBARU 2026",
     buttonText: "Mulai Belanja",
     buttonLink: "/shop?category=Grade A",
-    image: "/images/brukat_tile_mutiara.png",
+    image: "/images/white_lace_hero.jpg",
   },
   {
     id: 2,
-    title: "Renda Chantilly Halus & Lembut Untuk Kebaya Pesta",
+    title: "Panel Brukat Chantily",
     category: "RENDA CHANTILLY FRENCH",
     buttonText: "Mulai Belanja",
     buttonLink: "/shop?category=Grade B",
-    image: "/images/renda_chantilly_french.png",
+    image: "/images/beige_lace_hero.jpg",
   },
   {
     id: 3,
-    title: "Brukat Cornely 3D & Silk Satin Furing Berkelas",
-    category: "CORNELY 3D & SILK SATIN",
+    title: "Panel Metallic Ellegant",
+    category: "METALLIC LACE ELEGANT",
     buttonText: "Mulai Belanja",
-    buttonLink: "/shop?category=Tulle",
-    image: "/images/cornely_silk_satin.png",
+    buttonLink: "/shop?category=Metallic",
+    image: "/images/metallic_lace_hero.jpg",
   },
 ];
 

@@ -2,12 +2,14 @@
 
 import { useEffect, useState, Suspense } from "react";
 import ProductCard from "@/components/products/ProductCard";
+import MarketplaceShowcase from "@/components/shop/MarketplaceShowcase";
+import CatalogFlipbookSection from "@/components/home/CatalogFlipbookSection";
 import { Product } from "@/store/cartStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { Reveal, FadeIn } from "@/components/ui/Reveal";
 import ProductSkeleton from "@/components/ui/ProductSkeleton";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Award, Filter, Sparkles, Grid, Layers, RotateCcw, X, Check, Tag, DollarSign } from "lucide-react";
+import { Award, Filter, Sparkles, Grid, Layers, RotateCcw, X, Check, Tag, DollarSign, Store, ExternalLink, ShoppingBag } from "lucide-react";
 
 // Exact 3 Main Categories
 const MAIN_CATEGORIES = [
@@ -35,13 +37,15 @@ function formatRupiah(amount: number) {
   }).format(amount);
 }
 
+let globalShopProductsCache: Product[] | null = null;
+
 function ShopContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const initialCategory = searchParams.get("category") || "Semua Kategori";
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(globalShopProductsCache || []);
+  const [loading, setLoading] = useState(!globalShopProductsCache);
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [activeQuality, setActiveQuality] = useState("Semua Quality");
   const [sortBy, setSortBy] = useState("newest");
@@ -71,18 +75,21 @@ function ShopContent() {
   }, [searchParams]);
 
   useEffect(() => {
+    let isMounted = true;
     // Fetch products from backend
-    fetch("http://localhost:5000/api/products")
+    fetch("http://localhost:5000/api/products?limit=200")
       .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch");
+        const contentType = res.headers.get("content-type") || "";
+        if (!res.ok || !contentType.includes("application/json")) return null;
         return res.json();
       })
       .then((data) => {
+        if (!isMounted || !data) return;
         const fetchedProducts: Product[] = data.products || data;
-        setProducts(fetchedProducts);
-        setLoading(false);
+        if (Array.isArray(fetchedProducts) && fetchedProducts.length > 0) {
+          globalShopProductsCache = fetchedProducts;
+          setProducts(fetchedProducts);
 
-        if (fetchedProducts.length > 0) {
           const highest = Math.max(...fetchedProducts.map((p) => p.discountPrice ?? p.price));
           const roundedMax = Math.ceil(highest / 50000) * 50000 || 500000;
           setMaxCatalogPrice(roundedMax);
@@ -91,11 +98,34 @@ function ShopContent() {
         }
       })
       .catch((err) => {
-        console.error("Error fetching products:", err);
-        setProducts([]);
-        setLoading(false);
+        console.warn("Backend API offline or unreachable:", err?.message || err);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
       });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
+
+  // Scroll Position Restoration Effect
+  useEffect(() => {
+    if (!loading && products.length > 0) {
+      const savedPos = sessionStorage.getItem("catalog_scroll_pos");
+      const savedUrl = sessionStorage.getItem("catalog_scroll_url");
+      if (savedPos && savedUrl === window.location.href) {
+        const yPos = parseInt(savedPos, 10);
+        if (!isNaN(yPos) && yPos > 0) {
+          setTimeout(() => {
+            window.scrollTo({ top: yPos, behavior: "instant" });
+            sessionStorage.removeItem("catalog_scroll_pos");
+            sessionStorage.removeItem("catalog_scroll_url");
+          }, 50);
+        }
+      }
+    }
+  }, [loading, products.length]);
 
   // Reset Filters Function
   const handleResetFilters = () => {
@@ -111,39 +141,8 @@ function ShopContent() {
   const matchesMainCategory = (p: Product, targetCat: string) => {
     if (targetCat === "Semua Kategori" || targetCat === "All") return true;
     const catLower = (p.category || "").toLowerCase();
-    const nameLower = (p.name || "").toLowerCase();
-    const descLower = (p.description || "").toLowerCase();
-
-    if (targetCat === "Grade A") {
-      return (
-        catLower.includes("grade a") ||
-        catLower.includes("tile") ||
-        catLower.includes("mutiara") ||
-        nameLower.includes("grade a") ||
-        descLower.includes("grade a") ||
-        descLower.includes("mutiara")
-      );
-    }
-    if (targetCat === "Grade B") {
-      return (
-        catLower.includes("grade b") ||
-        catLower.includes("chantilly") ||
-        nameLower.includes("grade b") ||
-        descLower.includes("grade b") ||
-        descLower.includes("chantilly")
-      );
-    }
-    if (targetCat === "Tulle") {
-      return (
-        catLower.includes("tulle") ||
-        catLower.includes("cornely") ||
-        catLower.includes("silk") ||
-        nameLower.includes("tulle") ||
-        descLower.includes("tulle") ||
-        descLower.includes("3d")
-      );
-    }
-    return catLower === targetCat.toLowerCase();
+    const targetLower = targetCat.toLowerCase();
+    return catLower === targetLower || catLower.includes(targetLower);
   };
 
   // Helper matcher for Quality Type (Chantilly, Polos, Metallic, 3D Polos, 3D Metallic)
@@ -171,7 +170,7 @@ function ShopContent() {
   });
 
   // Search Query Filter
-  const searchQuery = searchParams.get("q");
+  const searchQuery = searchParams.get("q") || searchParams.get("search");
   if (searchQuery) {
     const lowerQuery = searchQuery.toLowerCase();
     filteredProducts = filteredProducts.filter(
@@ -218,7 +217,7 @@ function ShopContent() {
 
         {/* Header Section */}
         <Reveal>
-          <div className="mb-8 border-b border-stone-200 pb-6 flex flex-col md:flex-row items-start md:items-end justify-between gap-4">
+          <div className="mb-6 border-b border-stone-200 pb-6 flex flex-col md:flex-row items-start md:items-end justify-between gap-4">
             <div>
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-stone-900 mb-2">
                 Katalog Kain Raja Brukat
@@ -239,6 +238,11 @@ function ShopContent() {
               <span>Filter & Kategori</span>
             </button>
           </div>
+        </Reveal>
+
+        {/* 2 Official Marketplace Cards: Shopee & Tokopedia */}
+        <Reveal>
+          <MarketplaceShowcase />
         </Reveal>
 
         {/* Main 2-Column Layout: Left Sticky Sidebar Filter + Right Product Catalog */}
@@ -698,6 +702,11 @@ function ShopContent() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Interactive PDF Flipbook Catalog Section */}
+      <div className="mt-20 -mx-6">
+        <CatalogFlipbookSection />
+      </div>
     </div>
   );
 }

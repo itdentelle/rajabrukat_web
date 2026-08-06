@@ -4,8 +4,10 @@ import { usePathname } from "next/navigation";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import FloatingSocialWidget from "./FloatingSocialWidget";
+import AiChatWidget from "../ai/AiChatWidget";
 
 import { useEffect, useState } from "react";
+
 
 if (typeof window !== "undefined" && !(window as any).__fetchIntercepted) {
   (window as any).__fetchIntercepted = true;
@@ -39,6 +41,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <main className="min-h-screen flex flex-col">{children}</main>
       {!isAdminRoute && <Footer />}
       {!isAdminRoute && <FloatingSocialWidget />}
+      {!isAdminRoute && <AiChatWidget />}
     </>
   );
 }
+

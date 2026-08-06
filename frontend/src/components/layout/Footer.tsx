@@ -43,7 +43,8 @@ export default function Footer() {
   useEffect(() => {
     fetch("http://localhost:5000/api/config/hero")
       .then((res) => {
-        if (!res.ok) return null;
+        const contentType = res.headers.get("content-type") || "";
+        if (!res.ok || !contentType.includes("application/json")) return null;
         return res.json();
       })
       .then((data) => {

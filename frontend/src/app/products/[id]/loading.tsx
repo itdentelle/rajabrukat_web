@@ -16,7 +16,7 @@ export default function ProductLoading() {
             ))}
           </div>
           {/* Main Image */}
-          <div className="order-1 md:order-2 flex-1 w-full bg-gray-200 aspect-[3/4] rounded-xl"></div>
+          <div className="order-1 md:order-2 flex-1 w-full bg-gray-200 aspect-square rounded-xl"></div>
         </div>
 
         {/* Product Info Skeleton */}

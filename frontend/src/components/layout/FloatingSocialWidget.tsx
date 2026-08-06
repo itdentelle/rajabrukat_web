@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Phone, X, MessageCircle } from "lucide-react";
+import { Phone, X, MessageCircle, Sparkles } from "lucide-react";
 
 // Custom SVG Icons for Brands
 function InstagramIcon({ className = "w-5 h-5" }: { className?: string }) {
@@ -126,34 +126,59 @@ export default function FloatingSocialWidget() {
         )}
       </AnimatePresence>
 
-      {/* Main Bottom-Right Floating Trigger Circle */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label="Toggle Social Media Contacts"
-        className="relative w-14 h-14 rounded-full bg-[#b77305] hover:bg-[#965e04] text-white shadow-[0_10px_25px_rgba(183,115,5,0.4)] flex items-center justify-center border-2 border-amber-300/40 transition-all duration-300 hover:scale-110 active:scale-95 group focus:outline-none"
-      >
-        {/* Pulsing Outer Ring Badge */}
-        <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white animate-pulse z-10" />
-
-        {/* Animated Icon (MessageCircle <-> X) */}
-        <motion.div
-          animate={{ rotate: isOpen ? 90 : 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          {isOpen ? (
-            <X className="w-6 h-6 stroke-[2.5]" />
-          ) : (
-            <MessageCircle className="w-6 h-6 stroke-[2]" />
+      {/* Main Bottom-Right Floating Trigger Circle & AI Button */}
+      <div className="flex items-center gap-3">
+        {/* AI Button - Shown on hover */}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.button
+              initial={{ scale: 0.8, opacity: 0, x: 20 }}
+              animate={{ scale: 1, opacity: 1, x: 0 }}
+              exit={{ scale: 0.8, opacity: 0, x: 20 }}
+              transition={{ duration: 0.2 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => window.dispatchEvent(new Event("open-ai-chat"))}
+              className="relative flex items-center gap-2.5 px-4 py-3 bg-amber-700 hover:bg-amber-800 text-white rounded-full shadow-2xl transition-all duration-300 border border-amber-500/40 group whitespace-nowrap"
+            >
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-300"></span>
+              </span>
+              <Sparkles className="w-5 h-5 text-amber-200 group-hover:rotate-12 transition-transform duration-300" />
+              <span className="font-semibold text-sm tracking-wide hidden sm:inline">RajaBot AI Assistant</span>
+            </motion.button>
           )}
-        </motion.div>
+        </AnimatePresence>
 
-        {/* Tooltip hint when closed */}
-        {!isOpen && (
-          <span className="absolute right-16 px-3 py-1 rounded-md bg-stone-900 text-white text-xs font-semibold whitespace-nowrap shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none border border-stone-800">
-            Hubungi Kami & Sosmed
-          </span>
-        )}
-      </button>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label="Toggle Social Media Contacts"
+          className="relative w-14 h-14 rounded-full bg-[#b77305] hover:bg-[#965e04] text-white shadow-[0_10px_25px_rgba(183,115,5,0.4)] flex items-center justify-center border-2 border-amber-300/40 transition-all duration-300 hover:scale-110 active:scale-95 group focus:outline-none"
+        >
+          {/* Pulsing Outer Ring Badge */}
+          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white animate-pulse z-10" />
+
+          {/* Animated Icon (MessageCircle <-> X) */}
+          <motion.div
+            animate={{ rotate: isOpen ? 90 : 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {isOpen ? (
+              <X className="w-6 h-6 stroke-[2.5]" />
+            ) : (
+              <MessageCircle className="w-6 h-6 stroke-[2]" />
+            )}
+          </motion.div>
+
+          {/* Tooltip hint when closed */}
+          {!isOpen && (
+            <span className="absolute right-16 px-3 py-1 rounded-md bg-stone-900 text-white text-xs font-semibold whitespace-nowrap shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none border border-stone-800">
+              Hubungi Kami & Sosmed
+            </span>
+          )}
+        </button>
+      </div>
     </div>
   );
 }

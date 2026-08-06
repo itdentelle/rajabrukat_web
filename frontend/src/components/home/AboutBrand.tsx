@@ -53,7 +53,8 @@ export default function AboutBrand() {
   useEffect(() => {
     fetch("http://localhost:5000/api/config/hero")
       .then((res) => {
-        if (!res.ok) return null;
+        const contentType = res.headers.get("content-type") || "";
+        if (!res.ok || !contentType.includes("application/json")) return null;
         return res.json();
       })
       .then((data) => {
@@ -154,27 +155,27 @@ export default function AboutBrand() {
           {/* Circular Fabric Categories Swatch Row */}
           <div className="mb-24">
             <Reveal>
-              <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 md:gap-14 py-4">
+              <div className="flex flex-wrap lg:flex-nowrap items-center justify-center gap-6 sm:gap-8 lg:gap-6 xl:gap-10 py-4">
                 {FABRIC_CIRCLES.map((item) => (
                   <Link
                     key={item.id}
                     href={item.link}
-                    className="group flex flex-col items-center gap-3.5 text-center transition-transform duration-300"
+                    className="group flex flex-col items-center gap-4 text-center transition-transform duration-300 w-full sm:w-auto"
                   >
                     {/* Circle Swatch Container with Double Gold Ring & Glow */}
-                    <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden shadow-lg border-2 border-stone-200 group-hover:border-[#b77305] group-hover:ring-4 group-hover:ring-[#b77305]/30 group-hover:shadow-2xl transition-all duration-500 transform group-hover:scale-105">
+                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44 lg:w-44 lg:h-44 xl:w-56 xl:h-56 rounded-full overflow-hidden shadow-lg border-2 border-stone-200 group-hover:border-[#b77305] group-hover:ring-4 group-hover:ring-[#b77305]/30 group-hover:shadow-2xl transition-all duration-500 transform group-hover:scale-105 shrink-0">
                       <Image
                         src={item.image}
                         alt={item.name}
                         fill
-                        sizes="(max-width: 768px) 112px, 144px"
+                        sizes="(max-width: 640px) 128px, (max-width: 1024px) 176px, 224px"
                         className="object-cover object-center transition-transform duration-700 group-hover:scale-115"
                       />
                       <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
                     </div>
 
                     {/* Category Name Label in Luxury Serif Typography */}
-                    <span className="text-sm sm:text-base font-serif font-medium text-stone-900 group-hover:text-[#b77305] transition-colors tracking-wide">
+                    <span className="text-sm sm:text-base lg:text-lg font-serif font-bold text-stone-900 group-hover:text-[#b77305] transition-colors tracking-wide mt-1">
                       {item.name}
                     </span>
                   </Link>
