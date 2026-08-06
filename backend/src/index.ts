@@ -125,22 +125,8 @@ const cacheMiddleware = (ttlSeconds: number) => {
 // --- SECURITY MIDDLEWARES ---
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cookieParser());
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://localhost:3002',
-  'http://localhost:3003',
-].filter((url): url is string => Boolean(url));
-
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin)) {
-      callback(null, true);
-    } else {
-      callback(null, true);
-    }
-  },
+  origin: true,
   credentials: true,
 }));
 app.use(express.json());
