@@ -78,7 +78,7 @@ const LOOKBOOK_ITEMS: LookbookItem[] = [
     title: "Kebaya Wisuda & Semi Formal Elegant",
     designer: "Kebaya Wisuda Modern",
     categoryTag: "Kebaya Wisuda",
-    image: "/images/brand-model.png",
+    image: "/images/kebaya_wisuda_look.png",
     fabricUsed: {
       id: "p2",
       name: "Brukat Tile Mutiara Luxury Gold Grade A",
