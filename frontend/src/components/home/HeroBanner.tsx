@@ -27,7 +27,7 @@ const CATEGORY_PANELS = [
     description: "Seni bordir tile bertabur payet mutiara kristal mewah untuk kebaya & gaun pesta istimewa Anda.",
     buttonText: "Shop Now",
     buttonLink: "/shop?category=Brukat Tile Mutiara",
-    image: "/images/white_lace_hero.jpg",
+    image: "/images/white_lace_hero.png",
     badge: "BRUKAT 3D",
   },
   {
@@ -38,7 +38,7 @@ const CATEGORY_PANELS = [
     description: "Kehalusan renda Prancis bertekstur ultra-soft yang jatuh lembut dan mewah di kulit.",
     buttonText: "Lihat Koleksi",
     buttonLink: "/shop?category=Renda Chantilly",
-    image: "/images/beige_lace_hero.jpg",
+    image: "/images/beige_lace_hero.png",
     badge: "CHANTILLY",
   },
   {
@@ -49,7 +49,7 @@ const CATEGORY_PANELS = [
     description: "Seni bordir metallic berkilau dengan detail mewah dan elegan untuk gaun pesta istimewa Anda.",
     buttonText: "Lihat Koleksi",
     buttonLink: "/shop?category=Metallic",
-    image: "/images/metallic_lace_hero.jpg",
+    image: "/images/metallic_lace_hero.png",
     badge: "METALLIC",
   },
 ];
@@ -66,7 +66,7 @@ export default function HeroBanner({ config }: HeroBannerProps) {
       description: "Koleksi kain brukat dan renda pilihan dengan standar kualitas terbaik untuk gaun pesta & kebaya istimewa Anda.",
       buttonText: config.buttonText || "Shop Now",
       buttonLink: config.buttonLink || "/shop",
-      image: "/images/white_lace_hero.jpg",
+      image: config.imageUrl?.endsWith(".jpg") ? "/images/white_lace_hero.png" : (config.imageUrl || "/images/white_lace_hero.png"),
       badge: "BRUKAT 3D",
     },
     ...CATEGORY_PANELS.slice(1)
@@ -116,7 +116,8 @@ export default function HeroBanner({ config }: HeroBannerProps) {
                   alt={panel.title}
                   fill
                   priority={idx === 0}
-                  sizes="(max-width: 1024px) 100vw, 33vw"
+                  quality={90}
+                  sizes="100vw"
                   className={`object-cover object-center transition-transform duration-1000 transform-gpu ${isActive ? "scale-105" : "scale-100 group-hover:scale-105"
                     }`}
                 />
