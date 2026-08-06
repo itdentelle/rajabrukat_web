@@ -44,8 +44,15 @@ pool.on('error', (err) => {
   console.error('Pg Pool Idle Connection Warning:', err.message);
 });
 
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+let adapter: any;
+let prisma: PrismaClient;
+try {
+  adapter = new PrismaPg(pool);
+  prisma = new PrismaClient({ adapter });
+} catch (err) {
+  console.error('[PRISMA INIT WARNING]:', err);
+  prisma = new PrismaClient();
+}
 
 
 // --- EXPRESS SETUP ---
