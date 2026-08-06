@@ -1,10 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, Award, Truck, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+
+import { API_BASE_URL } from "@/lib/api";
+import { cleanTitle } from "@/utils/cleanTitle";
+import { cleanDescription } from "@/utils/cleanDescription";
 
 interface FabricCardItem {
   id: string;
@@ -55,27 +59,60 @@ const FABRIC_CARDS: FabricCardItem[] = [
 ];
 
 export default function FeaturedCategories() {
+  const [cards, setCards] = useState<FabricCardItem[]>(FABRIC_CARDS);
   const [activeCardId, setActiveCardId] = useState<string>("center");
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
-  const activeCard = FABRIC_CARDS.find((c) => c.id === activeCardId) || FABRIC_CARDS[1];
+  const activeCard = cards.find((c) => c.id === activeCardId) || cards[1] || cards[0];
 
-  const handleCardHover = (id: string) => {
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/products?limit=3`, { priority: "low" } as any)
+      .then((res) => {
+        const contentType = res.headers.get("content-type") || "";
+        if (!res.ok || !contentType.includes("application/json")) return null;
+        return res.json();
+      })
+      .then((data) => {
+        if (!data) return;
+        const products = data.products || data;
+        if (Array.isArray(products) && products.length >= 3) {
+          const ids = ["left", "center", "right"];
+          const dynamicCards: FabricCardItem[] = products.slice(0, 3).map((p: any, idx: number) => {
+            const { displayTitle } = cleanTitle(p.name);
+            return {
+              id: ids[idx] || `card-${p.id}`,
+              name: displayTitle,
+              category: p.category || "Grade A",
+              priceTag: `Rp ${p.price?.toLocaleString("id-ID") || "0"} / meter`,
+              badgeTop: `✨ ${displayTitle}`,
+              badgeBottom: `“ ${p.category || "Koleksi Eksklusif"} ”`,
+              description: cleanDescription(p.description),
+              image: p.image || "/images/brukat_tile_mutiara.png",
+              link: `/products/${p.id}`,
+            };
+          });
+          setCards(dynamicCards);
+        }
+      })
+      .catch((err) => console.warn("Failed to fetch dynamic featured categories:", err));
+  }, []);
+
+  const handleCardHover = useCallback((id: string) => {
     setActiveCardId(id);
     setIsHovered(true);
-  };
+  }, []);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     const currentIndex = FABRIC_CARDS.findIndex((c) => c.id === activeCardId);
     const nextIndex = (currentIndex + 1) % FABRIC_CARDS.length;
     setActiveCardId(FABRIC_CARDS[nextIndex].id);
-  };
+  }, [activeCardId]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     const currentIndex = FABRIC_CARDS.findIndex((c) => c.id === activeCardId);
     const prevIndex = (currentIndex - 1 + FABRIC_CARDS.length) % FABRIC_CARDS.length;
     setActiveCardId(FABRIC_CARDS[prevIndex].id);
-  };
+  }, [activeCardId]);
 
   // Auto-rotate every 5 seconds, pauses on mouse hover
   useEffect(() => {
@@ -84,7 +121,7 @@ export default function FeaturedCategories() {
       handleNext();
     }, 5000);
     return () => clearInterval(timer);
-  }, [activeCardId, isHovered]);
+  }, [handleNext, isHovered]);
 
   return (
     <section
@@ -182,8 +219,8 @@ export default function FeaturedCategories() {
                 whileHover={{ scale: 1.04 }}
               >
                 <Image 
-                  src={FABRIC_CARDS[0].image} 
-                  alt={FABRIC_CARDS[0].name}
+                  src={(cards[0] || FABRIC_CARDS[0]).image} 
+                  alt={(cards[0] || FABRIC_CARDS[0]).name}
                   fill
                   sizes="30vw"
                   className="object-cover object-center"
@@ -192,7 +229,7 @@ export default function FeaturedCategories() {
                 {activeCardId === "left" && (
                   <div className="absolute bottom-6 left-3 right-3 text-center">
                     <span className="inline-block px-3.5 py-1.5 bg-[#b77305] text-white rounded-full text-xs font-bold shadow-lg">
-                      Renda Chantilly
+                      {(cards[0] || FABRIC_CARDS[0]).name}
                     </span>
                   </div>
                 )}
@@ -209,8 +246,8 @@ export default function FeaturedCategories() {
                 whileHover={{ scale: 1.04 }}
               >
                 <Image 
-                  src={FABRIC_CARDS[2].image} 
-                  alt={FABRIC_CARDS[2].name}
+                  src={(cards[2] || FABRIC_CARDS[2]).image} 
+                  alt={(cards[2] || FABRIC_CARDS[2]).name}
                   fill
                   sizes="30vw"
                   className="object-cover object-center"
@@ -219,7 +256,7 @@ export default function FeaturedCategories() {
                 {activeCardId === "right" && (
                   <div className="absolute bottom-6 left-3 right-3 text-center">
                     <span className="inline-block px-3.5 py-1.5 bg-[#b77305] text-white rounded-full text-xs font-bold shadow-lg">
-                      Silk & Satin Furing
+                      {(cards[2] || FABRIC_CARDS[2]).name}
                     </span>
                   </div>
                 )}
@@ -236,8 +273,8 @@ export default function FeaturedCategories() {
                 whileHover={{ scale: 1.06 }}
               >
                 <Image 
-                  src={FABRIC_CARDS[1].image} 
-                  alt={FABRIC_CARDS[1].name}
+                  src={(cards[1] || FABRIC_CARDS[1]).image} 
+                  alt={(cards[1] || FABRIC_CARDS[1]).name}
                   fill
                   priority
                   sizes="40vw"
@@ -247,7 +284,7 @@ export default function FeaturedCategories() {
                 {activeCardId === "center" && (
                   <div className="absolute bottom-8 left-3 right-3 text-center">
                     <span className="inline-block px-4 py-1.5 bg-[#b77305] text-white rounded-full text-xs font-bold shadow-lg">
-                      Brukat Tile Mutiara
+                      {(cards[1] || FABRIC_CARDS[1]).name}
                     </span>
                   </div>
                 )}

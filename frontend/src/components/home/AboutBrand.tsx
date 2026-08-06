@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Reveal } from "@/components/ui/Reveal";
 import { ArrowRight, Sparkles, Feather, Palette } from "lucide-react";
 
+import { cleanTitle } from "@/utils/cleanTitle";
 import { API_BASE_URL } from "@/lib/api";
 
 interface SiteConfig {
@@ -51,6 +52,7 @@ const FABRIC_CIRCLES = [
 export default function AboutBrand() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [config, setConfig] = useState<SiteConfig | null>(null);
+  const [circles, setCircles] = useState(FABRIC_CIRCLES);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/config/hero`)
@@ -63,6 +65,31 @@ export default function AboutBrand() {
         if (data) setConfig(data);
       })
       .catch((err) => console.warn("Could not load brand config from server, using default UI:", err));
+
+    // Fetch live products from Supabase database to populate fabric circles dynamically
+    fetch(`${API_BASE_URL}/api/products?limit=5`)
+      .then((res) => {
+        const contentType = res.headers.get("content-type") || "";
+        if (!res.ok || !contentType.includes("application/json")) return null;
+        return res.json();
+      })
+      .then((data) => {
+        if (!data) return;
+        const products = data.products || data;
+        if (Array.isArray(products) && products.length > 0) {
+          const dynamicCircles = products.slice(0, 5).map((p: any) => {
+            const { displayTitle } = cleanTitle(p.name);
+            return {
+              id: p.id,
+              name: displayTitle,
+              image: p.image || "/images/brukat_tile_mutiara.png",
+              link: `/products/${p.id}`,
+            };
+          });
+          setCircles(dynamicCircles);
+        }
+      })
+      .catch((err) => console.warn("Failed to fetch dynamic circle fabrics from database:", err));
   }, []);
 
   // Sticky Scroll Pinning specifically for the Big Text Header & Ribbon Animation
@@ -72,8 +99,8 @@ export default function AboutBrand() {
   });
 
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 90,
-    damping: 26,
+    stiffness: 140,
+    damping: 32,
     restDelta: 0.001,
   });
 
@@ -91,7 +118,7 @@ export default function AboutBrand() {
           <div className="relative w-full max-w-4xl mx-auto px-6 py-12 md:py-16 flex flex-col items-center justify-center">
             
             {/* Fabric Strand SVG Framing OUTSIDE The Big Header Text */}
-            <div className="absolute -inset-6 sm:-inset-12 pointer-events-none z-0 flex items-center justify-center select-none overflow-visible">
+            <div className="absolute -inset-6 sm:-inset-12 pointer-events-none z-0 flex items-center justify-center select-none overflow-visible" style={{ willChange: 'transform' }}>
               <svg
                 className="w-full h-full min-h-[320px] md:min-h-[380px] opacity-85 md:opacity-95 overflow-visible"
                 viewBox="0 0 1080 360"
@@ -158,7 +185,7 @@ export default function AboutBrand() {
           <div className="mb-24">
             <Reveal>
               <div className="flex flex-wrap lg:flex-nowrap items-center justify-center gap-6 sm:gap-8 lg:gap-6 xl:gap-10 py-4">
-                {FABRIC_CIRCLES.map((item) => (
+                {circles.map((item) => (
                   <Link
                     key={item.id}
                     href={item.link}

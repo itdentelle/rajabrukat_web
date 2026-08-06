@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
+import { API_BASE_URL } from "@/lib/api";
 
 const PAGE_PRODUCT_MAP: Record<number, string> = {
   3: "3808",
@@ -34,13 +35,17 @@ let globalPdfPagesCache: string[] = [];
 let globalPageRatioCache = 1.414;
 let globalProductCodeMapCache: Record<string, string> | null = null;
 
-export default function CatalogFlipbookSection() {
+interface CatalogFlipbookProps {
+  initialFullscreen?: boolean;
+}
+
+export default function CatalogFlipbookSection({ initialFullscreen = false }: CatalogFlipbookProps) {
   const [pages, setPages] = useState<string[]>(globalPdfPagesCache);
   const [totalPages, setTotalPages] = useState(globalPdfPagesCache.length);
   const [currentPage, setCurrentPage] = useState(0);
   const [isLoading, setIsLoading] = useState(globalPdfPagesCache.length === 0);
   const [loadProgress, setLoadProgress] = useState(globalPdfPagesCache.length > 0 ? 100 : 0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(initialFullscreen);
   const [zoomLevel, setZoomLevel] = useState(1);
   // Actual page aspect ratio (height / width) from PDF canvas
   const [pageRatio, setPageRatio] = useState(globalPageRatioCache); // A4 default
@@ -67,7 +72,7 @@ export default function CatalogFlipbookSection() {
   // Fetch product list to map product codes to product IDs
   useEffect(() => {
     if (globalProductCodeMapCache) return;
-    fetch("http://localhost:5000/api/products?limit=200")
+    fetch(`${API_BASE_URL}/api/products?limit=200`)
       .then((res) => res.json())
       .then((data) => {
         const productList = data.products || data;
@@ -86,6 +91,19 @@ export default function CatalogFlipbookSection() {
         }
       })
       .catch((err) => console.warn("Notice: Catalog map fetch unreachable:", err?.message || err));
+
+    // Fetch Redis-cached catalog metadata (TTL 24 hours)
+    fetch(`${API_BASE_URL}/api/catalog`)
+      .then((res) => {
+        if (!res.ok) return null;
+        return res.json();
+      })
+      .then((data) => {
+        if (data && data.cachedAt) {
+          console.log("⚡ Catalog Redis Cache loaded instantly:", data.cachedAt);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // ── Load PDF via pdf.js ──
@@ -109,13 +127,19 @@ export default function CatalogFlipbookSection() {
 
         for (let i = 1; i <= numPages; i++) {
           if (cancelled) return;
+          // ⚡ Yield to event loop between each page so UI stays responsive
+          await new Promise<void>((r) => setTimeout(r, 0));
+          if (cancelled) return;
           const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale: 2.0 });
+          // Reduced scale 1.5 (was 2.0) — 44% less memory, still sharp on screen
+          const viewport = page.getViewport({ scale: 1.5 });
           const canvas = document.createElement("canvas");
           canvas.width = viewport.width;
           canvas.height = viewport.height;
-          await page.render({ canvasContext: canvas.getContext("2d")!, viewport }).promise;
-          urls.push(canvas.toDataURL("image/jpeg", 0.88));
+          const ctx = canvas.getContext("2d")!;
+          await page.render({ canvasContext: ctx, viewport }).promise;
+          // Reduced JPEG quality 0.82 (was 0.88) — visually indistinguishable on screen
+          urls.push(canvas.toDataURL("image/jpeg", 0.82));
           // Store aspect ratio from first page
           if (i === 1 && !cancelled) {
             calculatedRatio = viewport.height / viewport.width;
@@ -364,7 +388,7 @@ export default function CatalogFlipbookSection() {
     : (activeProduct ? `/shop?search=${activeProduct}` : "/shop");
 
   return (
-    <section ref={sectionRef} className="pt-8 pb-24 sm:pt-12 sm:pb-36 bg-transparent text-stone-900 relative">
+    <section ref={sectionRef} id="katalog-section" className="pt-8 pb-24 sm:pt-12 sm:pb-36 bg-transparent text-stone-900 relative">
       <div className="container mx-auto px-4 sm:px-6 max-w-6xl relative z-10">
         <div className="max-w-5xl mx-auto">
           {/* Top Bar (Scroll Pinning Hint Badge) */}

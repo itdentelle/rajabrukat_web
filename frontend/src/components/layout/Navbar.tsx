@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingBag, Search, Menu, User, Heart, Package, ChevronDown, X, ExternalLink, ArrowUpRight } from "lucide-react";
+import { ShoppingBag, Search, Menu, User, Heart, Package, ChevronDown, X, ExternalLink, ArrowUpRight, Sparkles } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useSearchStore } from "@/store/searchStore";
 import { useState, useEffect } from "react";
@@ -54,6 +54,13 @@ const CATEGORIES = [
   { name: "Tulle", href: "/collections/tulle" },
 ];
 
+const LAINNYA_OPTIONS = [
+  { name: "FAQ", href: "/pages/faq" },
+  { name: "Contact Us", href: "/pages/contact" },
+  { name: "Tentang Kami", href: "/about" },
+  { name: "Kebijakan Retur", href: "/pages/returns" },
+];
+
 export default function Navbar() {
   const totalItems = useCartStore((state) => state.totalItems());
   const openCart = useCartStore((state) => state.openCart);
@@ -63,9 +70,11 @@ export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
+  const [isLainnyaOpen, setIsLainnyaOpen] = useState(false);
   const [isLogoHovered, setIsLogoHovered] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
+  const [mobileLainnyaOpen, setMobileLainnyaOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -81,6 +90,31 @@ export default function Navbar() {
     } catch (e) {
       setUserRole(null);
     }
+  }, [pathname]);
+
+  const [isInCatalog, setIsInCatalog] = useState(false);
+
+  useEffect(() => {
+    if (pathname.startsWith("/katalog")) {
+      setIsInCatalog(true);
+      return;
+    }
+
+    const checkCatalogPosition = () => {
+      const el = document.getElementById("katalog-section");
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        // Visible in viewport
+        const visible = rect.top < window.innerHeight * 0.7 && rect.bottom > 120;
+        setIsInCatalog(visible);
+      } else {
+        setIsInCatalog(false);
+      }
+    };
+
+    checkCatalogPosition();
+    window.addEventListener("scroll", checkCatalogPosition, { passive: true });
+    return () => window.removeEventListener("scroll", checkCatalogPosition);
   }, [pathname]);
 
   useEffect(() => {
@@ -194,7 +228,7 @@ export default function Navbar() {
             </AnimatePresence>
           </div>
 
-          {/* Desktop Navigation (Home, Shop, Categories ▾, FAQ, Contact Us) */}
+          {/* Desktop Navigation (Home, Shop, Katalog, Categories ▾, Lainnya ▾) */}
           <nav className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2 text-[16px] font-medium">
             <Link 
               href="/" 
@@ -224,6 +258,20 @@ export default function Navbar() {
               )} />
             </Link>
 
+            <Link 
+              href="/katalog" 
+              className={cn(
+                "relative py-2 font-medium transition-colors group",
+                pathname.startsWith("/katalog") ? "text-[#b77305]" : "text-stone-800 hover:text-[#b77305]"
+              )}
+            >
+              <span>Katalog</span>
+              <span className={cn(
+                "absolute bottom-0 left-0 h-0.5 bg-[#b77305] transition-all duration-300 ease-out group-hover:w-full",
+                pathname.startsWith("/katalog") ? "w-full" : "w-0"
+              )} />
+            </Link>
+
             {/* Categories Dropdown */}
             <div 
               className="relative group py-2"
@@ -244,51 +292,91 @@ export default function Navbar() {
                 )} />
               </button>
 
-              {/* Dropdown Card */}
-              {isCategoriesOpen && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-52 z-50">
-                  <div className="bg-white rounded-md shadow-xl border border-gray-100 py-2 overflow-hidden transition-all animate-in fade-in-50 slide-in-from-top-2">
-                    {CATEGORIES.map((cat) => (
-                      <Link
-                        key={cat.name}
-                        href={cat.href}
-                        className="block px-5 py-2.5 text-sm text-stone-700 hover:text-[#b77305] hover:bg-amber-50/60 transition-colors border-b border-stone-50 last:border-0"
-                      >
-                        {cat.name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Categories Dropdown with Luxury Framer Motion Animation */}
+              <AnimatePresence>
+                {isCategoriesOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                    transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-56 z-50"
+                  >
+                    <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-[#b77305]/20 p-2 overflow-hidden space-y-1">
+                      {CATEGORIES.map((cat, i) => (
+                        <motion.div
+                          key={cat.name}
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.15, delay: i * 0.04 }}
+                        >
+                          <Link
+                            href={cat.href}
+                            className="flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium text-stone-800 hover:text-[#b77305] hover:bg-[#b77305]/10 transition-all duration-200 group/item"
+                          >
+                            <span>{cat.name}</span>
+                            <Sparkles className="w-3.5 h-3.5 text-[#b77305] opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                          </Link>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            <Link 
-              href="/pages/faq" 
-              className={cn(
-                "relative py-2 font-medium transition-colors group",
-                pathname === "/pages/faq" ? "text-[#b77305]" : "text-stone-800 hover:text-[#b77305]"
-              )}
+            {/* Lainnya Dropdown with Luxury Framer Motion Animation */}
+            <div 
+              className="relative group py-2"
+              onMouseEnter={() => setIsLainnyaOpen(true)}
+              onMouseLeave={() => setIsLainnyaOpen(false)}
             >
-              <span>FAQ</span>
-              <span className={cn(
-                "absolute bottom-0 left-0 h-0.5 bg-[#b77305] transition-all duration-300 ease-out group-hover:w-full",
-                pathname === "/pages/faq" ? "w-full" : "w-0"
-              )} />
-            </Link>
+              <button 
+                className={cn(
+                  "relative inline-flex items-center gap-1 font-medium transition-colors focus:outline-none",
+                  pathname.startsWith("/pages/") || pathname === "/about" ? "text-[#b77305]" : "text-stone-800 hover:text-[#b77305]"
+                )}
+              >
+                <span>Lainnya</span>
+                <ChevronDown className="w-4 h-4 text-[#b77305] group-hover:rotate-180 transition-transform duration-200" />
+                <span className={cn(
+                  "absolute bottom-0 left-0 h-0.5 bg-[#b77305] transition-all duration-300 ease-out group-hover:w-full",
+                  pathname.startsWith("/pages/") || pathname === "/about" ? "w-full" : "w-0"
+                )} />
+              </button>
 
-            <Link 
-              href="/pages/contact" 
-              className={cn(
-                "relative py-2 font-medium transition-colors group",
-                pathname === "/pages/contact" ? "text-[#b77305]" : "text-stone-800 hover:text-[#b77305]"
-              )}
-            >
-              <span>Contact Us</span>
-              <span className={cn(
-                "absolute bottom-0 left-0 h-0.5 bg-[#b77305] transition-all duration-300 ease-out group-hover:w-full",
-                pathname === "/pages/contact" ? "w-full" : "w-0"
-              )} />
-            </Link>
+              {/* Dropdown Card */}
+              <AnimatePresence>
+                {isLainnyaOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                    transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-56 z-50"
+                  >
+                    <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-[#b77305]/20 p-2 overflow-hidden space-y-1">
+                      {LAINNYA_OPTIONS.map((item, i) => (
+                        <motion.div
+                          key={item.name}
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.15, delay: i * 0.04 }}
+                        >
+                          <Link
+                            href={item.href}
+                            className="flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium text-stone-800 hover:text-[#b77305] hover:bg-[#b77305]/10 transition-all duration-200 group/item"
+                          >
+                            <span>{item.name}</span>
+                            <Sparkles className="w-3.5 h-3.5 text-[#b77305] opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                          </Link>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </nav>
 
           {/* Right Actions */}
@@ -345,6 +433,16 @@ export default function Navbar() {
             </button>
           </div>
         </div>
+
+        {/* Gold Botanical Leaf Vines Emerging From Navbar ONLY when viewing Catalog section */}
+        <AnimatePresence>
+          {isInCatalog && (
+            <>
+              <NavbarBotanicalLeafDecor side="left" />
+              <NavbarBotanicalLeafDecor side="right" />
+            </>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* Mobile Drawer Navigation */}
@@ -388,10 +486,18 @@ export default function Navbar() {
                 Shop
               </Link>
 
+              <Link 
+                href="/katalog" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="hover:text-[#b77305] py-2 border-b border-stone-100 text-[#b77305] font-semibold"
+              >
+                Katalog Digital
+              </Link>
+
               <div>
                 <button 
                   onClick={() => setMobileCategoriesOpen(!mobileCategoriesOpen)}
-                  className="w-full flex items-center justify-between py-2 border-b border-stone-100 text-[#b77305]"
+                  className="w-full flex items-center justify-between py-2 border-b border-stone-100"
                 >
                   Categories
                   <ChevronDown className={cn("w-4 h-4 transition-transform", mobileCategoriesOpen ? "rotate-180" : "")} />
@@ -412,25 +518,182 @@ export default function Navbar() {
                 )}
               </div>
 
-              <Link 
-                href="/pages/faq" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#b77305] py-2 border-b border-stone-100"
-              >
-                FAQ
-              </Link>
-
-              <Link 
-                href="/pages/contact" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="hover:text-[#b77305] py-2"
-              >
-                Contact Us
-              </Link>
+              <div>
+                <button 
+                  onClick={() => setMobileLainnyaOpen(!mobileLainnyaOpen)}
+                  className="w-full flex items-center justify-between py-2 border-b border-stone-100"
+                >
+                  Lainnya
+                  <ChevronDown className={cn("w-4 h-4 transition-transform", mobileLainnyaOpen ? "rotate-180" : "")} />
+                </button>
+                {mobileLainnyaOpen && (
+                  <div className="pl-4 py-2 space-y-2 bg-stone-50 rounded-md mt-1">
+                    {LAINNYA_OPTIONS.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="block py-1.5 text-sm text-stone-700 hover:text-[#b77305]"
+                      >
+                        {item.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             </nav>
           </div>
         </div>
       )}
     </>
+  );
+}
+
+function NavbarBotanicalLeafDecor({ side = "left" }: { side?: "left" | "right" }) {
+  const isRight = side === "right";
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -25, scaleY: 0.9, scaleX: isRight ? -0.9 : 0.9 }}
+      animate={{ 
+        opacity: 1, 
+        y: 0, 
+        scaleY: 1,
+        scaleX: isRight ? -1 : 1
+      }}
+      exit={{ opacity: 0 }}
+      transition={{ 
+        duration: 0.75,
+        ease: [0.22, 1, 0.36, 1],
+        opacity: { duration: 0.4, ease: "easeInOut" }
+      }}
+      className={`absolute top-full ${isRight ? "right-1 md:right-4 lg:right-8" : "left-1 md:left-4 lg:left-8"} origin-top pointer-events-none z-30 hidden lg:block select-none opacity-85 transition-opacity`}
+    >
+      <svg
+        width="260"
+        height="580"
+        viewBox="0 0 280 640"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-40 md:w-52 lg:w-60 xl:w-64 h-auto drop-shadow-[0_4px_16px_rgba(183,115,5,0.35)]"
+      >
+        {/* Swirling Branch starting right at top edge of Navbar */}
+        <path
+          d="M 40 0 C 90 120, 160 220, 110 340 C 60 460, 140 560, 200 600"
+          stroke="url(#goldGradientNavbar)"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+        />
+        
+        {/* Secondary Tendril */}
+        <path
+          d="M 110 340 C 170 380, 230 330, 220 260"
+          stroke="url(#goldGradientNavbar)"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        />
+        
+        {/* Leaf Cluster 1 (Top near Navbar) */}
+        <path
+          d="M 50 40 C 20 10, 10 40, 45 50 Z"
+          fill="url(#goldGradientNavbar)"
+          opacity="0.9"
+        />
+        <path
+          d="M 55 60 C 25 70, 30 100, 65 70 Z"
+          fill="url(#goldGradientNavbar)"
+          opacity="0.85"
+        />
+        <circle cx="40" cy="25" r="4" fill="#c58c1b" />
+        <circle cx="28" cy="35" r="3" fill="#d4af37" />
+
+        {/* Leaf Cluster 2 (Upper Middle) */}
+        <path
+          d="M 100 160 C 60 140, 60 180, 105 175 Z"
+          fill="url(#goldGradientNavbar)"
+          opacity="0.9"
+        />
+        <path
+          d="M 120 185 C 160 160, 175 190, 125 200 Z"
+          fill="url(#goldGradientNavbar)"
+          opacity="0.85"
+        />
+        <path
+          d="M 135 220 C 180 210, 190 250, 138 235 Z"
+          fill="url(#goldGradientNavbar)"
+          opacity="0.9"
+        />
+
+        {/* Blossom Flower 1 (Upper Branch) */}
+        <g transform="translate(220, 260)">
+          <circle cx="0" cy="0" r="7" fill="#b77305" />
+          <path d="M 0 -7 C -6 -18, 6 -18, 0 -7 Z" fill="url(#goldGradientNavbar)" />
+          <path d="M 7 0 C 18 -6, 18 6, 7 0 Z" fill="url(#goldGradientNavbar)" />
+          <path d="M 0 7 C 6 18, -6 18, 0 7 Z" fill="url(#goldGradientNavbar)" />
+          <path d="M -7 0 C -18 6, -18 -6, -7 0 Z" fill="url(#goldGradientNavbar)" />
+          <circle cx="0" cy="0" r="3" fill="#fff" />
+        </g>
+
+        {/* Leaf Cluster 3 (Center Wreath) */}
+        <path
+          d="M 115 310 C 70 290, 65 330, 110 325 Z"
+          fill="url(#goldGradientNavbar)"
+          opacity="0.95"
+        />
+        <path
+          d="M 105 370 C 65 370, 70 410, 108 385 Z"
+          fill="url(#goldGradientNavbar)"
+          opacity="0.9"
+        />
+        <path
+          d="M 90 430 C 40 420, 45 460, 95 445 Z"
+          fill="url(#goldGradientNavbar)"
+          opacity="0.85"
+        />
+
+        {/* Blossom Flower 2 (Center Wreath) */}
+        <g transform="translate(110, 340)">
+          <circle cx="0" cy="0" r="9" fill="#c58c1b" />
+          <path d="M 0 -9 C -8 -22, 8 -22, 0 -9 Z" fill="url(#goldGradientNavbar)" />
+          <path d="M 9 0 C 22 -8, 22 8, 9 0 Z" fill="url(#goldGradientNavbar)" />
+          <path d="M 0 9 C 8 22, -8 22, 0 9 Z" fill="url(#goldGradientNavbar)" />
+          <path d="M -9 0 C -22 8, -22 -8, -9 0 Z" fill="url(#goldGradientNavbar)" />
+          <path d="M 6 -6 C 16 -16, 18 -4, 6 -6 Z" fill="url(#goldGradientNavbar)" />
+          <path d="M -6 6 C -16 16, -18 4, -6 6 Z" fill="url(#goldGradientNavbar)" />
+          <circle cx="0" cy="0" r="4" fill="#fff" />
+        </g>
+
+        {/* Leaf Cluster 4 (Lower Branch) */}
+        <path
+          d="M 125 480 C 85 490, 100 525, 135 495 Z"
+          fill="url(#goldGradientNavbar)"
+          opacity="0.9"
+        />
+        <path
+          d="M 155 520 C 195 500, 210 540, 160 535 Z"
+          fill="url(#goldGradientNavbar)"
+          opacity="0.95"
+        />
+        <path
+          d="M 180 560 C 225 550, 230 590, 185 575 Z"
+          fill="url(#goldGradientNavbar)"
+          opacity="0.85"
+        />
+
+        {/* Berry Sprouts */}
+        <circle cx="210" cy="530" r="4" fill="#b77305" />
+        <circle cx="222" cy="542" r="3.5" fill="#d4af37" />
+        <circle cx="215" cy="552" r="3" fill="#c58c1b" />
+
+        {/* Gold Shimmer Gradient Definition */}
+        <defs>
+          <linearGradient id="goldGradientNavbar" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#b77305" />
+            <stop offset="35%" stopColor="#d4af37" />
+            <stop offset="70%" stopColor="#e5c158" />
+            <stop offset="100%" stopColor="#965e04" />
+          </linearGradient>
+        </defs>
+      </svg>
+    </motion.div>
   );
 }

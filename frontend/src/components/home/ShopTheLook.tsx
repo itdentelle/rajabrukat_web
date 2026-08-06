@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ShoppingBag, Eye, Sparkles, X, ArrowRight, CheckCircle2, MessageCircle } from "lucide-react";
 import { useCartStore, Product } from "@/store/cartStore";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { API_BASE_URL } from "@/lib/api";
+import { cleanTitle } from "@/utils/cleanTitle";
+import { cleanDescription } from "@/utils/cleanDescription";
 
 interface LookbookItem {
   id: string;
@@ -93,9 +96,49 @@ const LOOKBOOK_ITEMS: LookbookItem[] = [
 ];
 
 export default function ShopTheLook() {
+  const [looks, setLooks] = useState<LookbookItem[]>(LOOKBOOK_ITEMS);
   const [selectedLook, setSelectedLook] = useState<LookbookItem | null>(null);
   const addItem = useCartStore((state) => state.addItem);
   const openCart = useCartStore((state) => state.openCart);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/products?limit=4`)
+      .then((res) => {
+        const contentType = res.headers.get("content-type") || "";
+        if (!res.ok || !contentType.includes("application/json")) return null;
+        return res.json();
+      })
+      .then((data) => {
+        if (!data) return;
+        const products = data.products || data;
+        if (Array.isArray(products) && products.length >= 4) {
+          const tags = ["Kebaya Pengantin", "Gaun Pesta", "Seragam Bridesmaid", "Kebaya Wisuda"];
+          const dynamicLooks: LookbookItem[] = products.slice(0, 4).map((p: any, idx: number) => {
+            const { displayTitle } = cleanTitle(p.name);
+            return {
+              id: `look-${p.id}`,
+              title: `${displayTitle}`,
+              designer: `${p.category || "Grade A"} Collection`,
+              categoryTag: tags[idx] || (p.category ? p.category.toUpperCase() : "KEBAYA ELEGAN"),
+              image: p.image || "/images/brukat_tile_mutiara.png",
+              fabricUsed: {
+                id: p.id,
+                name: p.name,
+                price: p.price,
+                discountPrice: p.discountPrice,
+                category: p.category,
+                image: p.image || "/images/brukat_tile_mutiara.png",
+              },
+              fabricNeeded: "2.5 Meter (Satu Set Kebaya & Selendang)",
+              furingRecommendation: "Furing Silk Satin Premium 2.0 Meter",
+              description: cleanDescription(p.description),
+            };
+          });
+          setLooks(dynamicLooks);
+        }
+      })
+      .catch((err) => console.warn("Failed to fetch dynamic lookbook products from database:", err));
+  }, []);
 
   const handleBuyFabric = (product: Product, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -124,7 +167,7 @@ export default function ShopTheLook() {
 
         {/* Lookbook 4-Card Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7">
-          {LOOKBOOK_ITEMS.map((item) => (
+          {looks.map((item) => (
             <div
               key={item.id}
               onClick={() => setSelectedLook(item)}

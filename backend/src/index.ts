@@ -198,7 +198,7 @@ const getEmailTemplate = (title: string, bodyHTML: string, buttonText?: string, 
     <body>
       <div class="container">
         <div class="header">
-          <h1>DragonWorm</h1>
+          <h1>Raja Brukat</h1>
         </div>
         <div class="content">
           <h2>${title}</h2>
@@ -210,8 +210,8 @@ const getEmailTemplate = (title: string, bodyHTML: string, buttonText?: string, 
           ` : ''}
         </div>
         <div class="footer">
-          &copy; ${new Date().getFullYear()} DragonWorm. All rights reserved.<br>
-          Premium Streetwear Based in Jakarta.
+          &copy; ${new Date().getFullYear()} Raja Brukat. All rights reserved.<br>
+          Spesialis Kain Brukat & Renda Impor Premium.
         </div>
       </div>
     </body>
@@ -1101,12 +1101,12 @@ app.put('/api/orders/:id/status', authenticateToken, async (req: Request, res: R
       const bodyHTML = `
         <p>Hi ${order.user.name},</p>
         <p>Menurut catatan kami, paket Anda telah berhasil mendarat dengan selamat! 🎉</p>
-        <p>Kami harap Anda menyukai koleksi DragonWorm yang baru Anda terima. Kepuasan Anda adalah prioritas utama kami.</p>
+        <p>Kami harap Anda menyukai koleksi Raja Brukat yang baru Anda terima. Kepuasan Anda adalah prioritas utama kami.</p>
         <p>Kami akan sangat menghargai jika Anda mau meluangkan waktu 1 menit untuk meninggalkan ulasan di profil Anda.</p>
       `;
       await sendNotificationEmail(
         order.user.email,
-        "Paket Tiba! Terima Kasih dari DragonWorm 🐉",
+        "Paket Tiba! Terima Kasih dari Raja Brukat 👑",
         "Pesanan Selesai",
         bodyHTML,
         "Beri Ulasan Bintang",
@@ -1406,7 +1406,7 @@ app.post('/api/orders/:id/pickup', authenticateToken, async (req: Request, res: 
 
     // Asumsi alamat origin
     const origin = {
-      contact_name: "DragonWorm Official",
+      contact_name: "Raja Brukat Official",
       contact_phone: "081234567890",
       address: "Jl. Grogol Raya No. 1, Jakarta Barat",
       postal_code: 11460,
@@ -1693,12 +1693,12 @@ app.post('/api/webhooks/logistics', express.json(), async (req: Request, res: Re
             const bodyHTML = `
               <p>Hi ${existingOrder.user.name},</p>
               <p>Menurut catatan kurir, paket Anda telah berhasil mendarat dengan selamat! 🎉</p>
-              <p>Kami harap Anda menyukai koleksi DragonWorm yang baru Anda terima. Kepuasan Anda adalah prioritas utama kami.</p>
+              <p>Kami harap Anda menyukai koleksi Raja Brukat yang baru Anda terima. Kepuasan Anda adalah prioritas utama kami.</p>
               <p>Kami akan sangat menghargai jika Anda mau meluangkan waktu 1 menit untuk meninggalkan ulasan di profil Anda.</p>
             `;
             await sendNotificationEmail(
               existingOrder.user.email,
-              "Paket Tiba! Terima Kasih dari DragonWorm 🐉",
+              "Paket Tiba! Terima Kasih dari Raja Brukat 👑",
               "Pesanan Selesai",
               bodyHTML,
               "Beri Ulasan Bintang",
@@ -1958,7 +1958,7 @@ app.delete('/api/cart', authenticateToken, async (req: Request, res: Response) =
 app.get('/api/config/hero', cacheMiddleware(86400), async (req: Request, res: Response) => {
   try {
     let config = await prisma.siteConfig.findUnique({ where: { id: "hero-banner" } });
-    if (!config || config.title === "Define Your Street." || config.title === "Keanggunan Kain Brukat & Lace Premium") {
+    if (!config || !config.aboutPageStory1 || config.aboutPageStory1.includes("DragonWorm") || config.aboutPageTitle?.includes("Underground") || config.aboutPageStory1?.includes("concrete")) {
       config = await prisma.siteConfig.upsert({
         where: { id: "hero-banner" },
         update: {
@@ -1966,7 +1966,18 @@ app.get('/api/config/hero', cacheMiddleware(86400), async (req: Request, res: Re
           subtitle: "KOLEKSI RAJA BRUKAT 2026",
           buttonText: "Shop Now",
           buttonLink: "/shop",
-          imageUrl: "/images/white_lace_hero.jpg"
+          imageUrl: "/images/white_lace_hero.jpg",
+          aboutPageTitle: "Keanggunan Tekstil Kebaya \\n Mewah & Eksklusif Raja Brukat",
+          aboutPageStory1: "Raja Brukat adalah destinasi utama di Indonesia untuk menemukan kain brukat mewah, tile mutiara 3D, renda Chantilly impor, dan furing satin silk bermutu tinggi.",
+          aboutPageStory2: "Berdiri dengan komitmen menyajikan keindahan tekstil terbaik, kami menghadirkan ratusan pilihan motif renda eksklusif untuk kebutuhan kebaya wisuda, gaun pesta modern, seragam keluarga bridesmaid, hingga busana pengantin akad & resepsi.\\n\\nSetiap roll kain dikurasi secara teliti dengan kerapatan bordir presisi, hiasan mutiara timbul 3D, serta tekstur lembut yang sangat nyaman dan dingin dipakai sepanjang hari.",
+          aboutPageImgUrl: "/images/brukat_tile_mutiara.png",
+          aboutPageImgText: "Kemewahan Tanpa Kompromi.",
+          aboutPagePhil1Title: "01. Kualitas Premium Impor",
+          aboutPagePhil1Desc: "Serat renda Chantilly dan tile pilihan yang ekstra lembut di kulit, tahan lama, dingin, dan tidak gatal.",
+          aboutPagePhil2Title: "02. Motif Anggun & Mewah",
+          aboutPagePhil2Desc: "Desain bordir bunga 3D, cornely timbul, dan taburan mutiara yang sangat mewah untuk segala momen istimewa.",
+          aboutPagePhil3Title: "03. Pelayanan Eceran & Grosir",
+          aboutPagePhil3Desc: "Melayani pembelian eceran per meter maupun gulungan roll besar untuk desainer, penjahit, dan seragam acara."
         },
         create: {
           id: "hero-banner",
@@ -1974,7 +1985,18 @@ app.get('/api/config/hero', cacheMiddleware(86400), async (req: Request, res: Re
           subtitle: "KOLEKSI RAJA BRUKAT 2026",
           buttonText: "Shop Now",
           buttonLink: "/shop",
-          imageUrl: "/images/white_lace_hero.jpg"
+          imageUrl: "/images/white_lace_hero.jpg",
+          aboutPageTitle: "Keanggunan Tekstil Kebaya \\n Mewah & Eksklusif Raja Brukat",
+          aboutPageStory1: "Raja Brukat adalah destinasi utama di Indonesia untuk menemukan kain brukat mewah, tile mutiara 3D, renda Chantilly impor, dan furing satin silk bermutu tinggi.",
+          aboutPageStory2: "Berdiri dengan komitmen menyajikan keindahan tekstil terbaik, kami menghadirkan ratusan pilihan motif renda eksklusif untuk kebutuhan kebaya wisuda, gaun pesta modern, seragam keluarga bridesmaid, hingga busana pengantin akad & resepsi.\\n\\nSetiap roll kain dikurasi secara teliti dengan kerapatan bordir presisi, hiasan mutiara timbul 3D, serta tekstur lembut yang sangat nyaman dan dingin dipakai sepanjang hari.",
+          aboutPageImgUrl: "/images/brukat_tile_mutiara.png",
+          aboutPageImgText: "Kemewahan Tanpa Kompromi.",
+          aboutPagePhil1Title: "01. Kualitas Premium Impor",
+          aboutPagePhil1Desc: "Serat renda Chantilly dan tile pilihan yang ekstra lembut di kulit, tahan lama, dingin, dan tidak gatal.",
+          aboutPagePhil2Title: "02. Motif Anggun & Mewah",
+          aboutPagePhil2Desc: "Desain bordir bunga 3D, cornely timbul, dan taburan mutiara yang sangat mewah untuk segala momen istimewa.",
+          aboutPagePhil3Title: "03. Pelayanan Eceran & Grosir",
+          aboutPagePhil3Desc: "Melayani pembelian eceran per meter maupun gulungan roll besar untuk desainer, penjahit, dan seragam acara."
         }
       });
     }
@@ -2026,6 +2048,59 @@ app.put('/api/config/hero', authenticateToken, async (req: Request, res: Respons
   } catch (error) {
     console.error("Error updating hero config:", error);
     res.status(500).json({ error: "Failed to update config" });
+  }
+});
+
+// --- CATALOG API ROUTES (REDIS CACHED 24h) ---
+
+// GET Catalog Data & Mapping (Cached via Redis for 24 Hours)
+app.get('/api/catalog', cacheMiddleware(86400), async (req: Request, res: Response) => {
+  try {
+    const catalogData = {
+      title: "Katalog Koleksi Terbaik Raja Brukat 2026",
+      subtitle: "Brukat premium untuk kebaya, wisuda, lamaran, dan momen istimewa",
+      pdfUrl: "/Katalog.pdf",
+      totalPages: 14,
+      pageRatio: 1.414,
+      productMap: {
+        1: "1638",
+        2: "1638",
+        3: "1639",
+        4: "1639",
+        5: "1640",
+        6: "1640",
+        7: "1641",
+        8: "1641",
+        9: "1642",
+        10: "1642",
+        11: "1643",
+        12: "1643",
+        13: "1644",
+        14: "1644"
+      },
+      cachedAt: new Date().toISOString()
+    };
+    res.json(catalogData);
+  } catch (error) {
+    console.error("Error fetching catalog endpoint:", error);
+    res.status(500).json({ error: "Failed to fetch catalog data" });
+  }
+});
+
+// Admin PUT Endpoint to update Catalog settings & invalidate Redis Cache
+app.put('/api/catalog', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    if (!user || user.role !== 'ADMIN') return res.status(403).json({ error: "Unauthorized" });
+
+    if (redisClient) {
+      await redisClient.del('cache:/api/catalog');
+    }
+
+    res.json({ message: "Catalog updated successfully and Redis cache cleared", updatedAt: new Date().toISOString() });
+  } catch (error) {
+    console.error("Error updating catalog endpoint:", error);
+    res.status(500).json({ error: "Failed to update catalog" });
   }
 });
 

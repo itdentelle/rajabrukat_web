@@ -20,7 +20,7 @@ export function Reveal({ children, width = "100%", className, delay = 0 }: Revea
         }}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: false, margin: "-50px" }}
+        viewport={{ once: true, margin: "-50px" }}
         transition={{ duration: 0.5, delay: delay }}
       >
         {children}
@@ -38,8 +38,8 @@ export function FadeIn({ children, delay = 0, className }: { children: React.Rea
       }}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: false }}
-      transition={{ duration: 0.8, delay: delay }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, delay: delay }}
       className={className}
     >
       {children}

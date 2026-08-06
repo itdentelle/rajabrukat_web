@@ -1,14 +1,17 @@
 export const revalidate = 60;
 
+import dynamic from "next/dynamic";
 import HeroBanner from "@/components/home/HeroBanner";
 import FeaturedCategories from "@/components/home/FeaturedCategories";
-import AboutBrand from "@/components/home/AboutBrand";
-import DealsAndRecommendations from "@/components/home/DealsAndRecommendations";
-import ShopTheLook from "@/components/home/ShopTheLook";
-import LatestDrops from "@/components/home/LatestDrops";
-import BestSellers from "@/components/home/BestSellers";
-import CatalogFlipbookSection from "@/components/home/CatalogFlipbookSection";
 import { API_BASE_URL } from "@/lib/api";
+
+// Below-the-fold components: lazy loaded to improve TTI & initial bundle size
+const CatalogFlipbookSection = dynamic(() => import("@/components/home/CatalogFlipbookSection"));
+const AboutBrand = dynamic(() => import("@/components/home/AboutBrand"));
+const LatestDrops = dynamic(() => import("@/components/home/LatestDrops"));
+const DealsAndRecommendations = dynamic(() => import("@/components/home/DealsAndRecommendations"));
+const ShopTheLook = dynamic(() => import("@/components/home/ShopTheLook"));
+const BestSellers = dynamic(() => import("@/components/home/BestSellers"));
 
 async function getProducts() {
   try {

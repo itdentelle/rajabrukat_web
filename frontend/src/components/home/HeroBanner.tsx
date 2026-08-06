@@ -104,7 +104,7 @@ export default function HeroBanner({ config }: HeroBannerProps) {
               key={panel.id}
               onClick={() => setActiveIndex(idx)}
               onMouseEnter={() => setActiveIndex(idx)}
-              className={`relative h-full transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer overflow-hidden group border-b lg:border-b-0 lg:border-r border-white/10 transform-gpu will-change-flex ${isActive
+              className={`relative h-full transition-[flex,opacity,box-shadow] duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer overflow-hidden group border-b lg:border-b-0 lg:border-r border-white/10 transform-gpu will-change-auto ${isActive
                   ? "flex-[3.5] lg:flex-[3.5] shadow-2xl z-10"
                   : "flex-1 lg:flex-1 opacity-90 hover:opacity-100 hover:flex-[1.25]"
                 }`}
