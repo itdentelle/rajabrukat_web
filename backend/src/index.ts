@@ -31,12 +31,13 @@ const connectionString = process.env.DATABASE_URL || '';
 if (!connectionString) {
   console.error('[WARNING] DATABASE_URL environment variable is missing or empty!');
 }
+const isCloudDb = connectionString.includes('supabase') || connectionString.includes('pooler') || connectionString.includes('aws') || connectionString.includes('railway');
 const pool = new Pool({ 
   connectionString,
   max: 10,
   idleTimeoutMillis: 10000,
   connectionTimeoutMillis: 10000,
-  ssl: connectionString.includes('supabase') ? { rejectUnauthorized: false } : undefined
+  ssl: isCloudDb ? { rejectUnauthorized: false } : undefined
 });
 
 pool.on('error', (err) => {
@@ -291,6 +292,15 @@ if (REDIS_URL && redisClient) {
 }// --- ADMIN INITIALIZATION ---
 
 
+// Process level error handlers to prevent Railway container crashing on temporary DB/Redis connection glitches
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[Unhandled Rejection caught]:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[Uncaught Exception caught]:', err);
+});
+
 const initializeAdmin = async () => {
   try {
     const defaultEmails = ['admin@rajabrukat.com', 'admin@dragonworm.com', ADMIN_EMAIL];
@@ -315,7 +325,7 @@ const initializeAdmin = async () => {
     console.error("Failed to seed admin:", err);
   }
 };
-initializeAdmin();
+initializeAdmin().catch((err) => console.error("Admin initialization warning:", err));
 
 // Auth Middleware
 const authenticateToken = (req: Request, res: Response, next: any) => {
