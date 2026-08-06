@@ -13,16 +13,11 @@ export function cleanTitle(rawName: string): { displayTitle: string; code?: stri
     .replace(/\[?\s*KODE\s*\d+[A-Z]?\s*\]?/gi, "")
     .replace(/–|-|—/g, " ")
     .replace(/GRADE\s+[AB]/gi, "")
-    .replace(/BAHAN\s+BRUKAT/gi, "")
     .replace(/BAHAN\s+KEBAYA/gi, "")
     .replace(/KEBAYA\s+MODERN/gi, "")
     .replace(/GAUN\s+PENGANTIN/gi, "")
     .replace(/FASHION\s+MODERN/gi, "")
     .replace(/PREMIUM\s+QUALITY/gi, "")
-    .replace(/FULL\s+METALIC/gi, "")
-    .replace(/BUSANA\s+BRUKAT\s+MEWAH/gi, "")
-    .replace(/BUSANA\s+BRUKAT/gi, "")
-    .replace(/BRUKAT\s+MEWAH/gi, "")
     .replace(/NO\s+OB\s+[A-Z0-9\/]+/gi, "")
     .replace(/\s+/g, " ")
     .trim();
@@ -39,11 +34,11 @@ export function cleanTitle(rawName: string): { displayTitle: string; code?: stri
     .join(" ");
 
   const lowerTitle = displayTitle.toLowerCase();
-  const fabricKeywords = ["brukat", "tile", "renda", "satin", "cornely", "kain", "tulle", "lace"];
+  const fabricKeywords = ["brukat", "tile", "renda", "satin", "cornely", "kain", "tulle", "lace", "panel", "metalic", "metallic"];
   const hasFabricKeyword = fabricKeywords.some(keyword => lowerTitle.includes(keyword));
 
   if (!hasFabricKeyword) {
-    // If it's just "Panel", "Panel Metalic", etc. prepend "Brukat "
+    // If it's too generic, prepend "Brukat "
     displayTitle = `Brukat ${displayTitle}`;
   }
 
