@@ -15,7 +15,7 @@ COPY tsconfig.json ./
 COPY src ./src
 
 RUN npx prisma generate
-RUN npm run build
+RUN npx tsc -p tsconfig.json
 
 FROM node:20-slim AS runner
 
