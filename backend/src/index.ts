@@ -144,8 +144,17 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Serve scraped product images directly from scraping output directory
-const SCRAPED_IMAGES_DIR = `C:\\Users\\DWIKY SUMARLIN\\Documents\\PORTOFOLIO\\web-scrapping-rb\\hasil_scraping`;
+// --- HEALTH CHECK ENDPOINTS FOR RAILWAY CONTAINER ---
+app.get('/', (req: Request, res: Response) => {
+  res.json({ status: 'ok', service: 'RajaBrukat Backend API', version: '1.0.0' });
+});
+
+app.get('/health', (req: Request, res: Response) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Serve scraped product images directly from scraping output directory if exists
+const SCRAPED_IMAGES_DIR = process.env.SCRAPED_IMAGES_DIR || `C:\\Users\\DWIKY SUMARLIN\\Documents\\PORTOFOLIO\\web-scrapping-rb\\hasil_scraping`;
 app.use('/scraped-images', express.static(SCRAPED_IMAGES_DIR));
 
 
