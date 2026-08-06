@@ -9,6 +9,7 @@ import ProductCard from "@/components/products/ProductCard";
 import { cleanTitle } from "@/utils/cleanTitle";
 import ProductReviews from "@/components/products/ProductReviews";
 import FormattedDescription from "@/components/products/FormattedDescription";
+import { API_BASE_URL } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ interface PageProps {
 
 async function getProduct(id: string) {
   try {
-    const res = await fetch(`http://localhost:5000/api/products/${id}`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE_URL}/api/products/${id}`, { cache: "no-store" });
     if (!res.ok) return null;
     const contentType = res.headers.get("content-type") || "";
     if (!contentType.includes("application/json")) return null;
@@ -45,7 +46,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
   // Fetch all products to get recommendations
   let recommendedProducts = [];
   try {
-    const res = await fetch(`http://localhost:5000/api/products`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE_URL}/api/products`, { cache: "no-store" });
     const contentType = res.headers.get("content-type") || "";
     if (res.ok && contentType.includes("application/json")) {
       const resData = await res.json();
@@ -61,7 +62,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
   // Fetch reviews for star rating
   let reviews = [];
   try {
-    const revRes = await fetch(`http://localhost:5000/api/products/${id}/reviews`, { cache: "no-store" });
+    const revRes = await fetch(`${API_BASE_URL}/api/products/${id}/reviews`, { cache: "no-store" });
     const revContentType = revRes.headers.get("content-type") || "";
     if (revRes.ok && revContentType.includes("application/json")) {
       reviews = await revRes.json();

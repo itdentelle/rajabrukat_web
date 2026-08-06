@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { API_BASE_URL } from '@/lib/api';
 
 export interface Product {
   id: string;
@@ -19,8 +21,6 @@ export interface CartItem extends Product {
   quantity: number;
   cartItemId: string;
 }
-
-import { persist } from 'zustand/middleware';
 
 interface CartState {
   items: CartItem[];
@@ -48,7 +48,7 @@ export const useCartStore = create<CartState>()(
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         if (!token) return;
         try {
-          const res = await fetch('http://localhost:5000/api/cart', {
+          const res = await fetch(`${API_BASE_URL}/api/cart`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (res.ok) {
@@ -77,7 +77,7 @@ export const useCartStore = create<CartState>()(
             size: item.size,
             color: item.color
           }));
-          const res = await fetch('http://localhost:5000/api/cart/merge', {
+          const res = await fetch(`${API_BASE_URL}/api/cart/merge`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ items: payload })
@@ -114,7 +114,7 @@ export const useCartStore = create<CartState>()(
         });
 
         if (token) {
-          fetch('http://localhost:5000/api/cart/items', {
+          fetch(`${API_BASE_URL}/api/cart/items`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ productId: product.id, quantity: 1, size: product.size, color: product.color })
@@ -130,7 +130,7 @@ export const useCartStore = create<CartState>()(
         }));
 
         if (token && itemToRemove) {
-          fetch(`http://localhost:5000/api/cart/items/${itemToRemove.id}?size=${itemToRemove.size || 'default'}&color=${itemToRemove.color || 'default'}`, {
+          fetch(`${API_BASE_URL}/api/cart/items/${itemToRemove.id}?size=${itemToRemove.size || 'default'}&color=${itemToRemove.color || 'default'}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
           }).catch(err => console.error(err));
@@ -147,7 +147,7 @@ export const useCartStore = create<CartState>()(
         }));
 
         if (token && targetItem) {
-          fetch('http://localhost:5000/api/cart/items', {
+          fetch(`${API_BASE_URL}/api/cart/items`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ productId: targetItem.id, size: targetItem.size, color: targetItem.color, quantity })
@@ -158,7 +158,7 @@ export const useCartStore = create<CartState>()(
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         set({ items: [] });
         if (token) {
-          fetch('http://localhost:5000/api/cart', {
+          fetch(`${API_BASE_URL}/api/cart`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
           }).catch(err => console.error(err));

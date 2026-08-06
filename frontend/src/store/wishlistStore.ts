@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Product } from './cartStore';
 import toast from 'react-hot-toast';
+import { API_BASE_URL } from '@/lib/api';
 
 interface WishlistState {
   items: Product[];
@@ -23,7 +24,7 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
     
     set({ isLoading: true });
     try {
-      const res = await fetch('http://localhost:5000/api/wishlist', {
+      const res = await fetch(`${API_BASE_URL}/api/wishlist`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -46,7 +47,7 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
     }
 
     try {
-      const res = await fetch('http://localhost:5000/api/wishlist', {
+      const res = await fetch(`${API_BASE_URL}/api/wishlist`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
