@@ -135,7 +135,7 @@ export default function LoginPage() {
           className="absolute inset-0 z-0"
         >
           <Image
-            src="/images/brukat_tile_mutiara.png"
+            src="/images/white_lace_hero.png"
             alt="Kain Brukat Raja Brukat"
             fill
             priority
@@ -165,7 +165,7 @@ export default function LoginPage() {
             RAJA BRUKAT
           </h1>
           <p className="text-stone-300 font-medium tracking-wide leading-relaxed text-base">
-            Pusat grosir dan eceran kain brukat berkualitas tinggi. Koleksi Brukat Tile Mutiara, Renda Chantilly, dan Cornely 3D terpercaya di Indonesia.
+            Pusat grosir dan eceran kain brukat berkualitas. Koleksi brukat terlengkap dengan berbagai motif yang indah dan elegan tentunya dengan harga yang terjangkau.
           </p>
         </motion.div>
       </div>

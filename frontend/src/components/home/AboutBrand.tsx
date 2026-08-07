@@ -53,6 +53,7 @@ export default function AboutBrand() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [config, setConfig] = useState<SiteConfig | null>(null);
   const [circles, setCircles] = useState(FABRIC_CIRCLES);
+  const [showCircles, setShowCircles] = useState<boolean>(false);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/config/hero`)
@@ -181,37 +182,55 @@ export default function AboutBrand() {
       <div className="container mx-auto px-4 pb-24 pt-12 relative z-10 border-t border-stone-100">
         <div className="max-w-7xl mx-auto">
 
-          {/* Circular Fabric Categories Swatch Row */}
-          <div className="mb-24">
-            <Reveal>
-              <div className="flex flex-wrap lg:flex-nowrap items-center justify-center gap-6 sm:gap-8 lg:gap-6 xl:gap-10 py-4">
-                {circles.map((item) => (
-                  <Link
-                    key={item.id}
-                    href={item.link}
-                    className="group flex flex-col items-center gap-4 text-center transition-transform duration-300 w-full sm:w-auto"
-                  >
-                    {/* Circle Swatch Container with Double Gold Ring & Glow */}
-                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44 lg:w-44 lg:h-44 xl:w-56 xl:h-56 rounded-full overflow-hidden shadow-lg border-2 border-stone-200 group-hover:border-[#b77305] group-hover:ring-4 group-hover:ring-[#b77305]/30 group-hover:shadow-2xl transition-all duration-500 transform group-hover:scale-105 shrink-0">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        sizes="(max-width: 640px) 128px, (max-width: 1024px) 176px, 224px"
-                        className="object-cover object-center transition-transform duration-700 group-hover:scale-115"
-                      />
-                      <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
-                    </div>
+          {/* Tombol Opsi: Tampilkan / Sembunyikan Kategori Bulat */}
+          <div className="mb-8 flex justify-center">
+            <button
+              onClick={() => setShowCircles(!showCircles)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-stone-100 hover:bg-[#b77305] text-stone-700 hover:text-white font-medium text-xs rounded-full border border-stone-200 transition-all shadow-sm hover:scale-105 active:scale-95 group"
+              title="Tombol Opsi Tampilan Kategori Bulat"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#b77305] group-hover:text-white" />
+              <span>{showCircles ? "Sembunyikan / Hapus Kategori Bulat" : "Tampilkan Kategori Bulat"}</span>
+            </button>
+          </div>
 
-                    {/* Category Name Label in Luxury Serif Typography */}
-                    <span className="text-sm sm:text-base lg:text-lg font-serif font-bold text-stone-900 group-hover:text-[#b77305] transition-colors tracking-wide mt-1">
-                      {item.name}
-                    </span>
-                  </Link>
+          {/* Circular Fabric Categories Swatch Row */}
+          {showCircles && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, y: -15 }}
+              animate={{ opacity: 1, height: "auto", y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -15 }}
+              transition={{ duration: 0.4 }}
+              className="mb-20 overflow-hidden"
+            >
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 sm:gap-8 items-start justify-items-center py-4">
+                {circles.map((item) => (
+                  <div key={item.id} className="w-full flex flex-col items-center text-center group cursor-pointer max-w-[190px]">
+                    <Link href={item.link} className="w-full flex flex-col items-center group">
+                      {/* Circle Avatar Container */}
+                      <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full overflow-hidden p-1 bg-white shadow-lg shadow-stone-200/80 group-hover:shadow-2xl group-hover:shadow-[#b77305]/20 transition-all duration-500 border border-stone-200/80 group-hover:border-[#b77305] group-hover:scale-105">
+                        <div className="relative w-full h-full rounded-full overflow-hidden bg-stone-100">
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            fill
+                            sizes="(max-width: 640px) 130px, (max-width: 1024px) 150px, 160px"
+                            className="object-cover object-center group-hover:scale-110 transition-transform duration-700"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                        </div>
+                      </div>
+
+                      {/* Category Name Label */}
+                      <h3 className="mt-4 text-xs sm:text-sm font-serif font-medium text-stone-900 group-hover:text-[#b77305] leading-snug transition-colors line-clamp-3 px-1 text-center">
+                        {item.name}
+                      </h3>
+                    </Link>
+                  </div>
                 ))}
               </div>
-            </Reveal>
-          </div>
+            </motion.div>
+          )}
 
           {/* Animated Feature Cards Grid with Custom Gold Emblem Icons */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left relative z-20">

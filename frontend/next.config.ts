@@ -49,6 +49,7 @@ const nextConfig: NextConfig = {
       }
     ]
   },
+  devIndicators: false,
   // Turbopack alias (Next.js 15+ top-level key)
   turbopack: {
     resolveAlias: {

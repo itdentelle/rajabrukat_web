@@ -128,7 +128,7 @@ export default function RegisterPage() {
           className="absolute inset-0 z-0"
         >
           <Image
-            src="/images/renda_chantilly_french.png"
+            src="/images/white_lace_hero.png"
             alt="Renda Chantilly Raja Brukat"
             fill
             priority
@@ -155,10 +155,10 @@ export default function RegisterPage() {
           </div>
 
           <h1 className="text-4xl font-black uppercase tracking-tight mb-4 text-[#b77305]">
-            BERGABUNG BERSAMA KAMI
+            RAJA BRUKAT
           </h1>
           <p className="text-stone-300 font-medium tracking-wide leading-relaxed text-base">
-            Daftar akun Raja Brukat untuk kemudahan transaksi meteran & grosir roll, pelacakan pesanan, serta penawaran eksklusif kain brukat pilihan.
+            Pusat grosir dan eceran kain brukat berkualitas. Koleksi brukat terlengkap dengan berbagai motif yang indah dan elegan tentunya dengan harga yang terjangkau.
           </p>
         </motion.div>
       </div>

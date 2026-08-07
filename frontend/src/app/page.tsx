@@ -12,6 +12,7 @@ const LatestDrops = dynamic(() => import("@/components/home/LatestDrops"));
 const DealsAndRecommendations = dynamic(() => import("@/components/home/DealsAndRecommendations"));
 const ShopTheLook = dynamic(() => import("@/components/home/ShopTheLook"));
 const BestSellers = dynamic(() => import("@/components/home/BestSellers"));
+const FabricComparisonSlider = dynamic(() => import("@/components/home/FabricComparisonSlider"));
 
 async function getProducts() {
   try {
@@ -49,6 +50,12 @@ export default async function Home() {
       <AboutBrand />
       <LatestDrops products={products} />
       <DealsAndRecommendations products={products} />
+      <FabricComparisonSlider
+        beforeImage="/images/white_lace_hero.png"
+        afterImage="/images/metallic_lace_hero.png"
+        beforeLabel="Semi Prancis 3D"
+        afterLabel="Metallic Elegant"
+      />
       <ShopTheLook />
       <BestSellers products={products} />
     </div>

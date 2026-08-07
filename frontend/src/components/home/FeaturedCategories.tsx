@@ -108,13 +108,6 @@ export default function FeaturedCategories() {
     setActiveCardId(FABRIC_CARDS[nextIndex].id);
   }, [activeCardId]);
 
-  const handlePrev = useCallback(() => {
-    const currentIndex = FABRIC_CARDS.findIndex((c) => c.id === activeCardId);
-    const prevIndex = (currentIndex - 1 + FABRIC_CARDS.length) % FABRIC_CARDS.length;
-    setActiveCardId(FABRIC_CARDS[prevIndex].id);
-  }, [activeCardId]);
-
-  // Auto-rotate every 5 seconds, pauses on mouse hover
   useEffect(() => {
     if (isHovered) return;
     const timer = setInterval(() => {
@@ -299,4 +292,3 @@ export default function FeaturedCategories() {
     </section>
   );
 }
-

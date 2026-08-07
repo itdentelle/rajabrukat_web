@@ -3,7 +3,6 @@
 import { useEffect, useState, Suspense } from "react";
 import ProductCard from "@/components/products/ProductCard";
 import MarketplaceShowcase from "@/components/shop/MarketplaceShowcase";
-import CatalogFlipbookSection from "@/components/home/CatalogFlipbookSection";
 import { Product } from "@/store/cartStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { Reveal, FadeIn } from "@/components/ui/Reveal";
@@ -21,14 +20,30 @@ const MAIN_CATEGORIES = [
   "Tulle",
 ];
 
-// Exact 5 Quality Types
-const QUALITY_TYPES = [
+// Client Request Filters from quality Webs.xlsx (Excluding Yarn / Benang Details)
+const FORMAT_OPTIONS = [
+  "Semua Format",
+  "Panel",
+  "Meteran",
+];
+
+const FABRIC_TYPE_OPTIONS = [
+  "Semua Tipe",
+  "Jacquardtronic",
+  "Non Jacquard",
+  "3D",
+];
+
+const QUALITY_NAME_OPTIONS = [
   "Semua Quality",
   "Chantilly",
-  "Polos",
-  "Metallic",
-  "3D Polos",
-  "3D Metallic",
+  "Chantilly Metallic",
+  "Plain",
+  "Cord Plain",
+  "Cord Metallic",
+  "Metallic Outline",
+  "Metallic Inlay",
+  "Full Metallic",
 ];
 
 function formatRupiah(amount: number) {
@@ -49,7 +64,12 @@ function ShopContent() {
   const [products, setProducts] = useState<Product[]>(globalShopProductsCache || []);
   const [loading, setLoading] = useState(!globalShopProductsCache);
   const [activeCategory, setActiveCategory] = useState(initialCategory);
-  const [activeQuality, setActiveQuality] = useState("Semua Quality");
+
+  // Client Excel Filters State
+  const [activeFormat, setActiveFormat] = useState("Semua Format");
+  const [activeFabricType, setActiveFabricType] = useState("Semua Tipe");
+  const [activeQualityName, setActiveQualityName] = useState("Semua Quality");
+
   const [sortBy, setSortBy] = useState("newest");
 
   // Dual Slider Range States
@@ -67,7 +87,7 @@ function ShopContent() {
         setActiveCategory("Grade A");
       } else if (cat.toLowerCase().includes("chantilly")) {
         setActiveCategory("Grade B");
-        setActiveQuality("Chantilly");
+        setActiveQualityName("Chantilly");
       } else if (cat.toLowerCase().includes("cornely") || cat.toLowerCase().includes("silk")) {
         setActiveCategory("Tulle");
       } else if (MAIN_CATEGORIES.includes(cat)) {
@@ -132,7 +152,9 @@ function ShopContent() {
   // Reset Filters Function
   const handleResetFilters = () => {
     setActiveCategory("Semua Kategori");
-    setActiveQuality("Semua Quality");
+    setActiveFormat("Semua Format");
+    setActiveFabricType("Semua Tipe");
+    setActiveQualityName("Semua Quality");
     setSliderMinPrice(0);
     setSliderMaxPrice(maxCatalogPrice);
     setSortBy("newest");
@@ -147,28 +169,77 @@ function ShopContent() {
     return catLower === targetLower || catLower.includes(targetLower);
   };
 
-  // Helper matcher for Quality Type (Chantilly, Polos, Metallic, 3D Polos, 3D Metallic)
-  const matchesQualityType = (p: Product, targetQuality: string) => {
-    if (targetQuality === "Semua Quality") return true;
+  // Helper matcher for Format / Satuan Jual (Panel, Meteran)
+  const matchesFormat = (p: Product, targetFormat: string) => {
+    if (targetFormat === "Semua Format") return true;
     const nameLower = (p.name || "").toLowerCase();
-    const descLower = (p.description || "").toLowerCase();
-    const catLower = (p.category || "").toLowerCase();
-    const combined = `${nameLower} ${descLower} ${catLower}`;
+    const isPanel = nameLower.includes("panel");
 
-    if (targetQuality === "Chantilly") return combined.includes("chantilly");
-    if (targetQuality === "3D Metallic") return combined.includes("3d") && (combined.includes("metallic") || combined.includes("metalik") || combined.includes("payet") || combined.includes("mutiara"));
-    if (targetQuality === "3D Polos") return combined.includes("3d") && !combined.includes("metallic") && !combined.includes("metalik");
-    if (targetQuality === "Metallic") return (combined.includes("metallic") || combined.includes("metalik") || combined.includes("payet")) && !combined.includes("3d");
-    if (targetQuality === "Polos") return combined.includes("polos") || (!combined.includes("3d") && !combined.includes("metallic") && !combined.includes("mutiara"));
-
+    if (targetFormat === "Panel") {
+      return isPanel;
+    }
+    if (targetFormat === "Meteran") {
+      return !isPanel;
+    }
     return true;
   };
 
-  // Multi-tier Filtering: Main Category + Quality Type + Search + Dual Price Slider
+  // Helper matcher for Fabric Type (Jacquardtronic, Non Jacquard, 3D)
+  const matchesFabricType = (p: Product, targetType: string) => {
+    if (targetType === "Semua Tipe") return true;
+    const combined = `${p.name || ""} ${p.description || ""} ${p.category || ""}`.toLowerCase();
+    if (targetType === "Jacquardtronic") {
+      return combined.includes("jacquard");
+    }
+    if (targetType === "Non Jacquard") {
+      return combined.includes("non jacquard") || combined.includes("non-jacquard") || !combined.includes("jacquard");
+    }
+    if (targetType === "3D") {
+      return combined.includes("3d");
+    }
+    return combined.includes(targetType.toLowerCase());
+  };
+
+  // Helper matcher for Quality Name (Chantilly, Chantilly Metallic, Plain, Cord Plain, Cord Metallic, Metallic Outline, Metallic Inlay, Full Metallic)
+  const matchesQualityName = (p: Product, targetQuality: string) => {
+    if (targetQuality === "Semua Quality") return true;
+    const combined = `${p.name || ""} ${p.description || ""} ${p.category || ""}`.toLowerCase();
+
+    if (targetQuality === "Chantilly Metallic") {
+      return combined.includes("chantilly") && (combined.includes("metallic") || combined.includes("metalik"));
+    }
+    if (targetQuality === "Chantilly") {
+      return combined.includes("chantilly");
+    }
+    if (targetQuality === "Cord Metallic") {
+      return (combined.includes("cord") || combined.includes("cornely")) && (combined.includes("metallic") || combined.includes("metalik"));
+    }
+    if (targetQuality === "Cord Plain") {
+      return (combined.includes("cord") || combined.includes("cornely")) && !combined.includes("metallic") && !combined.includes("metalik");
+    }
+    if (targetQuality === "Full Metallic") {
+      return combined.includes("full metallic") || combined.includes("full metalik") || combined.includes("metallic");
+    }
+    if (targetQuality === "Metallic Outline") {
+      return combined.includes("outline") || (combined.includes("metallic") && combined.includes("pinggiran"));
+    }
+    if (targetQuality === "Metallic Inlay") {
+      return combined.includes("inlay") || (combined.includes("metallic") && combined.includes("tengah"));
+    }
+    if (targetQuality === "Plain") {
+      return combined.includes("plain") || combined.includes("polos");
+    }
+
+    return combined.includes(targetQuality.toLowerCase());
+  };
+
+  // Multi-tier Filtering: Main Category + Format + Fabric Type + Quality Name + Search + Dual Price Slider
   let filteredProducts = products.filter((p) => {
     const matchesCat = matchesMainCategory(p, activeCategory);
-    const matchesQual = matchesQualityType(p, activeQuality);
-    return matchesCat && matchesQual;
+    const matchesFmt = matchesFormat(p, activeFormat);
+    const matchesFab = matchesFabricType(p, activeFabricType);
+    const matchesQual = matchesQualityName(p, activeQualityName);
+    return matchesCat && matchesFmt && matchesFab && matchesQual;
   });
 
   // Search Query Filter
@@ -303,32 +374,121 @@ function ShopContent() {
               </div>
             </div>
 
-            {/* 2. Sub-Kategori / Jenis Kualitas (5 Quality Types) */}
+            {/* 2. Format / Satuan Jual (Panel, Meteran) */}
             <div className="pt-4 border-t border-stone-100">
               <h4 className="text-xs font-bold uppercase tracking-wider text-stone-500 mb-3 flex items-center gap-1.5">
-                <Award className="w-3.5 h-3.5 text-[#b77305]" />
-                <span>Jenis Kualitas (Quality)</span>
+                <Layers className="w-3.5 h-3.5 text-[#b77305]" />
+                <span>Format Jual</span>
               </h4>
               <div className="space-y-1">
-                {QUALITY_TYPES.map((quality) => {
-                  const isSelected = activeQuality === quality;
-
+                {FORMAT_OPTIONS.map((fmt) => {
+                  const isSelected = activeFormat === fmt;
+                  const count = products.filter((p) => matchesFormat(p, fmt)).length;
                   return (
                     <button
-                      key={quality}
-                      onClick={() => setActiveQuality(quality)}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2.5 ${isSelected
+                      key={fmt}
+                      onClick={() => setActiveFormat(fmt)}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-between group ${isSelected
                           ? "bg-stone-900 text-amber-300 font-bold shadow-sm"
                           : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
                         }`}
                     >
-                      <div
-                        className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${isSelected ? "border-amber-300 bg-[#b77305]" : "border-stone-400 bg-white"
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${isSelected ? "border-amber-300 bg-[#b77305]" : "border-stone-400 bg-white"
+                            }`}
+                        >
+                          {isSelected && <Check className="w-2.5 h-2.5 text-white stroke-[3]" />}
+                        </div>
+                        <span>{fmt}</span>
+                      </div>
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${isSelected ? "bg-amber-300/20 text-amber-300" : "bg-stone-100 text-stone-500 group-hover:bg-stone-200"
                           }`}
                       >
-                        {isSelected && <Check className="w-2.5 h-2.5 text-white stroke-[3]" />}
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 3. Teknik / Tipe Kain (Jacquardtronic, Non Jacquard, 3D) */}
+            <div className="pt-4 border-t border-stone-100">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-stone-500 mb-3 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#b77305]" />
+                <span>Tipe Kain</span>
+              </h4>
+              <div className="space-y-1">
+                {FABRIC_TYPE_OPTIONS.map((type) => {
+                  const isSelected = activeFabricType === type;
+                  const count = products.filter((p) => matchesFabricType(p, type)).length;
+                  return (
+                    <button
+                      key={type}
+                      onClick={() => setActiveFabricType(type)}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-between group ${isSelected
+                          ? "bg-stone-900 text-amber-300 font-bold shadow-sm"
+                          : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+                        }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${isSelected ? "border-amber-300 bg-[#b77305]" : "border-stone-400 bg-white"
+                            }`}
+                        >
+                          {isSelected && <Check className="w-2.5 h-2.5 text-white stroke-[3]" />}
+                        </div>
+                        <span>{type}</span>
                       </div>
-                      <span>{quality}</span>
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${isSelected ? "bg-amber-300/20 text-amber-300" : "bg-stone-100 text-stone-500 group-hover:bg-stone-200"
+                          }`}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 4. Nama Quality (Chantilly, Plain, Cord Plain, Metallic, etc.) */}
+            <div className="pt-4 border-t border-stone-100">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-stone-500 mb-3 flex items-center gap-1.5">
+                <Award className="w-3.5 h-3.5 text-[#b77305]" />
+                <span>Nama Quality</span>
+              </h4>
+              <div className="space-y-1 max-h-60 overflow-y-auto pr-1 scrollbar-thin">
+                {QUALITY_NAME_OPTIONS.map((quality) => {
+                  const isSelected = activeQualityName === quality;
+                  const count = products.filter((p) => matchesQualityName(p, quality)).length;
+
+                  return (
+                    <button
+                      key={quality}
+                      onClick={() => setActiveQualityName(quality)}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-between group ${isSelected
+                          ? "bg-stone-900 text-amber-300 font-bold shadow-sm"
+                          : "text-stone-600 hover:bg-stone-100 hover:text-stone-900"
+                        }`}
+                    >
+                      <div className="flex items-center gap-2.5 truncate pr-1">
+                        <div
+                          className={`w-4 h-4 shrink-0 rounded-full border flex items-center justify-center transition-colors ${isSelected ? "border-amber-300 bg-[#b77305]" : "border-stone-400 bg-white"
+                            }`}
+                        >
+                          {isSelected && <Check className="w-2.5 h-2.5 text-white stroke-[3]" />}
+                        </div>
+                        <span className="truncate">{quality}</span>
+                      </div>
+                      <span
+                        className={`text-[10px] shrink-0 px-2 py-0.5 rounded-full font-mono font-bold ${isSelected ? "bg-amber-300/20 text-amber-300" : "bg-stone-100 text-stone-500 group-hover:bg-stone-200"
+                          }`}
+                      >
+                        {count}
+                      </span>
                     </button>
                   );
                 })}
@@ -425,12 +585,32 @@ function ShopContent() {
                   </span>
                 )}
 
-                {activeQuality !== "Semua Quality" && (
+                {activeFormat !== "Semua Format" && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-stone-100 border border-stone-300 text-stone-800 text-[11px] font-semibold">
+                    Format: {activeFormat}
+                    <X
+                      className="w-3 h-3 cursor-pointer hover:text-stone-900"
+                      onClick={() => setActiveFormat("Semua Format")}
+                    />
+                  </span>
+                )}
+
+                {activeFabricType !== "Semua Tipe" && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-[11px] font-semibold">
+                    Tipe: {activeFabricType}
+                    <X
+                      className="w-3 h-3 cursor-pointer hover:text-stone-900"
+                      onClick={() => setActiveFabricType("Semua Tipe")}
+                    />
+                  </span>
+                )}
+
+                {activeQualityName !== "Semua Quality" && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-stone-900 text-amber-300 text-[11px] font-semibold">
-                    Quality: {activeQuality}
+                    Quality: {activeQualityName}
                     <X
                       className="w-3 h-3 cursor-pointer hover:text-white"
-                      onClick={() => setActiveQuality("Semua Quality")}
+                      onClick={() => setActiveQualityName("Semua Quality")}
                     />
                   </span>
                 )}
@@ -615,20 +795,61 @@ function ShopContent() {
                   </div>
                 </div>
 
-                {/* Mobile 5 Quality Types */}
+                {/* Mobile Format Jual */}
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-stone-500 mb-3">
-                    Jenis Kualitas (Quality)
+                    Format Jual
                   </h4>
-                  <div className="space-y-1.5">
-                    {QUALITY_TYPES.map((quality) => (
+                  <div className="space-y-1">
+                    {FORMAT_OPTIONS.map((fmt) => (
+                      <button
+                        key={fmt}
+                        onClick={() => {
+                          setActiveFormat(fmt);
+                        }}
+                        className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-semibold ${activeFormat === fmt ? "bg-[#b77305] text-white font-bold" : "text-stone-700 bg-stone-50"
+                          }`}
+                      >
+                        {fmt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Mobile Tipe Kain */}
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-stone-500 mb-3">
+                    Tipe Kain
+                  </h4>
+                  <div className="space-y-1">
+                    {FABRIC_TYPE_OPTIONS.map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => {
+                          setActiveFabricType(type);
+                        }}
+                        className={`w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-semibold ${activeFabricType === type ? "bg-[#b77305] text-white font-bold" : "text-stone-700 bg-stone-50"
+                          }`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Mobile Quality Name */}
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-stone-500 mb-3">
+                    Nama Quality
+                  </h4>
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    {QUALITY_NAME_OPTIONS.map((quality) => (
                       <button
                         key={quality}
                         onClick={() => {
-                          setActiveQuality(quality);
-                          setMobileFilterOpen(false);
+                          setActiveQualityName(quality);
                         }}
-                        className={`w-full text-left px-3.5 py-2 rounded-lg text-xs font-semibold ${activeQuality === quality
+                        className={`w-full text-left px-3.5 py-2 rounded-lg text-xs font-semibold ${activeQualityName === quality
                             ? "bg-stone-900 text-amber-300 font-bold"
                             : "text-stone-700 bg-stone-50"
                           }`}
@@ -705,10 +926,6 @@ function ShopContent() {
         )}
       </AnimatePresence>
 
-      {/* Interactive PDF Flipbook Catalog Section */}
-      <div className="mt-20 -mx-6">
-        <CatalogFlipbookSection />
-      </div>
     </div>
   );
 }

@@ -72,3 +72,13 @@ body {
   will-change: flex, width;
 }
 
+/* Hide Next.js Dev Badge / Toast Overlay in bottom left */
+[data-nextjs-toast],
+[data-nextjs-dialog-overlay],
+#nextjs-dev-overlay,
+button[aria-label="Next.js Dev Tools"],
+[class*="nextjs-portal"],
+nextjs-portal {
+  display: none !important;
+}
+
