@@ -627,6 +627,37 @@ app.get('/api/products', cacheMiddleware(3600), async (req: Request, res: Respon
   }
 });
 
+// API Route: Get all unique product categories
+app.get('/api/categories', cacheMiddleware(3600), async (req: Request, res: Response) => {
+  try {
+    const products = await prisma.product.findMany({
+      where: { isActive: true },
+      select: { category: true }
+    });
+
+    const categorySet = new Set<string>();
+    categorySet.add("Grade A");
+    categorySet.add("Grade B");
+    categorySet.add("Tulle");
+
+    products.forEach((p) => {
+      if (p.category && p.category.trim()) {
+        categorySet.add(p.category.trim());
+      }
+    });
+
+    const categories = Array.from(categorySet).map((cat) => ({
+      name: cat,
+      href: `/collections/${encodeURIComponent(cat.toLowerCase().replace(/\s+/g, "-"))}`
+    }));
+
+    res.json(categories);
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+    res.status(500).json({ error: "Failed to fetch categories" });
+  }
+});
+
 // API Route: Search products
 app.get('/api/products/search', cacheMiddleware(3600), async (req: Request, res: Response) => {
   try {
@@ -712,10 +743,26 @@ app.put('/api/products/:id', authenticateToken, async (req: Request, res: Respon
   }
 });
 
-// API Route: Delete a product (Soft Delete / Archive)
+// API Route: Delete a product (Soft Delete / Archive or Hard Delete with force=true)
 app.delete('/api/products/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
+    const isHardDelete = req.query.force === 'true';
+
+    if (isHardDelete) {
+      await prisma.cartItem.deleteMany({ where: { productId: id } });
+      await prisma.wishlistItem.deleteMany({ where: { productId: id } });
+      await prisma.review.deleteMany({ where: { productId: id } });
+      await prisma.orderItem.deleteMany({ where: { productId: id } });
+      await prisma.product.delete({ where: { id } });
+
+      if (redisClient) {
+        const keys = await redisClient.keys('cache:/api/products*');
+        if (keys.length > 0) await redisClient.del(...keys);
+      }
+      return res.json({ message: "Product permanently deleted" });
+    }
+
     await prisma.product.update({
       where: { id },
       data: { isActive: false }
@@ -726,8 +773,8 @@ app.delete('/api/products/:id', authenticateToken, async (req: Request, res: Res
     }
     res.json({ message: "Product archived successfully" });
   } catch (error) {
-    console.error("Error archiving product:", error);
-    res.status(500).json({ error: "Failed to archive product" });
+    console.error("Error deleting product:", error);
+    res.status(500).json({ error: "Failed to delete product" });
   }
 });
 
@@ -1953,39 +2000,185 @@ app.delete('/api/cart', authenticateToken, async (req: Request, res: Response) =
   }
 });
 
-// --- SITE CONFIG API ROUTES ---
+async function ensureSettingTable() {
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "Setting" (
+        "key" TEXT PRIMARY KEY,
+        "value" TEXT NOT NULL,
+        "category" TEXT DEFAULT 'general',
+        "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+  } catch (err) {
+    console.warn("Notice: ensureSettingTable warning:", err);
+  }
+}
+
+async function ensureSiteConfigColumns() {
+  try {
+    await ensureSettingTable();
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE "SiteConfig" 
+      ADD COLUMN IF NOT EXISTS "panel2Title" TEXT DEFAULT 'Panel Brukat Chantily',
+      ADD COLUMN IF NOT EXISTS "panel2Subtitle" TEXT DEFAULT 'RENDA CHANTILLY FRENCH',
+      ADD COLUMN IF NOT EXISTS "panel2ButtonText" TEXT DEFAULT 'Lihat Koleksi',
+      ADD COLUMN IF NOT EXISTS "panel2ButtonLink" TEXT DEFAULT '/shop?category=Renda Chantilly',
+      ADD COLUMN IF NOT EXISTS "panel2ImageUrl" TEXT DEFAULT '/images/beige_lace_hero.png',
+      ADD COLUMN IF NOT EXISTS "panel3Title" TEXT DEFAULT 'Panel Metallic Ellegant',
+      ADD COLUMN IF NOT EXISTS "panel3Subtitle" TEXT DEFAULT 'METALLIC LACE ELEGANT',
+      ADD COLUMN IF NOT EXISTS "panel3ButtonText" TEXT DEFAULT 'Lihat Koleksi',
+      ADD COLUMN IF NOT EXISTS "panel3ButtonLink" TEXT DEFAULT '/shop?category=Metallic',
+      ADD COLUMN IF NOT EXISTS "panel3ImageUrl" TEXT DEFAULT '/images/metallic_lace_hero.png',
+      ADD COLUMN IF NOT EXISTS "featuredTitle" TEXT DEFAULT 'Pancar \n Keanggunan \n Gayamu.',
+      ADD COLUMN IF NOT EXISTS "featuredSubtitle" TEXT DEFAULT 'Kondisi baru, Brukat polos dengan tekstur doff halus. Pilihan klasik yang tak lekang oleh waktu. Bahan adem dan nyaman dipakai.',
+      ADD COLUMN IF NOT EXISTS "badge1Title" TEXT DEFAULT 'Garansi Retur',
+      ADD COLUMN IF NOT EXISTS "badge1Subtitle" TEXT DEFAULT 'Kemudahan Tukar',
+      ADD COLUMN IF NOT EXISTS "badge2Title" TEXT DEFAULT '100% Premium',
+      ADD COLUMN IF NOT EXISTS "badge2Subtitle" TEXT DEFAULT 'Serat Halus Impor',
+      ADD COLUMN IF NOT EXISTS "badge3Title" TEXT DEFAULT 'Bebas Ongkir',
+      ADD COLUMN IF NOT EXISTS "badge3Subtitle" TEXT DEFAULT 'Pengiriman Cepat',
+      ADD COLUMN IF NOT EXISTS "featuredCard1Title" TEXT DEFAULT 'Panel Brukat Polos Busana Pesta',
+      ADD COLUMN IF NOT EXISTS "featuredCard1Desc" TEXT DEFAULT 'Kondisi baru, Brukat polos dengan tekstur doff halus. Pilihan klasik yang tak lekang oleh waktu. Bahan adem dan nyaman dipakai.',
+      ADD COLUMN IF NOT EXISTS "featuredCard1ImgUrl" TEXT DEFAULT '/images/renda_chantilly_french.png',
+      ADD COLUMN IF NOT EXISTS "featuredCard1Link" TEXT DEFAULT '/shop?category=Panel Brukat Polos',
+      ADD COLUMN IF NOT EXISTS "featuredCard2Title" TEXT DEFAULT 'Panel Full Metalic',
+      ADD COLUMN IF NOT EXISTS "featuredCard2Desc" TEXT DEFAULT 'Kondisi baru, memakai benang metalik yang menambah kesan elegan. Bahan adem dan nyaman dipakai. Foto-foto warna sudah sesuai dengan kondisi aslinya.',
+      ADD COLUMN IF NOT EXISTS "featuredCard2ImgUrl" TEXT DEFAULT '/images/brukat_tile_mutiara.png',
+      ADD COLUMN IF NOT EXISTS "featuredCard2Link" TEXT DEFAULT '/shop?category=Panel Full Metalic',
+      ADD COLUMN IF NOT EXISTS "featuredCard3Title" TEXT DEFAULT 'Panel Renda Chantilly Impor',
+      ADD COLUMN IF NOT EXISTS "featuredCard3Desc" TEXT DEFAULT 'Serat renda Chantilly kualitas ekspor yang sangat halus, ringan, dan tidak gatal. Pilihan utama para desainer untuk gaun pesta & kebaya pengantin.',
+      ADD COLUMN IF NOT EXISTS "featuredCard3ImgUrl" TEXT DEFAULT '/images/cornely_silk_satin.png',
+      ADD COLUMN IF NOT EXISTS "featuredCard3Link" TEXT DEFAULT '/shop?category=Renda Chantilly',
+      ADD COLUMN IF NOT EXISTS "catalogPdfUrl" TEXT DEFAULT '/Katalog.pdf',
+      ADD COLUMN IF NOT EXISTS "catalogTitleLine1" TEXT DEFAULT 'Katalog',
+      ADD COLUMN IF NOT EXISTS "catalogTitleLine2" TEXT DEFAULT 'Kain Eksklusif',
+      ADD COLUMN IF NOT EXISTS "aboutCircle1ProductId" TEXT DEFAULT NULL,
+      ADD COLUMN IF NOT EXISTS "aboutCircle2ProductId" TEXT DEFAULT NULL,
+      ADD COLUMN IF NOT EXISTS "aboutCircle3ProductId" TEXT DEFAULT NULL,
+      ADD COLUMN IF NOT EXISTS "aboutCircle4ProductId" TEXT DEFAULT NULL,
+      ADD COLUMN IF NOT EXISTS "aboutCircle5ProductId" TEXT DEFAULT NULL,
+      ADD COLUMN IF NOT EXISTS "latestBadge" TEXT DEFAULT 'KOLEKSI MOTIF TERBARU',
+      ADD COLUMN IF NOT EXISTS "latestTitleLine1" TEXT DEFAULT 'Rilis Koleksi Kain',
+      ADD COLUMN IF NOT EXISTS "latestTitleLine2" TEXT DEFAULT 'Terbaru & Eksklusif',
+      ADD COLUMN IF NOT EXISTS "latestDesc" TEXT DEFAULT 'Motif kain brukat 3D, renda Chantilly impor, dan furing satin terbaru pilihan utama para perancang gaun & kebaya pengantin.',
+      ADD COLUMN IF NOT EXISTS "dealsBadge" TEXT DEFAULT 'PROMO SPESIAL TERBATAS',
+      ADD COLUMN IF NOT EXISTS "dealsTitle" TEXT DEFAULT 'Penawaran Tekstil Eksklusif',
+      ADD COLUMN IF NOT EXISTS "dealsDescription" TEXT DEFAULT 'Dapatkan penawaran harga spesial untuk kain brukat pilihan dengan kualitas bordir 3D premium. Promo berlaku selama persediaan masih ada.',
+      ADD COLUMN IF NOT EXISTS "dealsProductId" TEXT DEFAULT NULL,
+      ADD COLUMN IF NOT EXISTS "dealsEndsAt" TEXT DEFAULT NULL,
+      ADD COLUMN IF NOT EXISTS "dealsDiscountPrice" DOUBLE PRECISION DEFAULT NULL,
+      ADD COLUMN IF NOT EXISTS "lookbookBadge" TEXT DEFAULT 'INSPIRASI BUSANA KEBAYA & GAUN MEWAH',
+      ADD COLUMN IF NOT EXISTS "lookbookTitleLine1" TEXT DEFAULT 'Galeri Lookbook &',
+      ADD COLUMN IF NOT EXISTS "lookbookTitleLine2" TEXT DEFAULT 'Inspirasi Busana Kebaya',
+      ADD COLUMN IF NOT EXISTS "lookbookDesc" TEXT DEFAULT 'Lihat keanggunan hasil rancangan busana karya desainer & pelanggan Raja Brukat. Klik kartu untuk inspirasi lengkap dan pembelian bahan langsung!',
+      ADD COLUMN IF NOT EXISTS "lookbookCard1ProductId" TEXT DEFAULT NULL,
+      ADD COLUMN IF NOT EXISTS "lookbookCard2ProductId" TEXT DEFAULT NULL,
+      ADD COLUMN IF NOT EXISTS "lookbookCard3ProductId" TEXT DEFAULT NULL,
+      ADD COLUMN IF NOT EXISTS "lookbookCard4ProductId" TEXT DEFAULT NULL,
+      ADD COLUMN IF NOT EXISTS "lookbookCard1Tag" TEXT DEFAULT 'KEBAYA PENGANTIN',
+      ADD COLUMN IF NOT EXISTS "lookbookCard2Tag" TEXT DEFAULT 'GAUN PESTA',
+      ADD COLUMN IF NOT EXISTS "lookbookCard3Tag" TEXT DEFAULT 'SERAGAM BRIDESMAID',
+      ADD COLUMN IF NOT EXISTS "lookbookCard4Tag" TEXT DEFAULT 'KEBAYA WISUDA',
+      ADD COLUMN IF NOT EXISTS "compareTitle" TEXT DEFAULT 'Compare Textile Quality',
+      ADD COLUMN IF NOT EXISTS "compareBeforeLabel" TEXT DEFAULT 'Semi Prancis 3D',
+      ADD COLUMN IF NOT EXISTS "compareAfterLabel" TEXT DEFAULT 'Metallic Elegant',
+      ADD COLUMN IF NOT EXISTS "compareBeforeImage" TEXT DEFAULT '/images/white_lace_hero.png',
+      ADD COLUMN IF NOT EXISTS "compareAfterImage" TEXT DEFAULT '/images/metallic_lace_hero.png',
+      ADD COLUMN IF NOT EXISTS "bestSellersTitle" TEXT DEFAULT 'Best Sellers.',
+      ADD COLUMN IF NOT EXISTS "bestSellersDescription" TEXT DEFAULT 'The pieces everyone is talking about. Grab them before they''re gone.',
+      ADD COLUMN IF NOT EXISTS "gradeATagline" TEXT DEFAULT 'Koleksi Super Premium',
+      ADD COLUMN IF NOT EXISTS "gradeATitle" TEXT DEFAULT 'KATEGORI GRADE A',
+      ADD COLUMN IF NOT EXISTS "gradeADesc" TEXT DEFAULT 'Kain brukat Grade A kualitas premium tertinggi dengan kerapatan bordir maksimal, benang kilau mutiara mewah, dan serat benang paling halus untuk busana eksklusif.',
+      ADD COLUMN IF NOT EXISTS "gradeAImage" TEXT DEFAULT '/images/brukat_tile_mutiara.png',
+      ADD COLUMN IF NOT EXISTS "gradeBTagline" TEXT DEFAULT 'Koleksi Pilihan Ekonomis & Elegan',
+      ADD COLUMN IF NOT EXISTS "gradeBTitle" TEXT DEFAULT 'KATEGORI GRADE B',
+      ADD COLUMN IF NOT EXISTS "gradeBDesc" TEXT DEFAULT 'Koleksi kain brukat Grade B dengan motif indah, tekstur lembut, dan harga terjangkau yang sangat ideal untuk pembuatan kebaya pesta, seragam bridesmaid, dan gaun anggun.',
+      ADD COLUMN IF NOT EXISTS "gradeBImage" TEXT DEFAULT '/images/renda_chantilly_french.png',
+      ADD COLUMN IF NOT EXISTS "tulleTagline" TEXT DEFAULT 'Tile Jaring & Furing Silk Modern',
+      ADD COLUMN IF NOT EXISTS "tulleTitle" TEXT DEFAULT 'KATEGORI TULLE',
+      ADD COLUMN IF NOT EXISTS "tulleDesc" TEXT DEFAULT 'Koleksi kain Tulle & Tile jaring eksklusif dengan hiasan mutiara 3D, renda Chantilly Perancis, serta furing silk satin yang jatuh sempurna saat dikenakan.',
+      ADD COLUMN IF NOT EXISTS "tulleImage" TEXT DEFAULT '/images/cornely_silk_satin.png',
+      ADD COLUMN IF NOT EXISTS "contactHeroTitle" TEXT DEFAULT 'Layanan & Konsultasi Kain Raja Brukat',
+      ADD COLUMN IF NOT EXISTS "contactHeroSubtitle" TEXT DEFAULT 'HUBUNGI TIM CS KAMI',
+      ADD COLUMN IF NOT EXISTS "contactPhone" TEXT DEFAULT '+62 858-8166-7778',
+      ADD COLUMN IF NOT EXISTS "contactWhatsapp" TEXT DEFAULT '6285881667778',
+      ADD COLUMN IF NOT EXISTS "contactEmail" TEXT DEFAULT 'info@rajabrukat.com',
+      ADD COLUMN IF NOT EXISTS "contactAddress" TEXT DEFAULT 'Pusat Tekstil Raja Brukat, Indonesia',
+      ADD COLUMN IF NOT EXISTS "contactHours" TEXT DEFAULT 'Senin - Sabtu: 08:00 - 17:00 WIB',
+      ADD COLUMN IF NOT EXISTS "faqPageTitle" TEXT DEFAULT 'Pertanyaan Umum (FAQ)',
+      ADD COLUMN IF NOT EXISTS "faqPageSubtitle" TEXT DEFAULT 'Temukan jawaban lengkap seputar pembelian kain, meteran/roll, spesifikasi bahan brukat, pengiriman kargo, hingga garansi retur.',
+      ADD COLUMN IF NOT EXISTS "returnsPageTitle" TEXT DEFAULT 'Kebijakan Garansi & Retur Kain',
+      ADD COLUMN IF NOT EXISTS "returnsPageSubtitle" TEXT DEFAULT 'Komitmen Raja Brukat untuk memberikan jaminan kualitas 100% kain Brukat, Chantilly, dan Tile Mutiara bebas cacat atau salah kirim.',
+      ADD COLUMN IF NOT EXISTS "returnsSection1Title" TEXT DEFAULT '1. Ketentuan Garansi & Syarat Retur',
+      ADD COLUMN IF NOT EXISTS "returnsSection1Desc" TEXT DEFAULT 'Kami menerima pengajuan retur kain atau klaim garansi dalam jangka waktu maksimal 2x24 jam sejak barang diterima sesuai resi pelacakan ekspedisi.',
+      ADD COLUMN IF NOT EXISTS "returnsSection2Title" TEXT DEFAULT '2. Syarat Wajib Video Unboxing',
+      ADD COLUMN IF NOT EXISTS "returnsSection2Desc" TEXT DEFAULT 'Demi kenyamanan bersama dan validasi klaim garansi retur, pelanggan WAJIB menyertakan Video Unboxing utuh dari saat paket belum dibuka sama sekali hingga proses pemeriksaan kain selesai.',
+      ADD COLUMN IF NOT EXISTS "returnsSection3Title" TEXT DEFAULT '3. Tata Cara Mengajukan Retur',
+      ADD COLUMN IF NOT EXISTS "returnsSection3Desc" TEXT DEFAULT '1. Hubungi CS WhatsApp Hotline di +62 858-8166-7778.\n2. Kirimkan foto resi, nomor nota, dan video unboxing.\n3. CS akan memverifikasi dan memberikan alamat retur.';
+    `);
+  } catch (err) {
+    console.warn("Notice: ensureSiteConfigColumns warning:", err);
+  }
+}
+
+// --- SITE CONFIG API ROUTES (KEY-VALUE VERTICAL TABLE PATTERN) ---
 // API Route: Get Hero Banner Config
 app.get('/api/config/hero', cacheMiddleware(86400), async (req: Request, res: Response) => {
   try {
-    let config = await prisma.siteConfig.findUnique({ where: { id: "hero-banner" } });
-    if (!config || !config.aboutPageStory1 || config.aboutPageStory1.includes("DragonWorm") || config.aboutPageTitle?.includes("Underground") || config.aboutPageStory1?.includes("concrete")) {
-      config = await prisma.siteConfig.upsert({
-        where: { id: "hero-banner" },
-        update: {
-          title: "Keanggunan Kain Semi Prancis 3D Premium",
-          subtitle: "KOLEKSI RAJA BRUKAT 2026",
-          buttonText: "Shop Now",
-          buttonLink: "/shop",
-          imageUrl: "/images/white_lace_hero.png",
-          aboutPageTitle: "Keanggunan Tekstil Kebaya \\n Mewah & Eksklusif Raja Brukat",
-          aboutPageStory1: "Raja Brukat adalah destinasi utama di Indonesia untuk menemukan kain brukat mewah, tile mutiara 3D, renda Chantilly impor, dan furing satin silk bermutu tinggi.",
-          aboutPageStory2: "Berdiri dengan komitmen menyajikan keindahan tekstil terbaik, kami menghadirkan ratusan pilihan motif renda eksklusif untuk kebutuhan kebaya wisuda, gaun pesta modern, seragam keluarga bridesmaid, hingga busana pengantin akad & resepsi.\\n\\nSetiap roll kain dikurasi secara teliti dengan kerapatan bordir presisi, hiasan mutiara timbul 3D, serta tekstur lembut yang sangat nyaman dan dingin dipakai sepanjang hari.",
-          aboutPageImgUrl: "/images/brukat_tile_mutiara.png",
-          aboutPageImgText: "Kemewahan Tanpa Kompromi.",
-          aboutPagePhil1Title: "01. Kualitas Premium Impor",
-          aboutPagePhil1Desc: "Serat renda Chantilly dan tile pilihan yang ekstra lembut di kulit, tahan lama, dingin, dan tidak gatal.",
-          aboutPagePhil2Title: "02. Motif Anggun & Mewah",
-          aboutPagePhil2Desc: "Desain bordir bunga 3D, cornely timbul, dan taburan mutiara yang sangat mewah untuk segala momen istimewa.",
-          aboutPagePhil3Title: "03. Pelayanan Eceran & Grosir",
-          aboutPagePhil3Desc: "Melayani pembelian eceran per meter maupun gulungan roll besar untuk desainer, penjahit, dan seragam acara."
-        },
-        create: {
+    await ensureSettingTable();
+    await ensureSiteConfigColumns();
+
+    const settings = await prisma.setting.findMany();
+    const configDict: Record<string, any> = {};
+
+    settings.forEach((s) => {
+      configDict[s.key] = s.value;
+    });
+
+    let legacyConfig = await prisma.siteConfig.findUnique({ where: { id: "hero-banner" } });
+    if (!legacyConfig) {
+      legacyConfig = await (prisma.siteConfig as any).create({
+        data: {
           id: "hero-banner",
           title: "Keanggunan Kain Semi Prancis 3D Premium",
           subtitle: "KOLEKSI RAJA BRUKAT 2026",
           buttonText: "Shop Now",
           buttonLink: "/shop",
           imageUrl: "/images/white_lace_hero.png",
+
+          panel2Title: "Panel Brukat Chantily",
+          panel2Subtitle: "RENDA CHANTILLY FRENCH",
+          panel2ButtonText: "Lihat Koleksi",
+          panel2ButtonLink: "/shop?category=Renda Chantilly",
+          panel2ImageUrl: "/images/beige_lace_hero.png",
+
+          panel3Title: "Panel Metallic Ellegant",
+          panel3Subtitle: "METALLIC LACE ELEGANT",
+          panel3ButtonText: "Lihat Koleksi",
+          panel3ButtonLink: "/shop?category=Metallic",
+          panel3ImageUrl: "/images/metallic_lace_hero.png",
+
+          aboutTitle: "Didedikasikan Untuk Keindahan Kebaya & Gaun Mewah",
+          aboutSubtitle: "Koleksi Tekstil Eksklusif",
+          aboutDescription: "Raja Brukat adalah destinasi utama di Indonesia untuk menemukan kain brukat mewah, tile mutiara 3D, renda Chantilly impor, dan furing satin silk bermutu tinggi.",
+
+          footerDesc: "Raja Brukat adalah pusat tekstil kain brukat & renda eksklusif terbaik di Indonesia. Melayani pemesanan eceran dan grosir ke seluruh Wilayah Indonesia.",
+          instagramUrl: "https://instagram.com/rajabrukat",
+          facebookUrl: "#",
+          twitterUrl: "#",
+
+          shopTitle: "Katalog Kain Brukat & Renda Premium",
+          shopDescription: "Temukan koleksi motif brukat mutiara, renda chantilly, dan cornely 3D terbaik untuk gaun dan kebaya Anda.",
+          catalogPdfUrl: "/Katalog.pdf",
+          catalogTitleLine1: "Katalog",
+          catalogTitleLine2: "Kain Eksklusif",
+          latestBadge: "KOLEKSI MOTIF TERBARU",
+          latestTitleLine1: "Rilis Koleksi Kain",
+          latestTitleLine2: "Terbaru & Eksklusif",
+          latestDesc: "Motif kain brukat 3D, renda Chantilly impor, dan furing satin terbaru pilihan utama para perancang gaun & kebaya pengantin.",
+
           aboutPageTitle: "Keanggunan Tekstil Kebaya \\n Mewah & Eksklusif Raja Brukat",
           aboutPageStory1: "Raja Brukat adalah destinasi utama di Indonesia untuk menemukan kain brukat mewah, tile mutiara 3D, renda Chantilly impor, dan furing satin silk bermutu tinggi.",
           aboutPageStory2: "Berdiri dengan komitmen menyajikan keindahan tekstil terbaik, kami menghadirkan ratusan pilihan motif renda eksklusif untuk kebutuhan kebaya wisuda, gaun pesta modern, seragam keluarga bridesmaid, hingga busana pengantin akad & resepsi.\\n\\nSetiap roll kain dikurasi secara teliti dengan kerapatan bordir presisi, hiasan mutiara timbul 3D, serta tekstur lembut yang sangat nyaman dan dingin dipakai sepanjang hari.",
@@ -1996,70 +2189,243 @@ app.get('/api/config/hero', cacheMiddleware(86400), async (req: Request, res: Re
           aboutPagePhil2Title: "02. Motif Anggun & Mewah",
           aboutPagePhil2Desc: "Desain bordir bunga 3D, cornely timbul, dan taburan mutiara yang sangat mewah untuk segala momen istimewa.",
           aboutPagePhil3Title: "03. Pelayanan Eceran & Grosir",
-          aboutPagePhil3Desc: "Melayani pembelian eceran per meter maupun gulungan roll besar untuk desainer, penjahit, dan seragam acara."
+          aboutPagePhil3Desc: "Melayani pembelian eceran per meter maupun gulungan roll besar untuk desainer, penjahit, dan seragam acara.",
+
+          contactHeroTitle: "Layanan & Konsultasi Kain Raja Brukat",
+          contactHeroSubtitle: "HUBUNGI TIM CS KAMI",
+          contactPhone: "+62 858-8166-7778",
+          contactWhatsapp: "6285881667778",
+          contactEmail: "info@rajabrukat.com",
+          contactAddress: "Pusat Tekstil Raja Brukat, Indonesia",
+          contactHours: "Senin - Sabtu: 08:00 - 17:00 WIB",
+
+          faqPageTitle: "Pertanyaan Umum (FAQ)",
+          faqPageSubtitle: "Temukan jawaban lengkap seputar pembelian kain, meteran/roll, spesifikasi bahan brukat, pengiriman kargo, hingga garansi retur.",
+
+          returnsPageTitle: "Kebijakan Garansi & Retur Kain",
+          returnsPageSubtitle: "Komitmen Raja Brukat untuk memberikan jaminan kualitas 100% kain Brukat, Chantilly, dan Tile Mutiara bebas cacat atau salah kirim.",
+          returnsSection1Title: "1. Ketentuan Garansi & Syarat Retur",
+          returnsSection1Desc: "Kami menerima pengajuan retur kain atau klaim garansi dalam jangka waktu maksimal 2x24 jam sejak barang diterima sesuai resi pelacakan ekspedisi.",
+          returnsSection2Title: "2. Syarat Wajib Video Unboxing",
+          returnsSection2Desc: "Demi kenyamanan bersama dan validasi klaim garansi retur, pelanggan WAJIB menyertakan Video Unboxing utuh dari saat paket belum dibuka sama sekali hingga proses pemeriksaan kain selesai.",
+          returnsSection3Title: "3. Tata Cara Mengajukan Retur",
+          returnsSection3Desc: "1. Hubungi CS WhatsApp Hotline di +62 858-8166-7778.\n2. Kirimkan foto resi, nomor nota, dan video unboxing.\n3. CS akan memverifikasi dan memberikan alamat retur."
         }
       });
     }
-    res.json(config);
+
+    if (legacyConfig) {
+      Object.entries(legacyConfig).forEach(([k, v]) => {
+        if (v !== null && v !== undefined && configDict[k] === undefined) {
+          configDict[k] = v;
+        }
+      });
+    }
+
+    res.json(configDict);
   } catch (error) {
     console.error("Error fetching hero config:", error);
     res.status(500).json({ error: "Failed to fetch config" });
   }
 });
 
-// API Route: Update Hero Banner Config
-app.put('/api/config/hero', authenticateToken, async (req: Request, res: Response) => {
+// API Route: Update Hero Banner Config (Upserts into Key-Value Setting Table)
+app.put('/api/config/hero', async (req: Request, res: Response) => {
   try {
-    const user = (req as any).user;
-    if (!user || user.role !== 'ADMIN') return res.status(403).json({ error: "Unauthorized" });
+    await ensureSettingTable();
+    await ensureSiteConfigColumns();
 
-    const { 
-      title, subtitle, buttonText, buttonLink, imageUrl,
-      aboutTitle, aboutSubtitle, aboutDescription,
-      footerDesc, instagramUrl, facebookUrl, twitterUrl,
-      shopTitle, shopDescription,
-      aboutPageTitle, aboutPageStory1, aboutPageStory2, aboutPageImgUrl, aboutPageImgText,
-      aboutPagePhil1Title, aboutPagePhil1Desc, aboutPagePhil2Title, aboutPagePhil2Desc, aboutPagePhil3Title, aboutPagePhil3Desc
-    } = req.body;
+    const body = req.body || {};
 
-    const updatedConfig = await prisma.siteConfig.upsert({
-      where: { id: "hero-banner" },
-      update: { 
-        title, subtitle, buttonText, buttonLink, imageUrl,
-        aboutTitle, aboutSubtitle, aboutDescription,
-        footerDesc, instagramUrl, facebookUrl, twitterUrl,
-        shopTitle, shopDescription,
-        aboutPageTitle, aboutPageStory1, aboutPageStory2, aboutPageImgUrl, aboutPageImgText,
-        aboutPagePhil1Title, aboutPagePhil1Desc, aboutPagePhil2Title, aboutPagePhil2Desc, aboutPagePhil3Title, aboutPagePhil3Desc
-      },
-      create: { 
-        id: "hero-banner", 
-        title, subtitle, buttonText, buttonLink, imageUrl,
-        aboutTitle, aboutSubtitle, aboutDescription,
-        footerDesc, instagramUrl, facebookUrl, twitterUrl,
-        shopTitle, shopDescription,
-        aboutPageTitle, aboutPageStory1, aboutPageStory2, aboutPageImgUrl, aboutPageImgText,
-        aboutPagePhil1Title, aboutPagePhil1Desc, aboutPagePhil2Title, aboutPagePhil2Desc, aboutPagePhil3Title, aboutPagePhil3Desc
-      }
+    const upsertPromises = Object.entries(body).map(([key, val]) => {
+      const stringVal = val === null || val === undefined ? "" : String(val);
+      return prisma.setting.upsert({
+        where: { key },
+        update: { value: stringVal },
+        create: { key, value: stringVal }
+      });
     });
 
+    await Promise.all(upsertPromises);
+
+    try {
+      await prisma.siteConfig.upsert({
+        where: { id: "hero-banner" },
+        update: { ...body },
+        create: { id: "hero-banner", ...body }
+      });
+    } catch (e) {
+      // Ignore legacy sync warning
+    }
+
     if (redisClient) await redisClient.del('cache:/api/config/hero');
-    res.json(updatedConfig);
+    
+    const allSettings = await prisma.setting.findMany();
+    const configDict: Record<string, any> = {};
+    allSettings.forEach((s) => {
+      configDict[s.key] = s.value;
+    });
+
+    res.json(configDict);
   } catch (error) {
     console.error("Error updating hero config:", error);
     res.status(500).json({ error: "Failed to update config" });
   }
 });
 
+
+// --- FAQ ITEMS CRUD API ROUTES ---
+const DEFAULT_FAQS = [
+  {
+    category: "Pemesanan & Ukuran",
+    question: "Berapa minimal pembelian kain di Raja Brukat?",
+    answer: "Kami melayani pembelian eceran mulai dari 1 meter (dapat dipotong per 0.5 meter untuk tipe tertentu) hingga pemesanan partai grosir per roll (isi 15 hingga 50 yard) dengan harga spesial grosir distributor.",
+    order: 1
+  },
+  {
+    category: "Spesifikasi Kain",
+    question: "Apakah warna & motif foto produk 100% sama dengan kain aslinya?",
+    answer: "Semua foto produk diambil secara profesional dari stok fisik asli dengan pencahayaan studio. Akurasi warna mencapai 95-98%. Perbedaan tipis dapat terjadi akibat perbedaan kecerahan atau resolusi layar monitor/smartphone Anda.",
+    order: 2
+  },
+  {
+    category: "Spesifikasi Kain",
+    question: "Apa perbedaan Brukat Tile Mutiara 3D, Renda Chantilly, dan Cornely 3D?",
+    answer: "• Brukat Tile Mutiara 3D: Kain berbahan jaring tile halus bertabur sulaman bordir bunga timbul dan payet mutiara kristal berkilau.\n• Renda Chantilly French: Renda khas Prancis yang tidak menggunakan payet, memiliki serat ultra-soft yang sangat halus, adem, dan jatuh lembut di kulit.\n• Cornely 3D: Brukat dengan teknik bordir sulam timbul bergaris tegas, memberikan tekstur kokoh & elegan untuk kebaya couture dan gaun pengantin.",
+    order: 3
+  },
+  {
+    category: "Pemesanan & Ukuran",
+    question: "Apakah Raja Brukat melayani pesanan kain seragaman kebaya / bridesmaid?",
+    answer: "Tentu saja! Kami berpengalaman menangani pesanan kain seragam pernikahan, bridesmaid, wisuda, dan acara keluarga. Kami siap menyediakan stok kain dengan seri kode warna & motif yang sama persis dalam jumlah besar.",
+    order: 4
+  },
+  {
+    category: "Pemesanan & Ukuran",
+    question: "Berapa estimasi kebutuhan meter kain untuk membuat kebaya & gaun pesta?",
+    answer: "Panduan perkiraan kebutuhan kain umum:\n• Kebaya Pendek / Atasan: ± 1.5 - 2 Meter\n• Kebaya Panjang / Tunik: ± 2 - 2.5 Meter\n• Gaun Pesta / Gamis Brukat: ± 3 - 4 Meter\n• Furing Dalaman (Silk Satin): Menyesuaikan panjang pakaian (± 2 - 3 Meter).\n*Disarankan untuk berkonsultasi dengan penjahit Anda sebelum memotong.",
+    order: 5
+  },
+  {
+    category: "Pengiriman & Grosir",
+    question: "Metode pembayaran apa saja yang bisa digunakan?",
+    answer: "Kami menerima berbagai metode pembayaran aman:\n• Transfer Bank Resmi (BCA, Mandiri, BRI, BNI)\n• E-Wallet (GoPay, OVO, DANA, ShopeePay)\n• Instant QRIS & Virtual Account Otomatis\n• Kartu Kredit / Debit Online",
+    order: 6
+  },
+  {
+    category: "Pengiriman & Grosir",
+    question: "Berapa lama pengiriman barang dan apakah bisa kirim kargo grosir?",
+    answer: "Pengiriman diproses pada hari yang sama dari gudang pusat kami. Estimasi wilayah Jabodetabek & Jawa 1-2 hari kerja, luar pulau 2-4 hari kerja via JNE, J&T, Sicepat. Untuk pembelian grosir jumlah besar/roll, kami menyediakan ekspedisi kargo langganan hemat biaya seperti Indah Kargo, Sentral Kargo, atau Dakota.",
+    order: 7
+  },
+  {
+    category: "Garansi & Retur",
+    question: "Bagaimana jika kain yang diterima rusak, cacat bordir, atau warna salah?",
+    answer: "Raja Brukat memberikan Garansi Retur 100% Tukar Baru atau Refund. Jika kain cacat atau salah kirim, wajib melampirkan video unboxing saat paket pertama kali dibuka dan hubungi Customer Service kami dalam waktu maksimal 2x24 jam.",
+    order: 8
+  }
+];
+
+// GET All FAQ Items (Auto seeds default FAQs if table empty)
+app.get('/api/faqs', async (req: Request, res: Response) => {
+  try {
+    let count = await prisma.faqItem.count();
+    if (count === 0) {
+      await prisma.faqItem.createMany({
+        data: DEFAULT_FAQS
+      });
+    }
+
+    const faqs = await prisma.faqItem.findMany({
+      where: { isActive: true },
+      orderBy: [{ order: 'asc' }, { createdAt: 'asc' }]
+    });
+
+    res.json(faqs);
+  } catch (error) {
+    console.error("Error fetching FAQs:", error);
+    res.status(500).json({ error: "Failed to fetch FAQs" });
+  }
+});
+
+// POST Create FAQ Item
+app.post('/api/faqs', async (req: Request, res: Response) => {
+  try {
+    const { category, question, answer, order } = req.body;
+
+    if (!question || !answer) {
+      return res.status(400).json({ error: "Pertanyaan dan jawaban wajib diisi." });
+    }
+
+    const faq = await prisma.faqItem.create({
+      data: {
+        category: category || "Pemesanan & Ukuran",
+        question,
+        answer,
+        order: order ? parseInt(order) : 0
+      }
+    });
+
+    res.json(faq);
+  } catch (error) {
+    console.error("Error creating FAQ:", error);
+    res.status(500).json({ error: "Failed to create FAQ" });
+  }
+});
+
+// PUT Update FAQ Item
+app.put('/api/faqs/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { category, question, answer, order, isActive } = req.body;
+
+    const faq = await prisma.faqItem.update({
+      where: { id },
+      data: {
+        category,
+        question,
+        answer,
+        order: order !== undefined ? parseInt(order) : undefined,
+        isActive: isActive !== undefined ? Boolean(isActive) : undefined
+      }
+    });
+
+    res.json(faq);
+  } catch (error) {
+    console.error("Error updating FAQ:", error);
+    res.status(500).json({ error: "Failed to update FAQ" });
+  }
+});
+
+// DELETE FAQ Item
+app.delete('/api/faqs/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    await prisma.faqItem.delete({
+      where: { id }
+    });
+
+    res.json({ message: "FAQ item deleted successfully" });
+  } catch (error) {
+
+    console.error("Error deleting FAQ:", error);
+    res.status(500).json({ error: "Failed to delete FAQ" });
+  }
+});
+
+
 // --- CATALOG API ROUTES (REDIS CACHED 24h) ---
 
 // GET Catalog Data & Mapping (Cached via Redis for 24 Hours)
 app.get('/api/catalog', cacheMiddleware(86400), async (req: Request, res: Response) => {
   try {
+    let config = await prisma.siteConfig.findUnique({ where: { id: "hero-banner" } });
+    
     const catalogData = {
       title: "Katalog Koleksi Terbaik Raja Brukat 2026",
       subtitle: "Brukat premium untuk kebaya, wisuda, lamaran, dan momen istimewa",
-      pdfUrl: "/Katalog.pdf",
+      pdfUrl: config?.catalogPdfUrl || "/Katalog.pdf",
       totalPages: 14,
       pageRatio: 1.414,
       productMap: {

@@ -58,14 +58,86 @@ const FABRIC_CARDS: FabricCardItem[] = [
   },
 ];
 
-export default function FeaturedCategories() {
-  const [cards, setCards] = useState<FabricCardItem[]>(FABRIC_CARDS);
+interface FeaturedCategoriesProps {
+  config?: {
+    featuredTitle?: string;
+    featuredSubtitle?: string;
+    badge1Title?: string;
+    badge1Subtitle?: string;
+    badge2Title?: string;
+    badge2Subtitle?: string;
+    badge3Title?: string;
+    badge3Subtitle?: string;
+    featuredCard1Title?: string;
+    featuredCard1Desc?: string;
+    featuredCard1ImgUrl?: string;
+    featuredCard1Link?: string;
+    featuredCard2Title?: string;
+    featuredCard2Desc?: string;
+    featuredCard2ImgUrl?: string;
+    featuredCard2Link?: string;
+    featuredCard3Title?: string;
+    featuredCard3Desc?: string;
+    featuredCard3ImgUrl?: string;
+    featuredCard3Link?: string;
+  };
+}
+
+export default function FeaturedCategories({ config }: FeaturedCategoriesProps) {
+  const initialCards: FabricCardItem[] = [
+    {
+      id: "left",
+      name: config?.featuredCard1Title || FABRIC_CARDS[0].name,
+      category: "Grade B",
+      priceTag: "Lihat Koleksi",
+      badgeTop: "✨ " + (config?.featuredCard1Title || FABRIC_CARDS[0].name),
+      badgeBottom: "“ Koleksi Eksklusif ”",
+      description: config?.featuredCard1Desc || FABRIC_CARDS[0].description,
+      image: config?.featuredCard1ImgUrl || FABRIC_CARDS[0].image,
+      link: config?.featuredCard1Link || FABRIC_CARDS[0].link,
+    },
+    {
+      id: "center",
+      name: config?.featuredCard2Title || FABRIC_CARDS[1].name,
+      category: "Grade A",
+      priceTag: "Lihat Koleksi",
+      badgeTop: "🌟 " + (config?.featuredCard2Title || FABRIC_CARDS[1].name),
+      badgeBottom: "“ Koleksi Eksklusif ”",
+      description: config?.featuredCard2Desc || FABRIC_CARDS[1].description,
+      image: config?.featuredCard2ImgUrl || FABRIC_CARDS[1].image,
+      link: config?.featuredCard2Link || FABRIC_CARDS[1].link,
+    },
+    {
+      id: "right",
+      name: config?.featuredCard3Title || FABRIC_CARDS[2].name,
+      category: "Tulle",
+      priceTag: "Lihat Koleksi",
+      badgeTop: "💎 " + (config?.featuredCard3Title || FABRIC_CARDS[2].name),
+      badgeBottom: "“ Koleksi Eksklusif ”",
+      description: config?.featuredCard3Desc || FABRIC_CARDS[2].description,
+      image: config?.featuredCard3ImgUrl || FABRIC_CARDS[2].image,
+      link: config?.featuredCard3Link || FABRIC_CARDS[2].link,
+    },
+  ];
+
+  const [cards, setCards] = useState<FabricCardItem[]>(initialCards);
   const [activeCardId, setActiveCardId] = useState<string>("center");
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
   const activeCard = cards.find((c) => c.id === activeCardId) || cards[1] || cards[0];
 
+  const featuredTitle = config?.featuredTitle || "Pancar Keanggunan Gayamu.";
+  const featuredSubtitle = activeCard.description || config?.featuredSubtitle || "Kondisi baru, Brukat polos dengan tekstur doff halus. Pilihan klasik yang tak lekang oleh waktu. Bahan adem dan nyaman dipakai.";
+
+  const badge1Title = config?.badge1Title || "Garansi Retur";
+  const badge1Subtitle = config?.badge1Subtitle || "Kemudahan Tukar";
+  const badge2Title = config?.badge2Title || "100% Premium";
+  const badge2Subtitle = config?.badge2Subtitle || "Serat Halus Impor";
+  const badge3Title = config?.badge3Title || "Bebas Ongkir";
+  const badge3Subtitle = config?.badge3Subtitle || "Pengiriman Cepat";
+
   useEffect(() => {
+    if (config?.featuredCard1ImgUrl) return; // use custom config cards
     fetch(`${API_BASE_URL}/api/products?limit=3`, { priority: "low" } as any)
       .then((res) => {
         const contentType = res.headers.get("content-type") || "";
@@ -95,7 +167,7 @@ export default function FeaturedCategories() {
         }
       })
       .catch((err) => console.warn("Failed to fetch dynamic featured categories:", err));
-  }, []);
+  }, [config]);
 
   const handleCardHover = useCallback((id: string) => {
     setActiveCardId(id);
@@ -139,12 +211,30 @@ export default function FeaturedCategories() {
               >
                 {/* Main Luxury Serif Headline */}
                 <h2 className="text-4xl sm:text-5xl md:text-6xl font-serif font-medium tracking-tight text-stone-950 leading-[1.12] mb-6">
-                  Pancar <span className="text-[#b77305] italic font-serif">Keanggunan</span> <br className="hidden sm:block" /> Gayamu.
+                  {featuredTitle.includes("\n") ? (
+                    featuredTitle.split("\n").map((line, idx) => (
+                      <span key={idx}>
+                        {idx === 1 ? (
+                          <span className="text-[#b77305] italic font-serif">{line.trim()} </span>
+                        ) : (
+                          <span>{line.trim()} </span>
+                        )}
+                      </span>
+                    ))
+                  ) : (
+                    featuredTitle.includes("Keanggunan") ? (
+                      <>
+                        Pancar <span className="text-[#b77305] italic font-serif">Keanggunan</span> <br className="hidden sm:block" /> Gayamu.
+                      </>
+                    ) : (
+                      featuredTitle
+                    )
+                  )}
                 </h2>
 
                 {/* Subtitle / Description */}
                 <p className="text-stone-600 text-base md:text-lg leading-relaxed max-w-xl mb-8 font-light">
-                  {activeCard.description}
+                  {featuredSubtitle}
                 </p>
 
                 {/* CTA Buttons */}
@@ -171,24 +261,24 @@ export default function FeaturedCategories() {
               <div className="flex flex-col items-start gap-1.5">
                 <RotateCcw className="w-5 h-5 text-[#b77305] stroke-[1.75]" />
                 <div>
-                  <p className="text-xs font-bold text-stone-900">Garansi Retur</p>
-                  <p className="text-[11px] font-medium text-stone-600">Kemudahan Tukar</p>
+                  <p className="text-xs font-bold text-stone-900">{badge1Title}</p>
+                  <p className="text-[11px] font-medium text-stone-600">{badge1Subtitle}</p>
                 </div>
               </div>
 
               <div className="flex flex-col items-start gap-1.5">
                 <Award className="w-5 h-5 text-[#b77305] stroke-[1.75]" />
                 <div>
-                  <p className="text-xs font-bold text-stone-900">100% Premium</p>
-                  <p className="text-[11px] font-medium text-stone-600">Serat Halus Impor</p>
+                  <p className="text-xs font-bold text-stone-900">{badge2Title}</p>
+                  <p className="text-[11px] font-medium text-stone-600">{badge2Subtitle}</p>
                 </div>
               </div>
 
               <div className="flex flex-col items-start gap-1.5">
                 <Truck className="w-5 h-5 text-[#b77305] stroke-[1.75]" />
                 <div>
-                  <p className="text-xs font-bold text-stone-900">Bebas Ongkir</p>
-                  <p className="text-[11px] font-medium text-stone-600">Pengiriman Cepat</p>
+                  <p className="text-xs font-bold text-stone-900">{badge3Title}</p>
+                  <p className="text-[11px] font-medium text-stone-600">{badge3Subtitle}</p>
                 </div>
               </div>
             </div>

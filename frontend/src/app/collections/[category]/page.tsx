@@ -66,17 +66,80 @@ interface CategoryProduct extends Product {
   quality?: string;
 }
 
+import { API_BASE_URL } from "@/lib/api";
+
 export default function CategoryPage() {
   const routeParams = useParams();
   const rawSlug = (routeParams?.category as string) || (routeParams?.categorySlug as string) || "";
   const slug = decodeURIComponent(rawSlug).toLowerCase();
 
-  const categoryInfo = CATEGORY_MAP[slug] || {
+  const [config, setConfig] = useState<any>(null);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/config/hero`)
+      .then((res) => res.json())
+      .then((data) => setConfig(data))
+      .catch(() => {});
+  }, []);
+
+  const baseInfo = useMemo(() => CATEGORY_MAP[slug] || {
     name: slug ? slug.replace(/-/g, " ").toUpperCase() : "KATEGORI BRUKAT",
     tagline: "Koleksi Eksklusif Raja Brukat",
     description: "Koleksi kain brukat pilihan kualitas terbaik untuk busana Anda.",
     bannerImage: "/images/brukat_tile_mutiara.png",
-  };
+  }, [slug]);
+
+  const categoryInfo = useMemo(() => {
+    if (config?.categoryBanners) {
+      try {
+        const banners = typeof config.categoryBanners === "string" ? JSON.parse(config.categoryBanners) : config.categoryBanners;
+        if (Array.isArray(banners)) {
+          const matched = banners.find((b: any) => b.slug?.toLowerCase() === slug || b.id?.toLowerCase() === slug);
+          if (matched) {
+            return {
+              name: matched.title || baseInfo.name,
+              fullTitle: matched.title || `KATEGORI ${baseInfo.name}`,
+              tagline: matched.tagline || baseInfo.tagline,
+              description: matched.description || baseInfo.description,
+              bannerImage: matched.image || baseInfo.bannerImage,
+            };
+          }
+        }
+      } catch (e) {}
+    }
+
+    if (slug === "grade-a" && config) {
+      return {
+        name: baseInfo.name,
+        fullTitle: config.gradeATitle || `KATEGORI ${baseInfo.name}`,
+        tagline: config.gradeATagline || baseInfo.tagline,
+        description: config.gradeADesc || baseInfo.description,
+        bannerImage: config.gradeAImage || baseInfo.bannerImage,
+      };
+    }
+    if (slug === "grade-b" && config) {
+      return {
+        name: baseInfo.name,
+        fullTitle: config.gradeBTitle || `KATEGORI ${baseInfo.name}`,
+        tagline: config.gradeBTagline || baseInfo.tagline,
+        description: config.gradeBDesc || baseInfo.description,
+        bannerImage: config.gradeBImage || baseInfo.bannerImage,
+      };
+    }
+    if (slug === "tulle" && config) {
+      return {
+        name: baseInfo.name,
+        fullTitle: config.tulleTitle || `KATEGORI ${baseInfo.name}`,
+        tagline: config.tulleTagline || baseInfo.tagline,
+        description: config.tulleDesc || baseInfo.description,
+        bannerImage: config.tulleImage || baseInfo.bannerImage,
+      };
+    }
+    return {
+      ...baseInfo,
+      fullTitle: `KATEGORI ${baseInfo.name}`,
+    };
+  }, [slug, config, baseInfo]);
 
   const [products, setProducts] = useState<CategoryProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,7 +152,7 @@ export default function CategoryPage() {
     async function loadCategoryProducts() {
       setLoading(true);
       try {
-        const res = await fetch("http://localhost:5000/api/products", {
+        const res = await fetch(`${API_BASE_URL}/api/products`, {
           cache: "no-store",
         });
         const contentType = res.headers.get("content-type") || "";
@@ -161,7 +224,7 @@ export default function CategoryPage() {
             {categoryInfo.tagline}
           </span>
           <h1 className="text-4xl sm:text-6xl font-black uppercase tracking-tight font-serif mb-4">
-            KATEGORI {categoryInfo.name}
+            {categoryInfo.fullTitle || `KATEGORI ${categoryInfo.name}`}
           </h1>
           <p className="text-stone-300 max-w-2xl text-sm sm:text-base leading-relaxed mb-6">
             {categoryInfo.description}

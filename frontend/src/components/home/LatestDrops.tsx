@@ -9,6 +9,7 @@ import { ArrowRight } from "lucide-react";
 
 interface LatestDropsProps {
   products: Product[];
+  config?: any;
 }
 
 // Categories synced with the Shop page filters (Main Categories + Key Quality Types)
@@ -22,7 +23,7 @@ const FABRIC_CATEGORIES = [
   "3D",
 ];
 
-export default function LatestDrops({ products = [] }: LatestDropsProps) {
+export default function LatestDrops({ products = [], config }: LatestDropsProps) {
   const [activeCategory, setActiveCategory] = useState("Semua Kain");
 
   const newestProducts = [...products].sort((a: any, b: any) => {
@@ -73,17 +74,17 @@ export default function LatestDrops({ products = [] }: LatestDropsProps) {
         <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-10 gap-6">
           <div>
             <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-[#b77305] mb-2">
-              <span>Koleksi Motif Terbaru</span>
+              <span>{config?.latestBadge || "Koleksi Motif Terbaru"}</span>
             </div>
 
             <h2 className="text-3xl sm:text-5xl font-black text-stone-900 tracking-tight font-serif">
-              Rilis Koleksi Kain <br />
+              {config?.latestTitleLine1 || "Rilis Koleksi Kain"} <br />
               <span className="italic font-normal text-[#b77305]">
-                Terbaru & Eksklusif
+                {config?.latestTitleLine2 || "Terbaru & Eksklusif"}
               </span>
             </h2>
             <p className="mt-3 text-sm text-stone-500 max-w-lg leading-relaxed">
-              Motif kain brukat 3D, renda Chantilly impor, dan furing satin terbaru pilihan utama para perancang gaun & kebaya pengantin.
+              {config?.latestDesc || "Motif kain brukat 3D, renda Chantilly impor, dan furing satin terbaru pilihan utama para perancang gaun & kebaya pengantin."}
             </p>
           </div>
 

@@ -6,9 +6,11 @@ import Link from "next/link";
 import { ShoppingCart, ArrowRight, Sparkles, Flame, CheckCircle2 } from "lucide-react";
 import { Product, useCartStore } from "@/store/cartStore";
 import toast from "react-hot-toast";
+import { API_BASE_URL } from "@/lib/api";
 
 interface DealsProps {
   products?: Product[];
+  config?: any;
 }
 
 // Helper function to guarantee valid image sources and prevent broken/unrelated image icons
@@ -29,12 +31,38 @@ const getValidImageSrc = (img?: string, title?: string) => {
   return "/images/brukat_tile_mutiara.png";
 };
 
-export default function DealsAndRecommendations({ products = [] }: DealsProps) {
+export default function DealsAndRecommendations({ products = [], config: initialConfig }: DealsProps) {
   const addItem = useCartStore((state) => state.addItem);
+  const [config, setConfig] = useState(initialConfig);
+
+  useEffect(() => {
+    if (initialConfig) setConfig(initialConfig);
+  }, [initialConfig]);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/config/hero`)
+      .then((res) => {
+        const contentType = res.headers.get("content-type") || "";
+        if (!res.ok || !contentType.includes("application/json")) return null;
+        return res.json();
+      })
+      .then((data) => {
+        if (data) setConfig(data);
+      })
+      .catch((err) => console.warn("Error fetching live deals config:", err));
+  }, []);
+
+  // Safely parse products array
+  const safeProductsList = Array.isArray(products)
+    ? products
+    : products && Array.isArray((products as any).products)
+    ? (products as any).products
+    : [];
 
   // Filter out streetwear dummy items like T-Shirt, Hoodie, White Tee, Tote Bag
-  const luxuryProducts = products.filter(
-    (p) =>
+  const luxuryProducts = safeProductsList.filter(
+    (p: any) =>
+      p &&
       p.name &&
       !p.name.toLowerCase().includes("t-shirt") &&
       !p.name.toLowerCase().includes("tee") &&
@@ -42,7 +70,35 @@ export default function DealsAndRecommendations({ products = [] }: DealsProps) {
       !p.name.toLowerCase().includes("tote")
   );
 
-  const dealItem = luxuryProducts[0] || {
+  const [customSelectedProduct, setCustomSelectedProduct] = useState<any>(null);
+
+  useEffect(() => {
+    if (!config?.dealsProductId) {
+      setCustomSelectedProduct(null);
+      return;
+    }
+
+    const found = safeProductsList.find((p: any) => p && p.id === config.dealsProductId);
+    if (found) {
+      setCustomSelectedProduct(found);
+    } else {
+      fetch(`${API_BASE_URL}/api/products/${config.dealsProductId}`)
+        .then((res) => {
+          const contentType = res.headers.get("content-type") || "";
+          if (!res.ok || !contentType.includes("application/json")) return null;
+          return res.json();
+        })
+        .then((data) => {
+          const prod = data?.product || data;
+          if (prod && prod.id) {
+            setCustomSelectedProduct(prod);
+          }
+        })
+        .catch((err) => console.warn("Error fetching custom deal product:", err));
+    }
+  }, [config?.dealsProductId, safeProductsList]);
+
+  const dealItem = customSelectedProduct || (config?.dealsProductId ? luxuryProducts.find((p: any) => p.id === config.dealsProductId) : null) || luxuryProducts[0] || {
     id: "deal-1",
     name: "Brukat Tile Mutiara Royal French 3D",
     price: 320000,
@@ -51,30 +107,51 @@ export default function DealsAndRecommendations({ products = [] }: DealsProps) {
     category: "Brukat Tile Mutiara",
   };
 
+  const rawPrice = typeof dealItem.price === "number" ? dealItem.price : Number(dealItem.price) || 0;
+  const rawDiscount = config?.dealsDiscountPrice
+    ? Number(config.dealsDiscountPrice)
+    : typeof dealItem.discountPrice === "number"
+    ? dealItem.discountPrice
+    : dealItem.discountPrice
+    ? Number(dealItem.discountPrice)
+    : null;
+  const activeDiscountPrice = rawDiscount && !isNaN(rawDiscount) && rawDiscount > 0 ? rawDiscount : null;
+  const mainPriceToDisplay = activeDiscountPrice || rawPrice;
+
   // Countdown timer state
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
-    hours: 13,
-    minutes: 33,
-    seconds: 18,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
   });
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1 };
-        } else if (prev.minutes > 0) {
-          return { ...prev, minutes: 59, seconds: 59 };
-        } else if (prev.hours > 0) {
-          return { ...prev, hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        }
-        return prev;
-      });
-    }, 1000);
+    const updateTimer = () => {
+      if (config?.dealsEndsAt && typeof config.dealsEndsAt === "string" && config.dealsEndsAt.trim() !== "") {
+        const cleanStr = config.dealsEndsAt.trim().replace(" ", "T");
+        const target = new Date(cleanStr).getTime();
+        const now = new Date().getTime();
+        const diff = target - now;
 
+        if (!isNaN(target) && diff > 0) {
+          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+          setTimeLeft({ days, hours, minutes, seconds });
+          return;
+        }
+      }
+
+      // Default fallback timer if no target set
+      setTimeLeft({ days: 0, hours: 13, minutes: 33, seconds: 18 });
+    };
+
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [config?.dealsEndsAt]);
 
   const handleAddToCart = (item: any) => {
     addItem(item);
@@ -88,13 +165,13 @@ export default function DealsAndRecommendations({ products = [] }: DealsProps) {
         {/* Integrated Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-14">
           <div className="inline-block text-[#b77305] text-xs font-bold uppercase tracking-[0.25em] bg-white border border-[#e8ded2] px-4.5 py-1.5 rounded-full shadow-xs mb-3">
-            <span>PROMO SPESIAL TERBATAS</span>
+            <span>{config?.dealsBadge || "PROMO SPESIAL TERBATAS"}</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-stone-950 mb-3">
-            Penawaran Tekstil Eksklusif
+            {config?.dealsTitle || "Penawaran Tekstil Eksklusif"}
           </h2>
-          <p className="text-stone-600 text-sm sm:text-base font-light leading-relaxed">
-            Dapatkan penawaran harga spesial untuk kain brukat pilihan dengan kualitas bordir 3D premium. Promo berlaku selama persediaan masih ada.
+          <p className="text-stone-600 text-sm sm:text-base font-light leading-relaxed whitespace-pre-line">
+            {config?.dealsDescription || "Dapatkan penawaran harga spesial untuk kain brukat pilihan dengan kualitas bordir 3D premium. Promo berlaku selama persediaan masih ada."}
           </p>
         </div>
 
@@ -140,11 +217,11 @@ export default function DealsAndRecommendations({ products = [] }: DealsProps) {
               {/* Prominent Price Display */}
               <div className="flex items-baseline gap-4">
                 <span className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#b77305]">
-                  Rp {(dealItem.discountPrice || dealItem.price).toLocaleString("id-ID")}
+                  Rp {(mainPriceToDisplay || 0).toLocaleString("id-ID")}
                 </span>
-                {dealItem.discountPrice && (
+                {activeDiscountPrice && activeDiscountPrice < rawPrice && (
                   <span className="text-lg sm:text-xl text-stone-400 line-through font-serif font-normal">
-                    Rp {dealItem.price.toLocaleString("id-ID")}
+                    Rp {rawPrice.toLocaleString("id-ID")}
                   </span>
                 )}
               </div>
@@ -153,15 +230,15 @@ export default function DealsAndRecommendations({ products = [] }: DealsProps) {
               <div className="space-y-2.5 pt-2 border-t border-stone-100">
                 <div className="flex items-center gap-2.5 text-stone-700 text-xs sm:text-sm font-medium">
                   <CheckCircle2 className="w-4 h-4 text-[#b77305] flex-shrink-0" />
-                  <span>Motif bordir rapat dengan taburan payet mutiara timbul 3D</span>
+                  <span>{config?.dealsPoint1 || "Motif bordir rapat dengan taburan payet mutiara timbul 3D"}</span>
                 </div>
                 <div className="flex items-center gap-2.5 text-stone-700 text-xs sm:text-sm font-medium">
                   <CheckCircle2 className="w-4 h-4 text-[#b77305] flex-shrink-0" />
-                  <span>Serat renda Chantilly & tile ekspor yang sangat halus di kulit</span>
+                  <span>{config?.dealsPoint2 || "Serat renda Chantilly & tile ekspor yang sangat halus di kulit"}</span>
                 </div>
                 <div className="flex items-center gap-2.5 text-stone-700 text-xs sm:text-sm font-medium">
                   <CheckCircle2 className="w-4 h-4 text-[#b77305] flex-shrink-0" />
-                  <span>Stok promo sangat terbatas (Sisa 15 Meter Terakhir)</span>
+                  <span>{config?.dealsPoint3 || "Stok promo sangat terbatas (Sisa 15 Meter Terakhir)"}</span>
                 </div>
               </div>
 

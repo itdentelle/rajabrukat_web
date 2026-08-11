@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { supabase } from "@/lib/supabase";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function NewCollectionPage() {
   const router = useRouter();
@@ -12,7 +13,7 @@ export default function NewCollectionPage() {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [description, setDescription] = useState("");
-  const [color, setColor] = useState("bg-zinc-900");
+  const [color, setColor] = useState("bg-[#b77305]");
   const [isActive, setIsActive] = useState(true);
   
   const [imageOption, setImageOption] = useState<"url" | "upload">("url");
@@ -28,13 +29,17 @@ export default function NewCollectionPage() {
 
       if (imageOption === "upload" && imageFile) {
         const fileExt = imageFile.name.split('.').pop();
-        const fileName = `collection_${Date.now()}.${fileExt}`;
+        const fileName = `collection-${Date.now()}.${fileExt}`;
         
-        const { error: uploadError } = await supabase.storage
+        const { data, error: uploadError } = await supabase.storage
           .from('products')
-          .upload(fileName, imageFile);
+          .upload(fileName, imageFile, { upsert: true });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          toast.error("Failed to upload image to Supabase Storage");
+          setLoading(false);
+          return;
+        }
 
         const { data: publicUrlData } = supabase.storage
           .from('products')
@@ -44,7 +49,7 @@ export default function NewCollectionPage() {
       }
 
       const token = localStorage.getItem("admin_token") || localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/collections", {
+      const res = await fetch(`${API_BASE_URL}/api/collections`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

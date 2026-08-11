@@ -30,18 +30,21 @@ function FacebookIcon({ className = "w-4 h-4" }: { className?: string }) {
   );
 }
 
+import { API_BASE_URL } from "@/lib/api";
+
 interface SiteConfig {
-  footerDesc: string;
-  instagramUrl: string;
-  facebookUrl: string;
-  twitterUrl: string;
+  footerDesc?: string;
+  instagramUrl?: string;
+  facebookUrl?: string;
+  tiktokUrl?: string;
+  whatsappUrl?: string;
 }
 
 export default function Footer() {
   const [config, setConfig] = useState<SiteConfig | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/config/hero")
+    fetch(`${API_BASE_URL}/api/config/hero`)
       .then((res) => {
         const contentType = res.headers.get("content-type") || "";
         if (!res.ok || !contentType.includes("application/json")) return null;
@@ -54,7 +57,13 @@ export default function Footer() {
   }, []);
 
   const descriptionText =
+    config?.footerDesc ||
     "Raja Brukat – Pusat grosir dan eceran kain brukat berkualitas. Koleksi brukat terlengkap dengan berbagai motif yang indah dan elegan tentunya dengan harga yang terjangkau.";
+
+  const instagramUrl = config?.instagramUrl || "https://instagram.com/rajabrukat_id";
+  const facebookUrl = config?.facebookUrl || "https://facebook.com/rajabrukat";
+  const tiktokUrl = config?.tiktokUrl || "https://tiktok.com/@rajabrukatofficial";
+  const whatsappUrl = config?.whatsappUrl || "https://wa.me/6285881667778";
 
   return (
     <footer className="bg-white text-stone-800 pt-16 pb-8 border-t border-stone-200">
@@ -71,7 +80,7 @@ export default function Footer() {
           {/* Social Media Icon Buttons Only */}
           <div className="flex items-center gap-3">
             <a
-              href="https://instagram.com/rajabrukat_id"
+              href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram Raja Brukat"
@@ -81,7 +90,7 @@ export default function Footer() {
             </a>
 
             <a
-              href="https://facebook.com/rajabrukat"
+              href={facebookUrl}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Facebook Raja Brukat"
@@ -91,7 +100,7 @@ export default function Footer() {
             </a>
 
             <a
-              href="https://tiktok.com/@rajabrukatofficial"
+              href={tiktokUrl}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="TikTok Raja Brukat"
@@ -101,7 +110,7 @@ export default function Footer() {
             </a>
 
             <a
-              href="https://wa.me/6285881667778"
+              href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="WhatsApp Hotline Raja Brukat"

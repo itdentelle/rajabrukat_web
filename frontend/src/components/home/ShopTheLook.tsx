@@ -95,14 +95,14 @@ const LOOKBOOK_ITEMS: LookbookItem[] = [
   },
 ];
 
-export default function ShopTheLook() {
+export default function ShopTheLook({ config }: { config?: any }) {
   const [looks, setLooks] = useState<LookbookItem[]>(LOOKBOOK_ITEMS);
   const [selectedLook, setSelectedLook] = useState<LookbookItem | null>(null);
   const addItem = useCartStore((state) => state.addItem);
   const openCart = useCartStore((state) => state.openCart);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/products?limit=4`)
+    fetch(`${API_BASE_URL}/api/products?limit=100`)
       .then((res) => {
         const contentType = res.headers.get("content-type") || "";
         if (!res.ok || !contentType.includes("application/json")) return null;
@@ -111,9 +111,29 @@ export default function ShopTheLook() {
       .then((data) => {
         if (!data) return;
         const products = data.products || data;
-        if (Array.isArray(products) && products.length >= 4) {
-          const tags = ["Kebaya Pengantin", "Gaun Pesta", "Seragam Bridesmaid", "Kebaya Wisuda"];
-          const dynamicLooks: LookbookItem[] = products.slice(0, 4).map((p: any, idx: number) => {
+        if (Array.isArray(products) && products.length > 0) {
+          const tags = [
+            config?.lookbookCard1Tag || "Kebaya Pengantin",
+            config?.lookbookCard2Tag || "Gaun Pesta",
+            config?.lookbookCard3Tag || "Seragam Bridesmaid",
+            config?.lookbookCard4Tag || "Kebaya Wisuda"
+          ];
+          const cardIds = [
+            config?.lookbookCard1ProductId,
+            config?.lookbookCard2ProductId,
+            config?.lookbookCard3ProductId,
+            config?.lookbookCard4ProductId
+          ];
+
+          const chosenProducts = cardIds.map((id, idx) => {
+            if (id) {
+              const found = products.find((p: any) => p.id === id);
+              if (found) return found;
+            }
+            return products[idx % products.length];
+          });
+
+          const dynamicLooks: LookbookItem[] = chosenProducts.map((p: any, idx: number) => {
             const { displayTitle } = cleanTitle(p.name);
             return {
               id: `look-${p.id}`,
@@ -138,7 +158,10 @@ export default function ShopTheLook() {
         }
       })
       .catch((err) => console.warn("Failed to fetch dynamic lookbook products from database:", err));
-  }, []);
+  }, [
+    config?.lookbookCard1ProductId, config?.lookbookCard2ProductId, config?.lookbookCard3ProductId, config?.lookbookCard4ProductId,
+    config?.lookbookCard1Tag, config?.lookbookCard2Tag, config?.lookbookCard3Tag, config?.lookbookCard4Tag
+  ]);
 
   const handleBuyFabric = (product: Product, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -154,14 +177,14 @@ export default function ShopTheLook() {
         {/* Section Header with Luxury Serif Typography */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-[#b77305] text-xs font-bold uppercase tracking-[0.25em] block mb-3">
-            INSPIRASI BUSANA KEBAYA & GAUN MEWAH
+            {config?.lookbookBadge || "INSPIRASI BUSANA KEBAYA & GAUN MEWAH"}
           </span>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-medium tracking-wide text-stone-950 mb-4">
-            <span className="block text-stone-800 font-light">Galeri Lookbook &</span>
-            <span className="block text-[#b77305] italic font-serif mt-1">Inspirasi Busana Kebaya</span>
+            <span className="block text-stone-800 font-light">{config?.lookbookTitleLine1 || "Galeri Lookbook &"}</span>
+            <span className="block text-[#b77305] italic font-serif mt-1">{config?.lookbookTitleLine2 || "Inspirasi Busana Kebaya"}</span>
           </h2>
           <p className="text-stone-600 text-sm md:text-base font-light leading-relaxed">
-            Lihat keanggunan hasil rancangan busana karya desainer & pelanggan Raja Brukat. Klik kartu untuk inspirasi lengkap dan pembelian bahan langsung!
+            {config?.lookbookDesc || "Lihat keanggunan hasil rancangan busana karya desainer & pelanggan Raja Brukat. Klik kartu untuk inspirasi lengkap dan pembelian bahan langsung!"}
           </p>
         </div>
 

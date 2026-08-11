@@ -12,65 +12,60 @@ interface HeroConfig {
   buttonText?: string;
   buttonLink?: string;
   imageUrl?: string;
+
+  panel2Title?: string;
+  panel2Subtitle?: string;
+  panel2ButtonText?: string;
+  panel2ButtonLink?: string;
+  panel2ImageUrl?: string;
+
+  panel3Title?: string;
+  panel3Subtitle?: string;
+  panel3ButtonText?: string;
+  panel3ButtonLink?: string;
+  panel3ImageUrl?: string;
 }
 
 interface HeroBannerProps {
   config?: HeroConfig;
 }
 
-const CATEGORY_PANELS = [
-  {
-    id: 1,
-    num: "01",
-    category: "KOLEKSI EKSKLUSIF 2026",
-    title: "Keanggunan Kain Semi Prancis 3D Premium",
-    description: "Seni bordir tile bertabur payet mutiara kristal mewah untuk kebaya & gaun pesta istimewa Anda.",
-    buttonText: "Shop Now",
-    buttonLink: "/shop?category=Brukat Tile Mutiara",
-    image: "/images/white_lace_hero.png",
-    badge: "BRUKAT 3D",
-  },
-  {
-    id: 2,
-    num: "02",
-    category: "RENDA CHANTILLY FRENCH",
-    title: "Panel Brukat Chantily",
-    description: "Kehalusan renda Prancis bertekstur ultra-soft yang jatuh lembut dan mewah di kulit.",
-    buttonText: "Lihat Koleksi",
-    buttonLink: "/shop?category=Renda Chantilly",
-    image: "/images/beige_lace_hero.png",
-    badge: "CHANTILLY",
-  },
-  {
-    id: 3,
-    num: "03",
-    category: "METALLIC LACE ELEGANT",
-    title: "Panel Metallic Ellegant",
-    description: "Seni bordir metallic berkilau dengan detail mewah dan elegan untuk gaun pesta istimewa Anda.",
-    buttonText: "Lihat Koleksi",
-    buttonLink: "/shop?category=Metallic",
-    image: "/images/metallic_lace_hero.png",
-    badge: "METALLIC",
-  },
-];
-
 export default function HeroBanner({ config }: HeroBannerProps) {
-  const panels = config?.title && config.title !== "Define Your Street." ? [
+  const panels = [
     {
       id: 1,
       num: "01",
-      category: config.subtitle || "KOLEKSI EKSKLUSIF 2026",
-      title: config.title === "Keanggunan Kain Brukat & Lace Premium" 
-        ? "Keanggunan Kain Semi Prancis 3D Premium" 
-        : config.title.replace(/\n/g, ", "),
-      description: "Koleksi kain brukat dan renda pilihan dengan standar kualitas terbaik untuk gaun pesta & kebaya istimewa Anda.",
-      buttonText: config.buttonText || "Shop Now",
-      buttonLink: config.buttonLink || "/shop",
-      image: config.imageUrl?.endsWith(".jpg") ? "/images/white_lace_hero.png" : (config.imageUrl || "/images/white_lace_hero.png"),
+      category: config?.subtitle || "KOLEKSI RAJA BRUKAT 2026",
+      title: config?.title ? config.title.replace(/\n/g, " ") : "Keanggunan Kain Semi Prancis 3D Premium",
+      description: "Seni bordir tile bertabur payet mutiara kristal mewah untuk kebaya & gaun pesta istimewa Anda.",
+      buttonText: config?.buttonText || "Shop Now",
+      buttonLink: config?.buttonLink || "/shop",
+      image: config?.imageUrl?.endsWith(".jpg") ? "/images/white_lace_hero.png" : (config?.imageUrl || "/images/white_lace_hero.png"),
       badge: "BRUKAT 3D",
     },
-    ...CATEGORY_PANELS.slice(1)
-  ] : CATEGORY_PANELS;
+    {
+      id: 2,
+      num: "02",
+      category: config?.panel2Subtitle || "RENDA CHANTILLY FRENCH",
+      title: config?.panel2Title ? config.panel2Title.replace(/\n/g, " ") : "Panel Brukat Chantily",
+      description: "Kehalusan renda Prancis bertekstur ultra-soft yang jatuh lembut dan mewah di kulit.",
+      buttonText: config?.panel2ButtonText || "Lihat Koleksi",
+      buttonLink: config?.panel2ButtonLink || "/shop?category=Renda Chantilly",
+      image: config?.panel2ImageUrl || "/images/beige_lace_hero.png",
+      badge: "CHANTILLY",
+    },
+    {
+      id: 3,
+      num: "03",
+      category: config?.panel3Subtitle || "METALLIC LACE ELEGANT",
+      title: config?.panel3Title ? config.panel3Title.replace(/\n/g, " ") : "Panel Metallic Ellegant",
+      description: "Seni bordir metallic berkilau dengan detail mewah dan elegan untuk gaun pesta istimewa Anda.",
+      buttonText: config?.panel3ButtonText || "Lihat Koleksi",
+      buttonLink: config?.panel3ButtonLink || "/shop?category=Metallic",
+      image: config?.panel3ImageUrl || "/images/metallic_lace_hero.png",
+      badge: "METALLIC",
+    },
+  ];
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);

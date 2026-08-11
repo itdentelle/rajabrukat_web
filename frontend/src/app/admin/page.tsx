@@ -6,6 +6,7 @@ import { Users, ShoppingBag, DollarSign, Package } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function AdminDashboard() {
       return;
     }
 
-    fetch("http://localhost:5000/api/admin/stats", {
+    fetch(`${API_BASE_URL}/api/admin/stats`, {
       headers: { "Authorization": `Bearer ${token}` }
     })
       .then(async res => {

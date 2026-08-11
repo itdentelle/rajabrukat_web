@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Save, User, Lock, Mail } from "lucide-react";
 import toast from "react-hot-toast";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function AdminSettings() {
   const [email, setEmail] = useState("");
@@ -18,7 +19,7 @@ export default function AdminSettings() {
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem("admin_token");
-      const res = await fetch("http://localhost:5000/api/users/profile", {
+      const res = await fetch(`${API_BASE_URL}/api/users/profile`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -42,7 +43,7 @@ export default function AdminSettings() {
     setLoading(true);
     try {
       const token = localStorage.getItem("admin_token");
-      const res = await fetch("http://localhost:5000/api/admin/settings", {
+      const res = await fetch(`${API_BASE_URL}/api/admin/settings`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

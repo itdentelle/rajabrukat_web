@@ -48,7 +48,9 @@ function TikTokIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
-const CATEGORIES = [
+import { API_BASE_URL } from "@/lib/api";
+
+const DEFAULT_CATEGORIES = [
   { name: "Grade A", href: "/collections/grade-a" },
   { name: "Grade B", href: "/collections/grade-b" },
   { name: "Tulle", href: "/collections/tulle" },
@@ -66,6 +68,7 @@ export default function Navbar() {
   const openCart = useCartStore((state) => state.openCart);
   const fetchCart = useCartStore((state) => state.fetchCart);
   const openSearch = useSearchStore((state) => state.openSearch);
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [scrolled, setScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -76,6 +79,21 @@ export default function Navbar() {
   const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
   const [mobileLainnyaOpen, setMobileLainnyaOpen] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/categories`)
+      .then((res) => {
+        const contentType = res.headers.get("content-type") || "";
+        if (!res.ok || !contentType.includes("application/json")) return null;
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setCategories(data);
+        }
+      })
+      .catch((err) => console.warn("Navbar categories fetch notice:", err));
+  }, []);
 
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem("token"));
@@ -303,7 +321,7 @@ export default function Navbar() {
                     className="absolute top-full left-1/2 -translate-x-1/2 pt-2 w-56 z-50"
                   >
                     <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-[#b77305]/20 p-2 overflow-hidden space-y-1">
-                      {CATEGORIES.map((cat, i) => (
+                      {categories.map((cat, i) => (
                         <motion.div
                           key={cat.name}
                           initial={{ opacity: 0, x: -8 }}
@@ -504,7 +522,7 @@ export default function Navbar() {
                 </button>
                 {mobileCategoriesOpen && (
                   <div className="pl-4 py-2 space-y-2 bg-stone-50 rounded-md mt-1">
-                    {CATEGORIES.map((cat) => (
+                    {categories.map((cat) => (
                       <Link
                         key={cat.name}
                         href={cat.href}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function AdminLoginPage() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -52,7 +53,7 @@ export default function AdminLoginPage() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/verify-otp", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),

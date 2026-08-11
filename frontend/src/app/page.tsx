@@ -1,4 +1,4 @@
-export const revalidate = 60;
+export const revalidate = 0;
 
 import dynamic from "next/dynamic";
 import HeroBanner from "@/components/home/HeroBanner";
@@ -16,7 +16,7 @@ const FabricComparisonSlider = dynamic(() => import("@/components/home/FabricCom
 
 async function getProducts() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/products`, { next: { revalidate: 60 } });
+    const res = await fetch(`${API_BASE_URL}/api/products`, { cache: "no-store" });
     const contentType = res.headers.get("content-type") || "";
     if (!res.ok || !contentType.includes("application/json")) return [];
     const data = await res.json();
@@ -29,7 +29,7 @@ async function getProducts() {
 
 async function getHeroConfig() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/config/hero`, { next: { revalidate: 60 } });
+    const res = await fetch(`${API_BASE_URL}/api/config/hero`, { cache: "no-store" });
     const contentType = res.headers.get("content-type") || "";
     if (!res.ok || !contentType.includes("application/json")) return null;
     return await res.json();
@@ -45,19 +45,14 @@ export default async function Home() {
   return (
     <div className="min-h-screen">
       <HeroBanner config={config} />
-      <FeaturedCategories />
-      <CatalogFlipbookSection />
-      <AboutBrand />
-      <LatestDrops products={products} />
-      <DealsAndRecommendations products={products} />
-      <FabricComparisonSlider
-        beforeImage="/images/white_lace_hero.png"
-        afterImage="/images/metallic_lace_hero.png"
-        beforeLabel="Semi Prancis 3D"
-        afterLabel="Metallic Elegant"
-      />
-      <ShopTheLook />
-      <BestSellers products={products} />
+      <FeaturedCategories config={config} />
+      <CatalogFlipbookSection config={config} />
+      <AboutBrand config={config} />
+      <LatestDrops products={products} config={config} />
+      <DealsAndRecommendations products={products} config={config} />
+      <FabricComparisonSlider config={config} />
+      <ShopTheLook config={config} />
+      <BestSellers products={products} config={config} />
     </div>
   );
 }

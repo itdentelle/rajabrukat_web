@@ -81,7 +81,7 @@ export default function AboutPage() {
               {config?.aboutPageImgText || "Kemewahan Tanpa Kompromi."}
             </h2>
             <p className="text-stone-200 text-sm md:text-lg font-light max-w-2xl mx-auto">
-              Perpaduan seni bordir presisi tinggi, taburan kristal bercahaya, serta kelembutan serat renda impor kualitas ekspor.
+              {config?.aboutPageImgSubtext || "Perpaduan seni bordir presisi tinggi, taburan kristal bercahaya, serta kelembutan serat renda impor kualitas ekspor."}
             </p>
           </Reveal>
         </div>

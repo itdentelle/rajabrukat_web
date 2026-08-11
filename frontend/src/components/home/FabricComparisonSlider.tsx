@@ -10,17 +10,25 @@ interface FabricComparisonProps {
   afterImage?: string;
   beforeLabel?: string;
   afterLabel?: string;
+  config?: any;
 }
 
 export default function FabricComparisonSlider({
-  beforeImage = "/images/white_lace_hero.png",
-  afterImage = "/images/metallic_lace_hero.png",
-  beforeLabel = "Semi Prancis 3D",
-  afterLabel = "Metallic Elegant",
+  beforeImage,
+  afterImage,
+  beforeLabel,
+  afterLabel,
+  config,
 }: FabricComparisonProps) {
   const [sliderPos, setSliderPos] = useState<number>(50); // percentage 0 - 100
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const resolvedBeforeImage = config?.compareBeforeImage || beforeImage || "/images/white_lace_hero.png";
+  const resolvedAfterImage = config?.compareAfterImage || afterImage || "/images/metallic_lace_hero.png";
+  const resolvedBeforeLabel = config?.compareBeforeLabel || beforeLabel || "Semi Prancis 3D";
+  const resolvedAfterLabel = config?.compareAfterLabel || afterLabel || "Metallic Elegant";
+  const resolvedTitle = config?.compareTitle || "Compare Textile Quality";
 
   const handleMove = useCallback((clientX: number) => {
     if (!containerRef.current) return;
@@ -69,6 +77,8 @@ export default function FabricComparisonSlider({
     };
   }, [isDragging, handleMouseMove, handleMouseUp, handleTouchMove]);
 
+  const titleWords = resolvedTitle.trim().split(" ");
+
   return (
     <section className="py-20 bg-white text-stone-900 relative overflow-hidden border-t border-stone-100">
       <div className="w-full mx-auto px-2 sm:px-4 md:px-8 max-w-[1700px]">
@@ -89,33 +99,18 @@ export default function FabricComparisonSlider({
             }}
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif font-medium tracking-wide text-stone-950 flex flex-wrap items-center justify-center gap-x-3 gap-y-1"
           >
-            <motion.span
-              variants={{
-                hidden: { opacity: 0, filter: "blur(14px)", x: -25 },
-                visible: { opacity: 1, filter: "blur(0px)", x: 0, transition: { duration: 0.65, ease: "easeOut" } },
-              }}
-              className="inline-block"
-            >
-              Compare
-            </motion.span>
-            <motion.span
-              variants={{
-                hidden: { opacity: 0, filter: "blur(14px)", x: -25 },
-                visible: { opacity: 1, filter: "blur(0px)", x: 0, transition: { duration: 0.65, ease: "easeOut" } },
-              }}
-              className="inline-block text-[#b77305] italic font-serif"
-            >
-              Textile
-            </motion.span>
-            <motion.span
-              variants={{
-                hidden: { opacity: 0, filter: "blur(14px)", x: -25 },
-                visible: { opacity: 1, filter: "blur(0px)", x: 0, transition: { duration: 0.65, ease: "easeOut" } },
-              }}
-              className="inline-block text-[#b77305] italic font-serif"
-            >
-              Quality
-            </motion.span>
+            {titleWords.map((word: string, idx: number) => (
+              <motion.span
+                key={idx}
+                variants={{
+                  hidden: { opacity: 0, filter: "blur(14px)", x: -25 },
+                  visible: { opacity: 1, filter: "blur(0px)", x: 0, transition: { duration: 0.65, ease: "easeOut" } },
+                }}
+                className={`inline-block ${idx >= 1 ? "text-[#b77305] italic font-serif" : ""}`}
+              >
+                {word}
+              </motion.span>
+            ))}
           </motion.h2>
         </div>
 
@@ -135,8 +130,8 @@ export default function FabricComparisonSlider({
           {/* Base Image (Right / After) */}
           <div className="absolute inset-0 w-full h-full">
             <Image
-              src={afterImage}
-              alt={afterLabel}
+              src={resolvedAfterImage}
+              alt={resolvedAfterLabel}
               fill
               priority
               sizes="(max-width: 1700px) 100vw, 1700px"
@@ -147,7 +142,7 @@ export default function FabricComparisonSlider({
             {/* Stationary Label on Right Image side, near left edge where slider handle sits when opened */}
             <div className="absolute left-10 sm:left-16 md:left-20 top-1/2 -translate-y-1/2 pointer-events-none z-10">
               <h3 className="text-3xl sm:text-5xl md:text-6xl font-serif font-medium text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)] whitespace-nowrap tracking-wide">
-                {afterLabel}
+                {resolvedAfterLabel}
               </h3>
             </div>
           </div>
@@ -160,8 +155,8 @@ export default function FabricComparisonSlider({
             }}
           >
             <Image
-              src={beforeImage}
-              alt={beforeLabel}
+              src={resolvedBeforeImage}
+              alt={resolvedBeforeLabel}
               fill
               priority
               sizes="(max-width: 1700px) 100vw, 1700px"
@@ -172,7 +167,7 @@ export default function FabricComparisonSlider({
             {/* Stationary Label on Left Image side, near right edge where slider handle sits when opened */}
             <div className="absolute right-10 sm:right-16 md:right-20 top-1/2 -translate-y-1/2 pointer-events-none z-10">
               <h3 className="text-3xl sm:text-5xl md:text-6xl font-serif font-medium text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)] whitespace-nowrap tracking-wide">
-                {beforeLabel}
+                {resolvedBeforeLabel}
               </h3>
             </div>
           </div>

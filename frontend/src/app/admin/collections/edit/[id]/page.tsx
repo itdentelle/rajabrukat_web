@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { supabase } from "@/lib/supabase";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function EditCollectionPage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
@@ -22,7 +23,7 @@ export default function EditCollectionPage({ params }: { params: Promise<{ id: s
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/collections/${unwrappedParams.id}`)
+    fetch(`${API_BASE_URL}/api/collections/${unwrappedParams.id}`)
       .then(res => {
         if (!res.ok) throw new Error("Failed to fetch");
         return res.json();
@@ -34,14 +35,13 @@ export default function EditCollectionPage({ params }: { params: Promise<{ id: s
         setColor(data.color || "bg-zinc-900");
         setIsActive(data.isActive ?? true);
         setImageUrl(data.imageUrl || "");
-        setFetching(false);
       })
       .catch(err => {
         console.error(err);
-        toast.error("Failed to load collection");
-        router.push("/admin/collections");
-      });
-  }, [unwrappedParams.id, router]);
+        toast.error("Failed to load collection details");
+      })
+      .finally(() => setFetching(false));
+  }, [unwrappedParams.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +68,7 @@ export default function EditCollectionPage({ params }: { params: Promise<{ id: s
       }
 
       const token = localStorage.getItem("admin_token") || localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/collections/${unwrappedParams.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/collections/${unwrappedParams.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

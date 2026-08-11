@@ -141,27 +141,129 @@ model CartItem {
 model SiteConfig {
   id         String   @id @default("hero-banner")
   
-  // Hero Banner
-  title      String   @default("Define Your Street.")
-  subtitle   String   @default("New Collection 2026")
+  // Hero Banner 1 (Brukat 3D)
+  title      String   @default("Keanggunan Kain Semi Prancis 3D Premium")
+  subtitle   String   @default("KOLEKSI RAJA BRUKAT 2026")
   buttonText String   @default("Shop Now")
   buttonLink String   @default("/shop")
-  imageUrl   String   @default("https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=2400&auto=format&fit=crop")
+  imageUrl   String   @default("/images/white_lace_hero.png")
+  
+  // Hero Banner 2 (Chantilly)
+  panel2Title      String @default("Panel Brukat Chantily")
+  panel2Subtitle   String @default("RENDA CHANTILLY FRENCH")
+  panel2ButtonText String @default("Lihat Koleksi")
+  panel2ButtonLink String @default("/shop?category=Renda Chantilly")
+  panel2ImageUrl   String @default("/images/beige_lace_hero.png")
+
+  // Hero Banner 3 (Metallic)
+  panel3Title      String @default("Panel Metallic Ellegant")
+  panel3Subtitle   String @default("METALLIC LACE ELEGANT")
+  panel3ButtonText String @default("Lihat Koleksi")
+  panel3ButtonLink String @default("/shop?category=Metallic")
+  panel3ImageUrl   String @default("/images/metallic_lace_hero.png")
+  // Featured Highlight Section (Pancar Keanggunan Gayamu)
+  featuredTitle     String @default("Pancar \\n Keanggunan \\n Gayamu.")
+  featuredSubtitle  String @default("Kondisi baru, Brukat polos dengan tekstur doff halus. Pilihan klasik yang tak lekang oleh waktu. Bahan adem dan nyaman dipakai.")
+  badge1Title       String @default("Garansi Retur")
+  badge1Subtitle    String @default("Kemudahan Tukar")
+  badge2Title       String @default("100% Premium")
+  badge2Subtitle    String @default("Serat Halus Impor")
+  badge3Title       String @default("Bebas Ongkir")
+  badge3Subtitle    String @default("Pengiriman Cepat")
+  
+  // Featured 3 Overlapping Cards (Foto & Kategori Highlights)
+  featuredCard1Title   String @default("Panel Brukat Polos Busana Pesta")
+  featuredCard1Desc    String @default("Kondisi baru, Brukat polos dengan tekstur doff halus. Pilihan klasik yang tak lekang oleh waktu. Bahan adem dan nyaman dipakai.")
+  featuredCard1ImgUrl  String @default("/images/renda_chantilly_french.png")
+  featuredCard1Link    String @default("/shop?category=Panel Brukat Polos")
+
+  featuredCard2Title   String @default("Panel Full Metalic")
+  featuredCard2Desc    String @default("Kondisi baru, memakai benang metalik yang menambah kesan elegan. Bahan adem dan nyaman dipakai. Foto-foto warna sudah sesuai dengan kondisi aslinya.")
+  featuredCard2ImgUrl  String @default("/images/brukat_tile_mutiara.png")
+  featuredCard2Link    String @default("/shop?category=Panel Full Metalic")
+
+  featuredCard3Title   String @default("Panel Renda Chantilly Impor")
+  featuredCard3Desc    String @default("Serat renda Chantilly kualitas ekspor yang sangat halus, ringan, dan tidak gatal. Pilihan utama para desainer untuk gaun pesta & kebaya pengantin.")
+  featuredCard3ImgUrl  String @default("/images/cornely_silk_satin.png")
+  featuredCard3Link    String @default("/shop?category=Renda Chantilly")
   
   // About Section
-  aboutTitle       String @default("Forged In The Underground.")
-  aboutSubtitle    String @default("Engineered For The Streets.")
-  aboutDescription String @default("We don't just print shirts. We craft armor for the modern streets.")
+  aboutTitle            String  @default("Didedikasikan Untuk Keindahan Kebaya & Gaun Mewah")
+  aboutSubtitle         String  @default("KOLEKSI TEKSTIL EKSKLUSIF")
+  aboutDescription      String  @default("Raja Brukat adalah destinasi utama di Indonesia untuk menemukan kain brukat mewah, tile mutiara 3D, renda Chantilly impor, dan furing satin silk bermutu tinggi.")
+  aboutCircle1ProductId String?
+  aboutCircle2ProductId String?
+  aboutCircle3ProductId String?
+  aboutCircle4ProductId String?
+  aboutCircle5ProductId String?
+
+  // Latest Drops Section
+  latestBadge           String? @default("KOLEKSI MOTIF TERBARU")
+  latestTitleLine1      String? @default("Rilis Koleksi Kain")
+  latestTitleLine2      String? @default("Terbaru & Eksklusif")
+  latestDesc            String? @default("Motif kain brukat 3D, renda Chantilly impor, dan furing satin terbaru pilihan utama para perancang gaun & kebaya pengantin.")
   
+  // Deals & Recommendations Section
+  dealsBadge         String @default("PROMO SPESIAL TERBATAS")
+  dealsTitle         String @default("Penawaran Tekstil Eksklusif")
+  dealsDescription   String @default("Dapatkan penawaran harga spesial untuk kain brukat pilihan dengan kualitas bordir 3D premium. Promo berlaku selama persediaan masih ada.")
+  dealsProductId     String?
+  dealsEndsAt        String?
+  dealsDiscountPrice Float?
+  
+  // Lookbook & Inspirasi Section
+  lookbookBadge       String?  @default("INSPIRASI BUSANA KEBAYA & GAUN MEWAH")
+  lookbookTitleLine1  String?  @default("Galeri Lookbook &")
+  lookbookTitleLine2  String?  @default("Inspirasi Busana Kebaya")
+  lookbookDesc        String?  @default("Lihat keanggunan hasil rancangan busana karya desainer & pelanggan Raja Brukat. Klik kartu untuk inspirasi lengkap dan pembelian bahan langsung!")
+  lookbookCard1ProductId String?
+  lookbookCard2ProductId String?
+  lookbookCard3ProductId String?
+  lookbookCard4ProductId String?
+  lookbookCard1Tag       String?  @default("KEBAYA PENGANTIN")
+  lookbookCard2Tag       String?  @default("GAUN PESTA")
+  lookbookCard3Tag       String?  @default("SERAGAM BRIDESMAID")
+  lookbookCard4Tag       String?  @default("KEBAYA WISUDA")
+
+  // Fabric Comparison Slider Section
+  compareTitle        String?  @default("Compare Textile Quality")
+  compareBeforeLabel  String?  @default("Semi Prancis 3D")
+  compareAfterLabel   String?  @default("Metallic Elegant")
+  compareBeforeImage  String?  @default("/images/white_lace_hero.png")
+  compareAfterImage   String?  @default("/images/metallic_lace_hero.png")
+
+  // Best Sellers Section
+  bestSellersTitle        String?  @default("Best Sellers.")
+  bestSellersDescription  String?  @default("The pieces everyone is talking about. Grab them before they're gone.")
+
   // Footer Section
-  footerDesc       String @default("DragonWorm is a daily wear clothing brand established in Bandung, Indonesia. Providing high quality products for your daily outfit.")
-  instagramUrl     String @default("#")
+  footerDesc       String @default("Raja Brukat adalah pusat tekstil kain brukat & renda eksklusif terbaik di Indonesia. Melayani pemesanan eceran dan grosir ke seluruh Wilayah Indonesia.")
+  instagramUrl     String @default("https://instagram.com/rajabrukat")
   facebookUrl      String @default("#")
   twitterUrl       String @default("#")
   
-  // Shop Page
-  shopTitle        String   @default("Shop \\n All.")
-  shopDescription  String   @default("Browse our complete collection of premium streetwear. Designed for the bold.")
+  // Shop Page & Catalog
+  shopTitle          String   @default("Katalog Kain Brukat & Renda Premium")
+  shopDescription    String   @default("Temukan koleksi motif brukat mutiara, renda chantilly, dan cornely 3D terbaik untuk gaun dan kebaya Anda.")
+  catalogPdfUrl      String   @default("/Katalog.pdf")
+  catalogTitleLine1  String?  @default("Katalog")
+  catalogTitleLine2  String?  @default("Kain Eksklusif")
+
+  // Category Collection Pages (/collections/*)
+  gradeATagline    String?  @default("Koleksi Super Premium")
+  gradeATitle      String?  @default("KATEGORI GRADE A")
+  gradeADesc       String?  @default("Kain brukat Grade A kualitas premium tertinggi dengan kerapatan bordir maksimal, benang kilau mutiara mewah, dan serat benang paling halus untuk busana eksklusif.")
+  gradeAImage      String?  @default("/images/brukat_tile_mutiara.png")
+
+  gradeBTagline    String?  @default("Koleksi Pilihan Ekonomis & Elegan")
+  gradeBTitle      String?  @default("KATEGORI GRADE B")
+  gradeBDesc       String?  @default("Koleksi kain brukat Grade B dengan motif indah, tekstur lembut, dan harga terjangkau yang sangat ideal untuk pembuatan kebaya pesta, seragam bridesmaid, dan gaun anggun.")
+  gradeBImage      String?  @default("/images/renda_chantilly_french.png")
+
+  tulleTagline     String?  @default("Tile Jaring & Furing Silk Modern")
+  tulleTitle       String?  @default("KATEGORI TULLE")
+  tulleDesc        String?  @default("Koleksi kain Tulle & Tile jaring eksklusif dengan hiasan mutiara 3D, renda Chantilly Perancis, serta furing silk satin yang jatuh sempurna saat dikenakan.")
+  tulleImage       String?  @default("/images/cornely_silk_satin.png")
 
   // About Page Full
   aboutPageTitle       String   @default("The \\n Underground \\n Movement.")
@@ -175,6 +277,29 @@ model SiteConfig {
   aboutPagePhil2Desc   String   @default("Minimalist approach with maximum impact. We let the silhouette and the attitude speak louder than overly complex graphics.")
   aboutPagePhil3Title  String   @default("03. Culture")
   aboutPagePhil3Desc   String   @default("Deeply rooted in underground music, skate, and graffiti culture. DragonWorm is a reflection of the creative minds shaping tomorrow.")
+
+  // Contact Us Page
+  contactHeroTitle    String?  @default("Layanan & Konsultasi Kain Raja Brukat")
+  contactHeroSubtitle String?  @default("HUBUNGI TIM CS KAMI")
+  contactPhone        String?  @default("+62 858-8166-7778")
+  contactWhatsapp     String?  @default("6285881667778")
+  contactEmail        String?  @default("info@rajabrukat.com")
+  contactAddress      String?  @default("Pusat Tekstil Raja Brukat, Indonesia")
+  contactHours        String?  @default("Senin - Sabtu: 08:00 - 17:00 WIB")
+
+  // FAQ Page
+  faqPageTitle        String?  @default("Pertanyaan Umum (FAQ)")
+  faqPageSubtitle     String?  @default("Temukan jawaban lengkap seputar pembelian kain, meteran/roll, spesifikasi bahan brukat, pengiriman kargo, hingga garansi retur.")
+
+  // Returns Page
+  returnsPageTitle    String?  @default("Kebijakan Garansi & Retur Kain")
+  returnsPageSubtitle String?  @default("Komitmen Raja Brukat untuk memberikan jaminan kualitas 100% kain Brukat, Chantilly, dan Tile Mutiara bebas cacat atau salah kirim.")
+  returnsSection1Title String? @default("1. Ketentuan Garansi & Syarat Retur")
+  returnsSection1Desc  String? @default("Kami menerima pengajuan retur kain atau klaim garansi dalam jangka waktu maksimal 2x24 jam sejak barang diterima sesuai resi pelacakan ekspedisi.")
+  returnsSection2Title String? @default("2. Syarat Wajib Video Unboxing")
+  returnsSection2Desc  String? @default("Demi kenyamanan bersama dan validasi klaim garansi retur, pelanggan WAJIB menyertakan Video Unboxing utuh dari saat paket belum dibuka sama sekali hingga proses pemeriksaan kain selesai.")
+  returnsSection3Title String? @default("3. Tata Cara Mengajukan Retur")
+  returnsSection3Desc  String? @default("1. Hubungi CS WhatsApp Hotline di +62 858-8166-7778.\n2. Kirimkan foto resi, nomor nota, dan video unboxing.\n3. CS akan memverifikasi dan memberikan alamat retur.")
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -191,3 +316,24 @@ model Collection {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model FaqItem {
+  id        String   @id @default(uuid())
+  category  String   @default("Pemesanan & Ukuran")
+  question  String
+  answer    String
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Setting {
+  key       String   @id
+  value     String   @db.Text
+  category  String   @default("general")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+

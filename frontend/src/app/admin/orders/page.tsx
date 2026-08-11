@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import TableSkeleton from "@/components/ui/TableSkeleton";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -16,7 +17,7 @@ export default function AdminOrdersPage() {
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem("admin_token");
-      const res = await fetch("http://localhost:5000/api/orders", {
+      const res = await fetch(`${API_BASE_URL}/api/orders`, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
@@ -34,7 +35,7 @@ export default function AdminOrdersPage() {
   const handleStatusUpdate = async (id: string, newStatus: string) => {
     try {
       const token = localStorage.getItem("admin_token");
-      const res = await fetch(`http://localhost:5000/api/orders/${id}/status`, {
+      const res = await fetch(`${API_BASE_URL}/api/orders/${id}/status`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -59,7 +60,7 @@ export default function AdminOrdersPage() {
   const handleRequestPickup = async (id: string) => {
     try {
       const token = localStorage.getItem("admin_token");
-      const res = await fetch(`http://localhost:5000/api/orders/${id}/pickup`, {
+      const res = await fetch(`${API_BASE_URL}/api/orders/${id}/pickup`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`

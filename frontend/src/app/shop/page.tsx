@@ -284,6 +284,17 @@ function ShopContent() {
   const minPercent = Math.min(100, Math.max(0, (sliderMinPrice / maxCatalogPrice) * 100));
   const maxPercent = Math.min(100, Math.max(0, (sliderMaxPrice / maxCatalogPrice) * 100));
 
+  const [siteConfig, setSiteConfig] = useState<any>(null);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/config/hero`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data) setSiteConfig(data);
+      })
+      .catch((err) => console.warn("Failed to fetch shop header config:", err));
+  }, []);
+
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900 pt-28 pb-24">
       <div className="container mx-auto px-6 max-w-7xl">
@@ -293,12 +304,16 @@ function ShopContent() {
           <div className="mb-6 border-b border-stone-200 pb-6 flex flex-col md:flex-row items-start md:items-end justify-between gap-4">
             <div>
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-stone-900 mb-2">
-                Katalog Kain Raja Brukat
+                {siteConfig?.shopTitle
+                  ? siteConfig.shopTitle.includes("\n") || siteConfig.shopTitle.includes("\\n")
+                    ? siteConfig.shopTitle.replace(/\\n/g, "\n").split("\n").join(" ")
+                    : siteConfig.shopTitle
+                  : "Katalog Kain Raja Brukat"}
               </h1>
               <p className="text-stone-600 text-sm md:text-base max-w-xl font-normal">
                 {searchQuery
                   ? `Menampilkan hasil pencarian untuk "${searchQuery}"`
-                  : "Koleksi lengkap kain brukat pilihan: Grade A, Grade B, dan Tulle dengan varian Chantilly, Polos, Metallic, & 3D."}
+                  : siteConfig?.shopDescription || "Koleksi lengkap kain brukat pilihan: Grade A, Grade B, dan Tulle dengan varian Chantilly, Polos, Metallic, & 3D."}
               </p>
             </div>
 

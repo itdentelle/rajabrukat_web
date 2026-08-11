@@ -4,6 +4,7 @@ import { useEffect, useState, use } from "react";
 import ProductForm from "@/components/admin/ProductForm";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const unwrappedParams = use(params);
@@ -13,7 +14,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/products/${unwrappedParams.id}`);
+        const res = await fetch(`${API_BASE_URL}/api/products/${unwrappedParams.id}`);
         const data = await res.json();
         setProduct(data);
       } catch (error) {

@@ -65,16 +65,38 @@ const FAQ_DATA: FAQItem[] = [
 
 const CATEGORIES = ["Semua", "Pemesanan & Ukuran", "Spesifikasi Kain", "Pengiriman & Grosir", "Garansi & Retur"];
 
+import { API_BASE_URL } from "@/lib/api";
+import { useEffect } from "react";
+
 export default function FAQPage() {
+  const [config, setConfig] = useState<any>(null);
+  const [faqs, setFaqs] = useState<any[]>(FAQ_DATA);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/config/hero`)
+      .then((res) => res.json())
+      .then((data) => setConfig(data))
+      .catch(() => {});
+
+    fetch(`${API_BASE_URL}/api/faqs`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setFaqs(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   const [searchQuery, setSearchQuery] = useState("");
-  const [openId, setOpenId] = useState<number | null>(1); // Open first by default
+  const [openId, setOpenId] = useState<string | number | null>(null);
 
-  const toggleAccordion = (id: number) => {
+  const toggleAccordion = (id: string | number) => {
     setOpenId(openId === id ? null : id);
   };
 
-  const filteredFaqs = FAQ_DATA.filter((item) => {
+  const filteredFaqs = faqs.filter((item) => {
     const matchesCategory = selectedCategory === "Semua" || item.category === selectedCategory;
     const matchesSearch =
       item.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -88,11 +110,11 @@ export default function FAQPage() {
       <div className="bg-white border-b border-stone-200 py-12 mb-12 shadow-sm">
         <div className="container mx-auto px-6 max-w-4xl text-center">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-stone-900 mb-4">
-            Pertanyaan Umum (FAQ)
+            {config?.faqPageTitle || "Pertanyaan Umum (FAQ)"}
           </h1>
           
           <p className="text-stone-600 text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-8">
-            Temukan jawaban lengkap seputar pembelian kain, meteran/roll, spesifikasi bahan brukat, pengiriman kargo, hingga garansi retur.
+            {config?.faqPageSubtitle || "Temukan jawaban lengkap seputar pembelian kain, meteran/roll, spesifikasi bahan brukat, pengiriman kargo, hingga garansi retur."}
           </p>
 
           {/* Search Input Bar */}

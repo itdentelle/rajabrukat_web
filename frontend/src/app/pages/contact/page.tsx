@@ -32,7 +32,19 @@ function FacebookIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
+import { API_BASE_URL } from "@/lib/api";
+import { useEffect } from "react";
+
 export default function ContactPage() {
+  const [config, setConfig] = useState<any>(null);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/config/hero`)
+      .then((res) => res.json())
+      .then((data) => setConfig(data))
+      .catch(() => {});
+  }, []);
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -52,8 +64,8 @@ export default function ContactPage() {
   };
 
   const contactHeroConfig = {
-    title: "Layanan & Konsultasi Kain Raja Brukat",
-    subtitle: "HUBUNGI TIM CS KAMI",
+    title: config?.contactHeroTitle || "Layanan & Konsultasi Kain Raja Brukat",
+    subtitle: config?.contactHeroSubtitle || "HUBUNGI TIM CS KAMI",
     buttonText: "Konsultasi Sekarang",
     buttonLink: "#form-section",
   };
@@ -175,13 +187,13 @@ export default function ContactPage() {
               </p>
 
               <a
-                href="https://wa.me/6285881667778"
+                href={`https://wa.me/${config?.contactWhatsapp || "6285881667778"}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-3 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl transition-all shadow-lg hover:scale-105"
               >
                 <MessageSquare className="w-5 h-5" />
-                <span>Chat Hotline: +62 858-8166-7778</span>
+                <span>Chat Hotline: {config?.contactPhone || "+62 858-8166-7778"}</span>
               </a>
             </div>
 
@@ -197,7 +209,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h5 className="font-bold text-xs uppercase tracking-wider text-stone-700">Hot Line / WhatsApp</h5>
-                  <p className="text-stone-900 font-semibold text-sm">+62 858-8166-7778</p>
+                  <p className="text-stone-900 font-semibold text-sm">{config?.contactPhone || "+62 858-8166-7778"}</p>
                 </div>
               </div>
 
@@ -207,8 +219,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h5 className="font-bold text-xs uppercase tracking-wider text-stone-700">Email Resmi</h5>
-                  <p className="text-stone-900 font-semibold text-sm">info@rajabrukat.com</p>
-                  <p className="text-stone-500 text-xs">grosir@rajabrukat.com</p>
+                  <p className="text-stone-900 font-semibold text-sm">{config?.contactEmail || "info@rajabrukat.com"}</p>
                 </div>
               </div>
 
@@ -218,8 +229,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h5 className="font-bold text-xs uppercase tracking-wider text-stone-700">Gudang & Pusat Distribusi</h5>
-                  <p className="text-stone-900 font-semibold text-sm">Pusat Tekstil Raja Brukat</p>
-                  <p className="text-stone-500 text-xs">Indonesia</p>
+                  <p className="text-stone-900 font-semibold text-sm">{config?.contactAddress || "Pusat Tekstil Raja Brukat, Indonesia"}</p>
                 </div>
               </div>
 
@@ -229,8 +239,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h5 className="font-bold text-xs uppercase tracking-wider text-stone-700">Jam Operasional CS</h5>
-                  <p className="text-stone-900 font-semibold text-sm">Senin - Sabtu: 08:00 - 17:00 WIB</p>
-                  <p className="text-stone-500 text-xs">Minggu & Hari Libur: Slow Response</p>
+                  <p className="text-stone-900 font-semibold text-sm">{config?.contactHours || "Senin - Sabtu: 08:00 - 17:00 WIB"}</p>
                 </div>
               </div>
 

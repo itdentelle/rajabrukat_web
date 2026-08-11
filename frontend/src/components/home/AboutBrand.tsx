@@ -14,6 +14,12 @@ interface SiteConfig {
   aboutTitle: string;
   aboutSubtitle: string;
   aboutDescription: string;
+  aboutPagePhil1Title: string;
+  aboutPagePhil1Desc: string;
+  aboutPagePhil2Title: string;
+  aboutPagePhil2Desc: string;
+  aboutPagePhil3Title: string;
+  aboutPagePhil3Desc: string;
 }
 
 const FABRIC_CIRCLES = [
@@ -49,26 +55,36 @@ const FABRIC_CIRCLES = [
   },
 ];
 
-export default function AboutBrand() {
+interface AboutBrandProps {
+  config?: any;
+}
+
+export default function AboutBrand({ config: propConfig }: AboutBrandProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [config, setConfig] = useState<SiteConfig | null>(null);
+  const [config, setConfig] = useState<any>(propConfig || null);
   const [circles, setCircles] = useState(FABRIC_CIRCLES);
   const [showCircles, setShowCircles] = useState<boolean>(false);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/config/hero`)
-      .then((res) => {
-        const contentType = res.headers.get("content-type") || "";
-        if (!res.ok || !contentType.includes("application/json")) return null;
-        return res.json();
-      })
-      .then((data) => {
-        if (data) setConfig(data);
-      })
-      .catch((err) => console.warn("Could not load brand config from server, using default UI:", err));
+    if (propConfig) {
+      setConfig(propConfig);
+    } else {
+      fetch(`${API_BASE_URL}/api/config/hero`)
+        .then((res) => {
+          const contentType = res.headers.get("content-type") || "";
+          if (!res.ok || !contentType.includes("application/json")) return null;
+          return res.json();
+        })
+        .then((data) => {
+          if (data) setConfig(data);
+        })
+        .catch((err) => console.warn("Could not load brand config from server, using default UI:", err));
+    }
+  }, [propConfig]);
 
+  useEffect(() => {
     // Fetch live products from Supabase database to populate fabric circles dynamically
-    fetch(`${API_BASE_URL}/api/products?limit=5`)
+    fetch(`${API_BASE_URL}/api/products?limit=200`)
       .then((res) => {
         const contentType = res.headers.get("content-type") || "";
         if (!res.ok || !contentType.includes("application/json")) return null;
@@ -78,7 +94,27 @@ export default function AboutBrand() {
         if (!data) return;
         const products = data.products || data;
         if (Array.isArray(products) && products.length > 0) {
-          const dynamicCircles = products.slice(0, 5).map((p: any) => {
+          const circleProductIds = [
+            config?.aboutCircle1ProductId,
+            config?.aboutCircle2ProductId,
+            config?.aboutCircle3ProductId,
+            config?.aboutCircle4ProductId,
+            config?.aboutCircle5ProductId,
+          ].filter(Boolean);
+
+          let selectedProducts: any[] = [];
+          if (circleProductIds.length > 0) {
+            selectedProducts = circleProductIds
+              .map((id: string) => products.find((p: any) => p.id === id))
+              .filter(Boolean);
+          }
+
+          if (selectedProducts.length < 5) {
+            const remaining = products.filter((p: any) => !selectedProducts.some((sp) => sp.id === p.id));
+            selectedProducts = [...selectedProducts, ...remaining].slice(0, 5);
+          }
+
+          const dynamicCircles = selectedProducts.map((p: any) => {
             const { displayTitle } = cleanTitle(p.name);
             return {
               id: p.id,
@@ -91,7 +127,7 @@ export default function AboutBrand() {
         }
       })
       .catch((err) => console.warn("Failed to fetch dynamic circle fabrics from database:", err));
-  }, []);
+  }, [config]);
 
   // Sticky Scroll Pinning specifically for the Big Text Header & Ribbon Animation
   const { scrollYProgress } = useScroll({
@@ -161,14 +197,17 @@ export default function AboutBrand() {
               <Reveal>
                 <div className="flex flex-col items-center justify-center">
                   <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-[#b77305] mb-3">
-                    Koleksi Tekstil Eksklusif
+                    {config?.aboutSubtitle || "Koleksi Tekstil Eksklusif"}
                   </span>
                   <h3 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-medium tracking-wide leading-[1.25] text-stone-950 max-w-2xl sm:max-w-3xl">
-                    <span className="block">Didedikasikan Untuk</span>
+                    <span className="block">
+                      {config?.aboutTitleLine1 || (config?.aboutTitle ? config.aboutTitle.split('\n')[0] : "Didedikasikan Untuk")}
+                    </span>
                     <span className="block text-[#b77305] italic font-serif mt-1.5">
-                      Keindahan Kebaya & Gaun Mewah
+                      {config?.aboutTitleLine2 || (config?.aboutTitle ? config.aboutTitle.split('\n')[1] || "" : "Keindahan Kebaya & Gaun Mewah")}
                     </span>
                   </h3>
+
                 </div>
               </Reveal>
             </div>
@@ -236,18 +275,18 @@ export default function AboutBrand() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left relative z-20">
             {[
               {
-                title: "Detail Brukat Mutiara",
-                desc: "Setiap helai kain diperkaya dengan motif bordir rapat, taburan mutiara timbul, dan payet kilau berkualitas tinggi.",
+                title: config?.aboutPagePhil1Title || "01. Kualitas Premium Impor",
+                desc: config?.aboutPagePhil1Desc || "Serat renda Chantilly dan tile pilihan yang ekstra lembut di kulit, tahan lama, dingin, dan tidak gatal.",
                 icon: Sparkles,
               },
               {
-                title: "Bahan Halus & Nyaman",
-                desc: "Serat renda Chantilly dan tile kualitas ekspor yang lembut di kulit, tidak gatal, serta jatuh secara sempurna.",
+                title: config?.aboutPagePhil2Title || "02. Motif Anggun & Mewah",
+                desc: config?.aboutPagePhil2Desc || "Desain bordir bunga 3D, cornely timbul, dan taburan mutiara yang sangat mewah untuk segala momen istimewa.",
                 icon: Feather,
               },
               {
-                title: "Pilihan Warna Lengkap",
-                desc: "Tersedia puluhan varian warna anggun mulai dari pastel lembut, rose gold, nude, champagne, hingga warna royal tajam.",
+                title: config?.aboutPagePhil3Title || "03. Pelayanan Eceran & Grosir",
+                desc: config?.aboutPagePhil3Desc || "Melayani pembelian eceran per meter maupun gulungan roll besar untuk desainer, penjahit, dan seragam acara.",
                 icon: Palette,
               },
             ].map((feature, i) => {

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { API_BASE_URL } from "@/lib/api";
 
 interface Collection {
   id: string;
@@ -19,7 +20,7 @@ export default function AdminCollections() {
 
   const fetchCollections = () => {
     setLoading(true);
-    fetch("http://localhost:5000/api/collections")
+    fetch(`${API_BASE_URL}/api/collections`)
       .then(res => res.json())
       .then(data => {
         setCollections(data);
@@ -41,7 +42,7 @@ export default function AdminCollections() {
 
     const token = localStorage.getItem("admin_token") || localStorage.getItem("token");
     try {
-      const res = await fetch(`http://localhost:5000/api/collections/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/collections/${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });

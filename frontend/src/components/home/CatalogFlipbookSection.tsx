@@ -37,9 +37,29 @@ let globalProductCodeMapCache: Record<string, string> | null = null;
 
 interface CatalogFlipbookProps {
   initialFullscreen?: boolean;
+  config?: any;
 }
 
-export default function CatalogFlipbookSection({ initialFullscreen = false }: CatalogFlipbookProps) {
+export default function CatalogFlipbookSection({ initialFullscreen = false, config: propConfig }: CatalogFlipbookProps) {
+  const [config, setConfig] = useState<any>(propConfig || null);
+
+  useEffect(() => {
+    if (propConfig) {
+      setConfig(propConfig);
+    } else {
+      fetch(`${API_BASE_URL}/api/config/hero`)
+        .then((res) => {
+          const contentType = res.headers.get("content-type") || "";
+          if (!res.ok || !contentType.includes("application/json")) return null;
+          return res.json();
+        })
+        .then((data) => {
+          if (data) setConfig(data);
+        })
+        .catch((err) => console.warn("CatalogFlipbookSection config fetch warning:", err));
+    }
+  }, [propConfig]);
+
   const [pages, setPages] = useState<string[]>(globalPdfPagesCache);
   const [totalPages, setTotalPages] = useState(globalPdfPagesCache.length);
   const [currentPage, setCurrentPage] = useState(0);
@@ -116,9 +136,20 @@ export default function CatalogFlipbookSection({ initialFullscreen = false }: Ca
     let cancelled = false;
     const loadPdf = async () => {
       try {
+        let pdfUrlToLoad = "/Katalog.pdf";
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/catalog`);
+          const data = await res.json();
+          if (data && data.pdfUrl) {
+            pdfUrlToLoad = data.pdfUrl;
+          }
+        } catch (e) {
+          console.warn("Failed to fetch catalog pdfUrl:", e);
+        }
+
         const pdfjsLib = (await import("pdfjs-dist/legacy/build/pdf.js")) as any;
         pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.js";
-        const pdf = await pdfjsLib.getDocument("/Katalog.pdf").promise;
+        const pdf = await pdfjsLib.getDocument(pdfUrlToLoad).promise;
         const numPages: number = pdf.numPages;
         if (cancelled) return;
         setTotalPages(numPages);
@@ -391,6 +422,43 @@ export default function CatalogFlipbookSection({ initialFullscreen = false }: Ca
     <section ref={sectionRef} id="katalog-section" className="pt-8 pb-24 sm:pt-12 sm:pb-36 bg-transparent text-stone-900 relative">
       <div className="container mx-auto px-4 sm:px-6 max-w-6xl relative z-10">
         <div className="max-w-5xl mx-auto">
+          {/* Section Header with Progressive Blur Reveal Animation */}
+          <div className="text-center max-w-3xl mx-auto mb-8">
+            <motion.h2
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: false, margin: "-60px" }}
+              variants={{
+                visible: {
+                  transition: {
+                    staggerChildren: 0.15,
+                  },
+                },
+                hidden: {},
+              }}
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif font-medium tracking-wide text-stone-950 flex flex-wrap items-center justify-center gap-x-3 gap-y-1"
+            >
+              <motion.span
+                variants={{
+                  hidden: { opacity: 0, filter: "blur(14px)", x: -25 },
+                  visible: { opacity: 1, filter: "blur(0px)", x: 0, transition: { duration: 0.65, ease: "easeOut" } },
+                }}
+                className="inline-block"
+              >
+                {config?.catalogTitleLine1 || "Katalog"}
+              </motion.span>
+              <motion.span
+                variants={{
+                  hidden: { opacity: 0, filter: "blur(14px)", x: -25 },
+                  visible: { opacity: 1, filter: "blur(0px)", x: 0, transition: { duration: 0.65, ease: "easeOut" } },
+                }}
+                className="inline-block text-[#b77305] italic font-serif"
+              >
+                {config?.catalogTitleLine2 || "Kain Eksklusif"}
+              </motion.span>
+            </motion.h2>
+          </div>
+
           {/* Top Bar (Scroll Pinning Hint Badge) */}
           <div className="flex flex-wrap items-center justify-start text-xs text-stone-600 mb-3 px-1 min-h-[32px]">
             {scrollHint && (

@@ -7,14 +7,18 @@ import ProductCard from "@/components/products/ProductCard";
 
 interface BestSellersProps {
   products: Product[];
+  config?: any;
 }
 
-export default function BestSellers({ products }: BestSellersProps) {
+export default function BestSellers({ products, config }: BestSellersProps) {
   const bestSellers = [...products].sort((a, b) => {
     const priceA = a.discountPrice ?? a.price;
     const priceB = b.discountPrice ?? b.price;
     return priceA - priceB;
   }).slice(0, 8);
+
+  const titleText = config?.bestSellersTitle || "Best Sellers.";
+  const descriptionText = config?.bestSellersDescription || "The pieces everyone is talking about. Grab them before they're gone.";
 
   return (
     <section className="py-24 px-4 bg-gray-50 text-black overflow-hidden">
@@ -22,8 +26,12 @@ export default function BestSellers({ products }: BestSellersProps) {
         <Reveal>
           <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8 border-b border-gray-200 pb-8">
             <div>
-              <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter leading-none mb-4">Best <br/> Sellers.</h2>
-              <p className="text-gray-500 max-w-md">The pieces everyone is talking about. Grab them before they're gone.</p>
+              <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter leading-none mb-4 whitespace-pre-line">
+                {titleText}
+              </h2>
+              <p className="text-gray-500 max-w-md">
+                {descriptionText}
+              </p>
             </div>
           </div>
         </Reveal>

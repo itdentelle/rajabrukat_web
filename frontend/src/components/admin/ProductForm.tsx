@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "react-hot-toast";
+import { API_BASE_URL } from "@/lib/api";
 
 interface ProductFormProps {
   initialData?: any;
@@ -21,7 +22,7 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
   const [formData, setFormData] = useState({
     name: "",
     price: "",
-    category: "T-Shirt",
+    category: "Brukat Tile Mutiara",
     description: "",
     image: "",
     galleryImages: [] as string[],
@@ -59,7 +60,7 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
     setLoading(true);
 
     try {
-      let imageUrl = formData.image;
+      let mainImageUrl = formData.image;
       let newGalleryUrls: string[] = [...formData.galleryImages];
       let sizeGuideUrl = formData.sizeGuide;
 
@@ -82,14 +83,14 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
             .from('products')
             .getPublicUrl(filePath);
 
-          imageUrl = publicUrlData.publicUrl;
+          mainImageUrl = publicUrlData.publicUrl;
         }
 
         // Upload gallery images
         for (const file of galleryFiles) {
           const fileExt = file.name.split('.').pop();
-          const fileName = `${Math.random()}.${fileExt}`;
-          const filePath = `gallery_${fileName}`;
+          const fileName = `gal_${Math.random()}.${fileExt}`;
+          const filePath = `${fileName}`;
 
           const { error: uploadError } = await supabase.storage
             .from('products')
@@ -127,12 +128,12 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
       }
 
       const url = isEdit 
-        ? `http://localhost:5000/api/products/${productId}` 
-        : `http://localhost:5000/api/products`;
+        ? `${API_BASE_URL}/api/products/${productId}` 
+        : `${API_BASE_URL}/api/products`;
         
       const method = isEdit ? "PUT" : "POST";
 
-      const token = localStorage.getItem("admin_token");
+      const token = localStorage.getItem("admin_token") || localStorage.getItem("token");
       let computedDiscountPrice: number | null = null;
       if (discountType !== "none" && discountValue && formData.price) {
         const originalPrice = parseInt(formData.price);
@@ -151,7 +152,7 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
         },
         body: JSON.stringify({
           ...formData,
-          image: imageUrl,
+          image: mainImageUrl,
           galleryImages: newGalleryUrls,
           colors: formData.colors.map(c => c.trim()).filter(c => c.length > 0),
           price: parseInt(formData.price),
@@ -213,16 +214,26 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
 
         <div>
           <label className="block text-sm font-medium text-gray-700">Category</label>
-          <select
+          <input
+            type="text"
+            list="category-suggestions"
             value={formData.category}
             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
-          >
-            <option>T-Shirt</option>
-            <option>Jacket</option>
-            <option>Pants</option>
-            <option>Accessories</option>
-          </select>
+            placeholder="Kategori Kain"
+          />
+          <datalist id="category-suggestions">
+            <option value="Brukat Tile Mutiara" />
+            <option value="Renda Chantilly" />
+            <option value="Cornely 3D" />
+            <option value="Brukat Cord" />
+            <option value="Silk & Satin" />
+            <option value="Brukat Premium" />
+            <option value="Metallic" />
+            <option value="Panel Full Metalic" />
+            <option value="Panel Brukat Polos" />
+            <option value="Katun & Furing" />
+          </datalist>
         </div>
       </div>
 
