@@ -612,7 +612,7 @@ export default function CatalogFlipbookSection({ initialFullscreen = false, conf
                   <span className="text-xs font-bold px-2 min-w-[40px] text-center text-stone-700">{Math.round(zoomLevel * 100)}%</span>
                   <button onClick={() => setZoomLevel(z => Math.min(2, z + 0.1))} aria-label="Zoom In" className="p-1.5 hover:bg-stone-100 rounded-lg text-stone-600"><ZoomIn className="w-4 h-4" /></button>
                 </div>
-                <a href="/Katalog.pdf" download className="hidden sm:flex px-3 py-2 bg-[#b77305] text-white font-bold text-xs rounded-xl items-center gap-2 hover:bg-[#d4af37] transition-colors">
+                <a href="/Katalog.pdf" download aria-label="Unduh PDF Katalog Fullscreen" className="hidden sm:flex px-3 py-2 bg-[#b77305] text-white font-bold text-xs rounded-xl items-center gap-2 hover:bg-[#d4af37] transition-colors">
                   <Download className="w-4 h-4" /><span>Unduh PDF</span>
                 </a>
                 <button onClick={() => setIsFullscreen(false)} aria-label="Tutup Fullscreen" className="p-2 bg-white hover:bg-red-600 text-stone-700 hover:text-white rounded-xl border border-stone-200 transition-colors shadow-sm">
