@@ -72,21 +72,60 @@ export default function LatestDrops({ products = [], config }: LatestDropsProps)
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header with Responsive Non-overlapping Filter Pills */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-10 gap-6">
-          <div>
-            <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-[#b77305] mb-2">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: false, margin: "-60px" }}
+            variants={{
+              visible: {
+                transition: {
+                  staggerChildren: 0.15,
+                },
+              },
+              hidden: {},
+            }}
+          >
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, filter: "blur(14px)", y: -15 },
+                visible: { opacity: 1, filter: "blur(0px)", y: 0, transition: { duration: 0.65, ease: "easeOut" } },
+              }}
+              className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-[#b77305] mb-2"
+            >
               <span>{config?.latestBadge || "Koleksi Motif Terbaru"}</span>
-            </div>
+            </motion.div>
 
             <h2 className="text-3xl sm:text-5xl font-black text-stone-900 tracking-tight font-serif">
-              {config?.latestTitleLine1 || "Rilis Koleksi Kain"} <br />
-              <span className="italic font-normal text-[#b77305]">
+              <motion.span
+                variants={{
+                  hidden: { opacity: 0, filter: "blur(14px)", x: -25 },
+                  visible: { opacity: 1, filter: "blur(0px)", x: 0, transition: { duration: 0.65, ease: "easeOut" } },
+                }}
+                className="block"
+              >
+                {config?.latestTitleLine1 || "Rilis Koleksi Kain"}
+              </motion.span>
+              <motion.span
+                variants={{
+                  hidden: { opacity: 0, filter: "blur(14px)", x: 25 },
+                  visible: { opacity: 1, filter: "blur(0px)", x: 0, transition: { duration: 0.65, ease: "easeOut" } },
+                }}
+                className="inline-block italic font-normal text-[#b77305]"
+              >
                 {config?.latestTitleLine2 || "Terbaru & Eksklusif"}
-              </span>
+              </motion.span>
             </h2>
-            <p className="mt-3 text-sm text-stone-500 max-w-lg leading-relaxed">
+
+            <motion.p
+              variants={{
+                hidden: { opacity: 0, filter: "blur(10px)", y: 15 },
+                visible: { opacity: 1, filter: "blur(0px)", y: 0, transition: { duration: 0.65, ease: "easeOut" } },
+              }}
+              className="mt-3 text-sm text-stone-500 max-w-lg leading-relaxed"
+            >
               {config?.latestDesc || "Motif kain brukat 3D, renda Chantilly impor, dan furing satin terbaru pilihan utama para perancang gaun & kebaya pengantin."}
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
 
           {/* Category Filter Pills (Aligned with Shop filters) */}
           <div className="flex items-center gap-2 overflow-x-auto pb-2 shrink-0 max-w-full lg:max-w-xl no-scrollbar">
@@ -94,6 +133,7 @@ export default function LatestDrops({ products = [], config }: LatestDropsProps)
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
+                aria-label={`Filter kain kategori ${cat}`}
                 className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 whitespace-nowrap shrink-0 ${
                   activeCategory === cat
                     ? "bg-stone-950 text-white shadow-md scale-105"

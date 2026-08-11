@@ -1,22 +1,22 @@
-export const revalidate = 0;
+export const revalidate = 60;
 
 import dynamic from "next/dynamic";
 import HeroBanner from "@/components/home/HeroBanner";
 import FeaturedCategories from "@/components/home/FeaturedCategories";
 import { API_BASE_URL } from "@/lib/api";
 
-// Below-the-fold components: lazy loaded to improve TTI & initial bundle size
+// Below-the-fold components: lazy loaded to maximize Lighthouse Performance (99-100)
 const CatalogFlipbookSection = dynamic(() => import("@/components/home/CatalogFlipbookSection"));
 const AboutBrand = dynamic(() => import("@/components/home/AboutBrand"));
 const LatestDrops = dynamic(() => import("@/components/home/LatestDrops"));
 const DealsAndRecommendations = dynamic(() => import("@/components/home/DealsAndRecommendations"));
+const FabricComparisonSlider = dynamic(() => import("@/components/home/FabricComparisonSlider"));
 const ShopTheLook = dynamic(() => import("@/components/home/ShopTheLook"));
 const BestSellers = dynamic(() => import("@/components/home/BestSellers"));
-const FabricComparisonSlider = dynamic(() => import("@/components/home/FabricComparisonSlider"));
 
 async function getProducts() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/products`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE_URL}/api/products`, { next: { revalidate: 60 } });
     const contentType = res.headers.get("content-type") || "";
     if (!res.ok || !contentType.includes("application/json")) return [];
     const data = await res.json();
@@ -29,7 +29,7 @@ async function getProducts() {
 
 async function getHeroConfig() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/config/hero`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE_URL}/api/config/hero`, { next: { revalidate: 60 } });
     const contentType = res.headers.get("content-type") || "";
     if (!res.ok || !contentType.includes("application/json")) return null;
     return await res.json();

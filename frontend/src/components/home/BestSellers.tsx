@@ -17,24 +17,45 @@ export default function BestSellers({ products, config }: BestSellersProps) {
     return priceA - priceB;
   }).slice(0, 8);
 
-  const titleText = config?.bestSellersTitle || "Best Sellers.";
-  const descriptionText = config?.bestSellersDescription || "The pieces everyone is talking about. Grab them before they're gone.";
+  const rawTitle = config?.bestSellersTitle;
+  const titleText = (!rawTitle || rawTitle === "Best Sellers.")
+    ? "Koleksi Terlaris & Paling Diminati"
+    : rawTitle;
+
+  const rawDesc = config?.bestSellersDescription;
+  const descriptionText = (!rawDesc || rawDesc.includes("pieces everyone"))
+    ? "Kombinasi kain brukat, tile mutiara 3D, dan renda Chantilly paling populer pilihan para desainer & pelanggan Raja Brukat."
+    : rawDesc;
 
   return (
-    <section className="py-24 px-4 bg-gray-50 text-black overflow-hidden">
-      <div className="container mx-auto">
-        <Reveal>
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8 border-b border-gray-200 pb-8">
-            <div>
-              <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter leading-none mb-4 whitespace-pre-line">
-                {titleText}
-              </h2>
-              <p className="text-gray-500 max-w-md">
-                {descriptionText}
-              </p>
-            </div>
+    <section className="py-24 px-6 bg-stone-50 text-stone-900 overflow-hidden border-t border-stone-200">
+      <div className="container mx-auto max-w-7xl">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 border-b border-stone-200 pb-8">
+          <div>
+            <span className="text-[#b77305] text-xs font-bold uppercase tracking-[0.25em] block mb-2">
+              PRODUK TERFAVORIT
+            </span>
+            <motion.h2
+              initial={{ opacity: 0, filter: "blur(6px)", y: 20 }}
+              whileInView={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+              viewport={{ once: false, margin: "-60px" }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="text-3xl sm:text-4xl md:text-5xl font-serif font-medium tracking-wide text-stone-950 mb-3 whitespace-pre-line transform-gpu"
+            >
+              {titleText.includes("&") ? (
+                <>
+                  <span>{titleText.split("&")[0]}&</span>
+                  <span className="text-[#b77305] italic font-serif ml-2">{titleText.split("&")[1]}</span>
+                </>
+              ) : (
+                titleText
+              )}
+            </motion.h2>
+            <p className="text-stone-600 font-light max-w-lg text-sm md:text-base leading-relaxed">
+              {descriptionText}
+            </p>
           </div>
-        </Reveal>
+        </div>
 
         <div className="flex gap-8 overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
           {bestSellers.map((product, idx) => (

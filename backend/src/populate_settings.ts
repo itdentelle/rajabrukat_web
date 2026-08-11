@@ -85,8 +85,8 @@ const DEFAULT_SETTINGS: Record<string, { value: string; category: string }> = {
   compareBeforeImage: { value: "/images/white_lace_hero.png", category: "landing" },
   compareAfterImage: { value: "/images/metallic_lace_hero.png", category: "landing" },
 
-  bestSellersTitle: { value: "Best Sellers.", category: "landing" },
-  bestSellersDescription: { value: "The pieces everyone is talking about. Grab them before they're gone.", category: "landing" },
+  bestSellersTitle: { value: "Koleksi Terlaris & Paling Diminati", category: "landing" },
+  bestSellersDescription: { value: "Kombinasi kain brukat, tile mutiara 3D, dan renda Chantilly paling populer pilihan para desainer & pelanggan Raja Brukat.", category: "landing" },
 
   // Shop Page & Collections
   shopTitle: { value: "Katalog Kain Brukat & Renda Premium", category: "shop" },

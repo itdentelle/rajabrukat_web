@@ -179,10 +179,16 @@ export default function ShopTheLook({ config }: { config?: any }) {
           <span className="text-[#b77305] text-xs font-bold uppercase tracking-[0.25em] block mb-3">
             {config?.lookbookBadge || "INSPIRASI BUSANA KEBAYA & GAUN MEWAH"}
           </span>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-medium tracking-wide text-stone-950 mb-4">
+          <motion.h2
+            initial={{ opacity: 0, filter: "blur(14px)", y: 20 }}
+            whileInView={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+            viewport={{ once: false, margin: "-60px" }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="text-3xl sm:text-4xl md:text-5xl font-serif font-medium tracking-wide text-stone-950 mb-4"
+          >
             <span className="block text-stone-800 font-light">{config?.lookbookTitleLine1 || "Galeri Lookbook &"}</span>
             <span className="block text-[#b77305] italic font-serif mt-1">{config?.lookbookTitleLine2 || "Inspirasi Busana Kebaya"}</span>
-          </h2>
+          </motion.h2>
           <p className="text-stone-600 text-sm md:text-base font-light leading-relaxed">
             {config?.lookbookDesc || "Lihat keanggunan hasil rancangan busana karya desainer & pelanggan Raja Brukat. Klik kartu untuk inspirasi lengkap dan pembelian bahan langsung!"}
           </p>
@@ -193,6 +199,9 @@ export default function ShopTheLook({ config }: { config?: any }) {
           {looks.map((item) => (
             <div
               key={item.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`Lihat Detail ${item.title}`}
               onClick={() => setSelectedLook(item)}
               className="group relative bg-stone-950 rounded-3xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500 border border-stone-200 aspect-[3/4] flex flex-col justify-between"
             >

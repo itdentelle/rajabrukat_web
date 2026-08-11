@@ -118,21 +118,21 @@ export default function Navbar() {
       return;
     }
 
-    const checkCatalogPosition = () => {
-      const el = document.getElementById("katalog-section");
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        // Visible in viewport
-        const visible = rect.top < window.innerHeight * 0.7 && rect.bottom > 120;
-        setIsInCatalog(visible);
-      } else {
-        setIsInCatalog(false);
-      }
-    };
+    const el = document.getElementById("katalog-section");
+    if (!el) {
+      setIsInCatalog(false);
+      return;
+    }
 
-    checkCatalogPosition();
-    window.addEventListener("scroll", checkCatalogPosition, { passive: true });
-    return () => window.removeEventListener("scroll", checkCatalogPosition);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInCatalog(entry.isIntersecting);
+      },
+      { rootMargin: "-30% 0px -20% 0px" }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
   }, [pathname]);
 
   useEffect(() => {
@@ -159,7 +159,7 @@ export default function Navbar() {
           <div className="md:hidden flex items-center">
             <button 
               onClick={() => setIsMobileMenuOpen(true)} 
-              className="p-2 -ml-2 text-stone-900" 
+              className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center -ml-2 text-stone-900" 
               aria-label="Open Mobile Menu" 
               suppressHydrationWarning
             >
@@ -401,14 +401,14 @@ export default function Navbar() {
           <div className="flex items-center gap-4">
             <button 
               onClick={openSearch}
-              className="p-2 hover:text-[#b77305] transition-colors hidden md:block"
+              className="p-2.5 min-w-[44px] min-h-[44px] items-center justify-center hover:text-[#b77305] transition-colors hidden md:flex"
               aria-label="Search Products"
               suppressHydrationWarning
             >
               <Search className="w-5 h-5" />
             </button>
             
-            <Link href={userRole === 'ADMIN' ? "/admin/dashboard" : "/profile"} className="p-2 hover:text-[#b77305] transition-colors hidden md:block" aria-label="User Profile" title="Profile">
+            <Link href={userRole === 'ADMIN' ? "/admin/dashboard" : "/profile"} className="p-2.5 min-w-[44px] min-h-[44px] items-center justify-center hover:text-[#b77305] transition-colors hidden md:flex" aria-label="User Profile" title="Profile">
               <User 
                 className="w-5 h-5 transition-all" 
                 fill={pathname.startsWith("/profile") ? "currentColor" : "none"} 
@@ -418,7 +418,7 @@ export default function Navbar() {
             
             {isLoggedIn && (
               <>
-                <Link href={userRole === 'ADMIN' ? "/admin/orders" : "/orders"} className="p-2 hover:text-[#b77305] transition-colors hidden md:block" aria-label="My Orders" title="My Orders">
+                <Link href={userRole === 'ADMIN' ? "/admin/orders" : "/orders"} className="p-2.5 min-w-[44px] min-h-[44px] items-center justify-center hover:text-[#b77305] transition-colors hidden md:flex" aria-label="My Orders" title="My Orders">
                   <Package 
                     className="w-5 h-5 transition-all" 
                     fill={pathname.startsWith("/orders") ? "currentColor" : "none"}
@@ -426,7 +426,7 @@ export default function Navbar() {
                   />
                 </Link>
 
-                <Link href="/wishlist" className="p-2 hover:text-[#b77305] transition-colors hidden md:block" aria-label="Wishlist" title="Wishlist">
+                <Link href="/wishlist" className="p-2.5 min-w-[44px] min-h-[44px] items-center justify-center hover:text-[#b77305] transition-colors hidden md:flex" aria-label="Wishlist" title="Wishlist">
                   <Heart 
                     className="w-5 h-5 transition-all" 
                     fill={pathname.startsWith("/wishlist") ? "currentColor" : "none"}
@@ -437,7 +437,7 @@ export default function Navbar() {
             )}
 
             <button 
-              className="p-2 hover:text-[#b77305] transition-colors relative"
+              className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center hover:text-[#b77305] transition-colors relative"
               aria-label="View Cart"
               onClick={openCart}
               suppressHydrationWarning

@@ -96,7 +96,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <button
             onClick={handleWishlist}
             aria-label={isWished ? "Hapus dari Wishlist" : "Tambah ke Wishlist"}
-            className="pointer-events-auto w-9 h-9 rounded-full bg-white/85 backdrop-blur-md flex items-center justify-center shadow-md hover:bg-white transition-all hover:scale-110"
+            className="pointer-events-auto w-11 h-11 rounded-full bg-white/85 backdrop-blur-md flex items-center justify-center shadow-md hover:bg-white transition-all hover:scale-110"
           >
             <Heart className={`w-4 h-4 transition-colors ${isWished ? "fill-red-500 text-red-500" : "text-stone-700"}`} />
           </button>
@@ -131,12 +131,12 @@ export default function ProductCard({ product }: { product: Product }) {
       {/* Card Content Details */}
       <div className="p-4 space-y-1.5">
         {/* Category & Code Subtitle */}
-        <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#b77305] uppercase tracking-wider">
+        <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#965e04] uppercase tracking-wider">
           <span>{gradeLabel}</span>
           {code && (
             <>
-              <span className="text-stone-300">•</span>
-              <span className="text-stone-500 font-medium">{code}</span>
+              <span className="text-stone-400">•</span>
+              <span className="text-stone-600 font-medium">{code}</span>
             </>
           )}
         </div>
@@ -150,16 +150,16 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="flex items-baseline gap-2 pt-1">
           {product.discountPrice ? (
             <>
-              <span className="font-sans font-bold text-base text-[#b77305]">
-                Rp {product.discountPrice.toLocaleString("id-ID")}<span className="text-xs font-normal text-stone-400"> / meter</span>
+              <span className="font-sans font-bold text-base text-[#965e04]">
+                Rp {product.discountPrice.toLocaleString("id-ID")}<span className="text-xs font-normal text-stone-600"> / meter</span>
               </span>
-              <span className="text-xs text-stone-400 line-through font-sans">
+              <span className="text-xs text-stone-500 line-through font-sans">
                 Rp {product.price.toLocaleString("id-ID")}
               </span>
             </>
           ) : (
             <span className="font-sans font-bold text-base text-stone-900">
-              Rp {product.price.toLocaleString("id-ID")}<span className="text-xs font-normal text-stone-400"> / meter</span>
+              Rp {product.price.toLocaleString("id-ID")}<span className="text-xs font-normal text-stone-600"> / meter</span>
             </span>
           )}
         </div>

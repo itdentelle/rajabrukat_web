@@ -8,6 +8,8 @@ import { Product, useCartStore } from "@/store/cartStore";
 import toast from "react-hot-toast";
 import { API_BASE_URL } from "@/lib/api";
 
+import { motion } from "framer-motion";
+
 interface DealsProps {
   products?: Product[];
   config?: any;
@@ -167,9 +169,15 @@ export default function DealsAndRecommendations({ products = [], config: initial
           <div className="inline-block text-[#b77305] text-xs font-bold uppercase tracking-[0.25em] bg-white border border-[#e8ded2] px-4.5 py-1.5 rounded-full shadow-xs mb-3">
             <span>{config?.dealsBadge || "PROMO SPESIAL TERBATAS"}</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-stone-950 mb-3">
+          <motion.h2
+            initial={{ opacity: 0, filter: "blur(14px)", y: 20 }}
+            whileInView={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+            viewport={{ once: false, margin: "-60px" }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-stone-950 mb-3"
+          >
             {config?.dealsTitle || "Penawaran Tekstil Eksklusif"}
-          </h2>
+          </motion.h2>
           <p className="text-stone-600 text-sm sm:text-base font-light leading-relaxed whitespace-pre-line">
             {config?.dealsDescription || "Dapatkan penawaran harga spesial untuk kain brukat pilihan dengan kualitas bordir 3D premium. Promo berlaku selama persediaan masih ada."}
           </p>

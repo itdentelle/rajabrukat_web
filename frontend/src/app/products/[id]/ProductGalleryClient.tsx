@@ -177,6 +177,7 @@ export default function ProductGalleryClient({ mainImage, galleryImages, product
                       key={idx}
                       onClick={() => setLightboxIndex(idx)}
                       onMouseEnter={() => setLightboxIndex(idx)}
+                      aria-label={`Pilih Thumbnail ${idx + 1}`}
                       className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all ${
                         lightboxIndex === idx
                           ? "border-[#b77305] shadow-md scale-102 ring-2 ring-[#b77305]/20"

@@ -40,6 +40,7 @@ export default function CartDrawer() {
           <h2 className="text-xl font-black uppercase tracking-tighter">Your Cart</h2>
           <button 
             onClick={closeCart}
+            aria-label="Close Cart"
             className="p-2 hover:bg-[var(--muted)] rounded-full transition-colors"
           >
             <X size={24} />
@@ -100,6 +101,7 @@ export default function CartDrawer() {
                       <div className="flex items-center border border-[var(--border)]">
                         <button 
                           onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
+                          aria-label="Decrease Quantity"
                           className="px-3 py-1 hover:bg-[var(--muted)] transition-colors"
                         >
                           <Minus size={14} />
@@ -109,6 +111,7 @@ export default function CartDrawer() {
                         </span>
                         <button 
                           onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
+                          aria-label="Increase Quantity"
                           className="px-3 py-1 hover:bg-[var(--muted)] transition-colors"
                         >
                           <Plus size={14} />
@@ -121,6 +124,7 @@ export default function CartDrawer() {
                           removeItem(item.cartItemId);
                           toast(`${item.name} removed`, { icon: '🗑️' });
                         }}
+                        aria-label="Remove Item"
                         className="text-gray-400 hover:text-red-500 transition-colors p-2"
                       >
                         <Trash2 size={16} />

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { cleanTitle } from "@/utils/cleanTitle";
+import { API_BASE_URL } from "@/lib/api";
 
 interface Product {
   id: string;
@@ -92,7 +93,7 @@ export default function SearchDrawer() {
       setLoading(true);
       const delayDebounceFn = setTimeout(() => {
         if (isAiMode) {
-          fetch("http://localhost:5000/api/ai/smart-search", {
+          fetch(`${API_BASE_URL}/api/ai/smart-search`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ query }),
@@ -112,7 +113,7 @@ export default function SearchDrawer() {
               setLoading(false);
             });
         } else {
-          fetch(`http://localhost:5000/api/products/search?q=${encodeURIComponent(query)}`)
+          fetch(`${API_BASE_URL}/api/products/search?q=${encodeURIComponent(query)}`)
             .then((res) => {
               const contentType = res.headers.get("content-type") || "";
               if (!res.ok || !contentType.includes("application/json")) throw new Error("Invalid response");
@@ -152,7 +153,7 @@ export default function SearchDrawer() {
       setLoading(true);
       setIsAiMode(true);
 
-      fetch("http://localhost:5000/api/ai/visual-search", {
+      fetch(`${API_BASE_URL}/api/ai/visual-search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: base64 }),
@@ -234,6 +235,7 @@ export default function SearchDrawer() {
                   type="file"
                   ref={imageInputRef}
                   accept="image/*"
+                  aria-label="Upload Foto Pencarian Visual"
                   onChange={handleImageUpload}
                   className="hidden"
                 />
@@ -257,6 +259,7 @@ export default function SearchDrawer() {
                   ref={inputRef}
                   type="text"
                   value={query}
+                  aria-label="Cari Produk atau Bahan Kain"
                   onChange={(e) => {
                     setQuery(e.target.value);
                     if (uploadedImage) setUploadedImage(null);
@@ -278,6 +281,7 @@ export default function SearchDrawer() {
 
                 <button
                   onClick={closeSearch}
+                  aria-label="Tutup Modal Pencarian"
                   className="p-2 rounded-full text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-colors"
                 >
                   <X className="w-5 h-5" />

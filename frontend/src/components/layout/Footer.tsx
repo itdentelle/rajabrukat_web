@@ -84,9 +84,9 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram Raja Brukat"
-              className="w-9 h-9 rounded-full bg-stone-100 hover:bg-[#b77305] text-stone-700 hover:text-white border border-stone-200 flex items-center justify-center transition-all duration-300 shadow-sm hover:scale-110"
+              className="w-11 h-11 rounded-full bg-stone-100 hover:bg-[#b77305] text-stone-700 hover:text-white border border-stone-200 flex items-center justify-center transition-all duration-300 shadow-sm hover:scale-110"
             >
-              <InstagramIcon className="w-4 h-4" />
+              <InstagramIcon className="w-5 h-5" />
             </a>
 
             <a
@@ -94,9 +94,9 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Facebook Raja Brukat"
-              className="w-9 h-9 rounded-full bg-stone-100 hover:bg-[#b77305] text-stone-700 hover:text-white border border-stone-200 flex items-center justify-center transition-all duration-300 shadow-sm hover:scale-110"
+              className="w-11 h-11 rounded-full bg-stone-100 hover:bg-[#b77305] text-stone-700 hover:text-white border border-stone-200 flex items-center justify-center transition-all duration-300 shadow-sm hover:scale-110"
             >
-              <FacebookIcon className="w-4 h-4" />
+              <FacebookIcon className="w-5 h-5" />
             </a>
 
             <a
@@ -104,9 +104,9 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="TikTok Raja Brukat"
-              className="w-9 h-9 rounded-full bg-stone-100 hover:bg-[#b77305] text-stone-700 hover:text-white border border-stone-200 flex items-center justify-center transition-all duration-300 shadow-sm hover:scale-110"
+              className="w-11 h-11 rounded-full bg-stone-100 hover:bg-[#b77305] text-stone-700 hover:text-white border border-stone-200 flex items-center justify-center transition-all duration-300 shadow-sm hover:scale-110"
             >
-              <TikTokIcon className="w-4 h-4" />
+              <TikTokIcon className="w-5 h-5" />
             </a>
 
             <a
@@ -114,9 +114,9 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="WhatsApp Hotline Raja Brukat"
-              className="w-9 h-9 rounded-full bg-stone-100 hover:bg-[#b77305] text-stone-700 hover:text-white border border-stone-200 flex items-center justify-center transition-all duration-300 shadow-sm hover:scale-110"
+              className="w-11 h-11 rounded-full bg-stone-100 hover:bg-[#b77305] text-stone-700 hover:text-white border border-stone-200 flex items-center justify-center transition-all duration-300 shadow-sm hover:scale-110"
             >
-              <Phone className="w-4 h-4 stroke-[2]" />
+              <Phone className="w-5 h-5 stroke-[2]" />
             </a>
           </div>
         </div>
@@ -196,12 +196,14 @@ export default function Footer() {
             <input
               suppressHydrationWarning
               type="email"
+              aria-label="Alamat Email Newsletter"
               placeholder="Masukkan email Anda"
               className="bg-stone-50 border border-stone-300 text-stone-900 placeholder:text-stone-400 px-4 py-3 text-sm focus:outline-none focus:border-[#b77305] transition-colors rounded-lg shadow-sm"
             />
             <button
               suppressHydrationWarning
               type="button"
+              aria-label="Berlangganan Newsletter"
               className="bg-[#b77305] text-white font-bold uppercase tracking-widest text-xs py-3 hover:bg-[#965e04] transition-all rounded-lg shadow-md"
             >
               Berlangganan

@@ -439,8 +439,8 @@ export default function CMSSettingsPage() {
           setCompareAfterImage(data.compareAfterImage || "/images/metallic_lace_hero.png");
 
           // Best Sellers
-          setBestSellersTitle(data.bestSellersTitle || "Best Sellers.");
-          setBestSellersDescription(data.bestSellersDescription || "The pieces everyone is talking about. Grab them before they're gone.");
+          setBestSellersTitle(data.bestSellersTitle && data.bestSellersTitle !== "Best Sellers." ? data.bestSellersTitle : "Koleksi Terlaris & Paling Diminati");
+          setBestSellersDescription(data.bestSellersDescription && !data.bestSellersDescription.includes("pieces everyone") ? data.bestSellersDescription : "Kombinasi kain brukat, tile mutiara 3D, dan renda Chantilly paling populer pilihan para desainer & pelanggan Raja Brukat.");
 
           // Category Collection Headers
           if (data.categoryBanners) {
@@ -2607,7 +2607,7 @@ export default function CMSSettingsPage() {
                 type="text"
                 value={bestSellersTitle}
                 onChange={(e) => setBestSellersTitle(e.target.value)}
-                placeholder="Best Sellers."
+                placeholder="Koleksi Terlaris & Paling Diminati"
                 className="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-[#b77305]/20 focus:border-[#b77305] text-sm font-medium transition-all"
               />
             </div>
@@ -2619,7 +2619,7 @@ export default function CMSSettingsPage() {
                 rows={3}
                 value={bestSellersDescription}
                 onChange={(e) => setBestSellersDescription(e.target.value)}
-                placeholder="The pieces everyone is talking about. Grab them before they're gone."
+                placeholder="Kombinasi kain brukat, tile mutiara 3D, dan renda Chantilly paling populer pilihan para desainer & pelanggan Raja Brukat."
                 className="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl focus:ring-2 focus:ring-[#b77305]/20 focus:border-[#b77305] text-sm font-medium transition-all"
               />
             </div>

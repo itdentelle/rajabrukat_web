@@ -22,6 +22,9 @@ if (typeof window !== "undefined" && !(window as any).__fetchIntercepted) {
   };
 }
 
+import SmoothScrollProvider from "../providers/SmoothScrollProvider";
+import VisitorTracker from "../analytics/VisitorTracker";
+
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith("/admin");
@@ -35,14 +38,19 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     return <main className="min-h-screen flex flex-col">{children}</main>;
   }
 
+  if (isAdminRoute) {
+    return <main className="min-h-screen flex flex-col">{children}</main>;
+  }
+
   return (
-    <>
-      {!isAdminRoute && <Navbar />}
+    <SmoothScrollProvider>
+      <VisitorTracker />
+      <Navbar />
       <main className="min-h-screen flex flex-col">{children}</main>
-      {!isAdminRoute && <Footer />}
-      {!isAdminRoute && <FloatingSocialWidget />}
-      {!isAdminRoute && <AiChatWidget />}
-    </>
+      <Footer />
+      <FloatingSocialWidget />
+      <AiChatWidget />
+    </SmoothScrollProvider>
   );
 }
 

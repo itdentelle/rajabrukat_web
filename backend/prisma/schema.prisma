@@ -336,4 +336,18 @@ model Setting {
   updatedAt DateTime @updatedAt
 }
 
+model VisitorLog {
+  id        String   @id @default(uuid())
+  ip        String?
+  path      String
+  userAgent String?
+  device    String?  @default("Desktop")
+  city      String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([path])
+}
+
+
 

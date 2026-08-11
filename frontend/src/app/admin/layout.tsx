@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -115,9 +116,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Header Brand */}
             <div className="h-16 flex items-center justify-between px-6 border-b border-stone-200 bg-stone-50/50">
               <Link href="/admin/products" className="flex items-center gap-2.5">
-                <span className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#b77305] to-[#d4af37] text-white flex items-center justify-center font-bold text-xs shadow-md">
-                  RB
-                </span>
+                <div className="w-9 h-9 relative flex items-center justify-center shrink-0">
+                  <Image
+                    src="/images/logo_rajabrukat-removebg-preview.png"
+                    alt="Raja Brukat Logo"
+                    width={36}
+                    height={36}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-bold tracking-wider text-stone-900 uppercase">
                     Raja Brukat

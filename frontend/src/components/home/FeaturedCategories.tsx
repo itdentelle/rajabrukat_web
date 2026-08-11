@@ -293,6 +293,9 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
               
               {/* Card 1: Left Card */}
               <motion.div 
+                role="button"
+                tabIndex={0}
+                aria-label={`Pilih ${(cards[0] || FABRIC_CARDS[0]).name}`}
                 onMouseEnter={() => handleCardHover("left")}
                 className={`absolute left-0 top-6 w-[45%] h-[82%] rounded-[50px] md:rounded-[70px] overflow-hidden cursor-pointer transition-all duration-500 border-2 ${
                   activeCardId === "left" 
@@ -320,6 +323,9 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
 
               {/* Card 2: Right Card */}
               <motion.div 
+                role="button"
+                tabIndex={0}
+                aria-label={`Pilih ${(cards[2] || FABRIC_CARDS[2]).name}`}
                 onMouseEnter={() => handleCardHover("right")}
                 className={`absolute right-4 bottom-4 w-[48%] h-[80%] rounded-[50px] md:rounded-[70px] overflow-hidden cursor-pointer transition-all duration-500 border-2 ${
                   activeCardId === "right" 
@@ -347,6 +353,9 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
 
               {/* Card 3: Center Card */}
               <motion.div 
+                role="button"
+                tabIndex={0}
+                aria-label={`Pilih ${(cards[1] || FABRIC_CARDS[1]).name}`}
                 onMouseEnter={() => handleCardHover("center")}
                 className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[54%] h-[94%] rounded-[60px] md:rounded-[80px] overflow-hidden cursor-pointer transition-all duration-500 border-4 ${
                   activeCardId === "center" 

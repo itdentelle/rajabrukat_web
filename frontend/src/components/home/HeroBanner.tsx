@@ -97,11 +97,14 @@ export default function HeroBanner({ config }: HeroBannerProps) {
           return (
             <div
               key={panel.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`Lihat Koleksi ${panel.title}`}
               onClick={() => setActiveIndex(idx)}
               onMouseEnter={() => setActiveIndex(idx)}
               className={`relative h-full transition-[flex,opacity,box-shadow] duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer overflow-hidden group border-b lg:border-b-0 lg:border-r border-white/10 transform-gpu will-change-auto ${isActive
-                  ? "flex-[3.5] lg:flex-[3.5] shadow-2xl z-10"
-                  : "flex-1 lg:flex-1 opacity-90 hover:opacity-100 hover:flex-[1.25]"
+                  ? "flex-1 lg:flex-[3.5] shadow-2xl z-10"
+                  : "flex-1 lg:flex-1 opacity-90 hover:opacity-100 lg:hover:flex-[1.25]"
                 }`}
             >
               {/* Background Fabric Image with Soft Zoom */}
@@ -111,8 +114,8 @@ export default function HeroBanner({ config }: HeroBannerProps) {
                   alt={panel.title}
                   fill
                   priority={idx === 0}
-                  quality={90}
-                  sizes="100vw"
+                  quality={80}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
                   className={`object-cover object-center transition-transform duration-1000 transform-gpu ${isActive ? "scale-105" : "scale-100 group-hover:scale-105"
                     }`}
                 />

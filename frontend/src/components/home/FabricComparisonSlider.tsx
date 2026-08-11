@@ -30,15 +30,26 @@ export default function FabricComparisonSlider({
   const resolvedAfterLabel = config?.compareAfterLabel || afterLabel || "Metallic Elegant";
   const resolvedTitle = config?.compareTitle || "Compare Textile Quality";
 
+  const rectRef = useRef<{ left: number; width: number } | null>(null);
+
+  const updateRect = useCallback(() => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      rectRef.current = { left: rect.left, width: rect.width };
+    }
+  }, []);
+
   const handleMove = useCallback((clientX: number) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = clientX - rect.left;
-    let percentage = (x / rect.width) * 100;
+    if (!rectRef.current && containerRef.current) {
+      updateRect();
+    }
+    if (!rectRef.current) return;
+    const x = clientX - rectRef.current.left;
+    let percentage = (x / rectRef.current.width) * 100;
     if (percentage < 0) percentage = 0;
     if (percentage > 100) percentage = 100;
     setSliderPos(percentage);
-  }, []);
+  }, [updateRect]);
 
   const handleTouchMove = useCallback(
     (e: TouchEvent) => {
@@ -117,12 +128,19 @@ export default function FabricComparisonSlider({
         {/* Interactive Comparison Slider Container */}
         <div
           ref={containerRef}
+          role="slider"
+          aria-label="Perbandingan Tekstur Kain"
+          aria-valuenow={Math.round(sliderPos)}
+          aria-valuemin={0}
+          aria-valuemax={100}
           onMouseDown={(e) => {
             setIsDragging(true);
+            updateRect();
             handleMove(e.clientX);
           }}
           onTouchStart={(e) => {
             setIsDragging(true);
+            updateRect();
             if (e.touches[0]) handleMove(e.touches[0].clientX);
           }}
           className="relative w-full h-[460px] sm:h-[580px] md:h-[680px] lg:h-[750px] rounded-3xl overflow-hidden shadow-2xl cursor-ew-resize select-none group"

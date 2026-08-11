@@ -192,24 +192,53 @@ export default function AboutBrand({ config: propConfig }: AboutBrandProps) {
               </svg>
             </div>
 
-            {/* Big Text Header with Luxury Serif Typography */}
+            {/* Big Text Header with Luxury Serif Typography & Progressive Blur Reveal Animation */}
             <div className="w-full text-center relative z-10 px-4 py-4 my-auto">
-              <Reveal>
-                <div className="flex flex-col items-center justify-center">
-                  <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-[#b77305] mb-3">
-                    {config?.aboutSubtitle || "Koleksi Tekstil Eksklusif"}
-                  </span>
-                  <h3 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-medium tracking-wide leading-[1.25] text-stone-950 max-w-2xl sm:max-w-3xl">
-                    <span className="block">
-                      {config?.aboutTitleLine1 || (config?.aboutTitle ? config.aboutTitle.split('\n')[0] : "Didedikasikan Untuk")}
-                    </span>
-                    <span className="block text-[#b77305] italic font-serif mt-1.5">
-                      {config?.aboutTitleLine2 || (config?.aboutTitle ? config.aboutTitle.split('\n')[1] || "" : "Keindahan Kebaya & Gaun Mewah")}
-                    </span>
-                  </h3>
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: false, margin: "-60px" }}
+                variants={{
+                  visible: {
+                    transition: {
+                      staggerChildren: 0.18,
+                    },
+                  },
+                  hidden: {},
+                }}
+                className="flex flex-col items-center justify-center"
+              >
+                <motion.span
+                  variants={{
+                    hidden: { opacity: 0, filter: "blur(6px)", y: -15 },
+                    visible: { opacity: 1, filter: "blur(0px)", y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+                  }}
+                  className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-[#b77305] mb-3 transform-gpu"
+                >
+                  {config?.aboutSubtitle || "Koleksi Tekstil Eksklusif"}
+                </motion.span>
 
-                </div>
-              </Reveal>
+                <h3 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-medium tracking-wide leading-[1.25] text-stone-950 max-w-2xl sm:max-w-3xl transform-gpu">
+                  <motion.span
+                    variants={{
+                      hidden: { opacity: 0, filter: "blur(6px)", x: -25 },
+                      visible: { opacity: 1, filter: "blur(0px)", x: 0, transition: { duration: 0.5, ease: "easeOut" } },
+                    }}
+                    className="block transform-gpu"
+                  >
+                    {config?.aboutTitleLine1 || (config?.aboutTitle ? config.aboutTitle.split('\n')[0] : "Didedikasikan Untuk")}
+                  </motion.span>
+                  <motion.span
+                    variants={{
+                      hidden: { opacity: 0, filter: "blur(6px)", x: 25 },
+                      visible: { opacity: 1, filter: "blur(0px)", x: 0, transition: { duration: 0.5, ease: "easeOut" } },
+                    }}
+                    className="block text-[#b77305] italic font-serif mt-1.5 transform-gpu"
+                  >
+                    {config?.aboutTitleLine2 || (config?.aboutTitle ? config.aboutTitle.split('\n')[1] || "" : "Keindahan Kebaya & Gaun Mewah")}
+                  </motion.span>
+                </h3>
+              </motion.div>
             </div>
 
           </div>
@@ -225,6 +254,7 @@ export default function AboutBrand({ config: propConfig }: AboutBrandProps) {
           <div className="mb-8 flex justify-center">
             <button
               onClick={() => setShowCircles(!showCircles)}
+              aria-label={showCircles ? "Sembunyikan Kategori Bulat" : "Tampilkan Kategori Bulat"}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-stone-100 hover:bg-[#b77305] text-stone-700 hover:text-white font-medium text-xs rounded-full border border-stone-200 transition-all shadow-sm hover:scale-105 active:scale-95 group"
               title="Tombol Opsi Tampilan Kategori Bulat"
             >

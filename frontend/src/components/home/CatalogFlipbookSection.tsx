@@ -522,6 +522,7 @@ export default function CatalogFlipbookSection({ initialFullscreen = false, conf
                   min="0"
                   max={spreadDots - 1}
                   value={currentSpreadIdx}
+                  aria-label="Pilih Halaman Katalog"
                   onChange={(e) => flipBookRef.current?.turnToPage(Number(e.target.value) * 2)}
                   className="w-full h-1.5 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-[#b77305] hover:accent-[#d4af37]"
                 />
@@ -607,14 +608,14 @@ export default function CatalogFlipbookSection({ initialFullscreen = false, conf
               </div>
               <div className="flex items-center gap-2">
                 <div className="hidden sm:flex items-center gap-1 bg-white border border-stone-200 rounded-xl p-1 shadow-sm">
-                  <button onClick={() => setZoomLevel(z => Math.max(0.5, z - 0.1))} className="p-1.5 hover:bg-stone-100 rounded-lg text-stone-600"><ZoomOut className="w-4 h-4" /></button>
+                  <button onClick={() => setZoomLevel(z => Math.max(0.5, z - 0.1))} aria-label="Zoom Out" className="p-1.5 hover:bg-stone-100 rounded-lg text-stone-600"><ZoomOut className="w-4 h-4" /></button>
                   <span className="text-xs font-bold px-2 min-w-[40px] text-center text-stone-700">{Math.round(zoomLevel * 100)}%</span>
-                  <button onClick={() => setZoomLevel(z => Math.min(2, z + 0.1))} className="p-1.5 hover:bg-stone-100 rounded-lg text-stone-600"><ZoomIn className="w-4 h-4" /></button>
+                  <button onClick={() => setZoomLevel(z => Math.min(2, z + 0.1))} aria-label="Zoom In" className="p-1.5 hover:bg-stone-100 rounded-lg text-stone-600"><ZoomIn className="w-4 h-4" /></button>
                 </div>
                 <a href="/Katalog.pdf" download className="hidden sm:flex px-3 py-2 bg-[#b77305] text-white font-bold text-xs rounded-xl items-center gap-2 hover:bg-[#d4af37] transition-colors">
                   <Download className="w-4 h-4" /><span>Unduh PDF</span>
                 </a>
-                <button onClick={() => setIsFullscreen(false)} className="p-2 bg-white hover:bg-red-600 text-stone-700 hover:text-white rounded-xl border border-stone-200 transition-colors shadow-sm">
+                <button onClick={() => setIsFullscreen(false)} aria-label="Tutup Fullscreen" className="p-2 bg-white hover:bg-red-600 text-stone-700 hover:text-white rounded-xl border border-stone-200 transition-colors shadow-sm">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -641,11 +642,11 @@ export default function CatalogFlipbookSection({ initialFullscreen = false, conf
 
             {/* FS Nav */}
             <div className="shrink-0 flex items-center justify-center gap-4 pt-2">
-              <button onClick={handleFsPrev} className="w-10 h-10 rounded-full bg-white border border-stone-200 text-stone-700 flex items-center justify-center hover:bg-[#b77305] hover:text-white hover:border-[#b77305] disabled:opacity-20 transition-all shadow-sm">
+              <button onClick={handleFsPrev} aria-label="Halaman Sebelumnya" className="w-10 h-10 rounded-full bg-white border border-stone-200 text-stone-700 flex items-center justify-center hover:bg-[#b77305] hover:text-white hover:border-[#b77305] disabled:opacity-20 transition-all shadow-sm">
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <span className="text-xs text-stone-500">Geser halaman atau klik sudut buku untuk membalik</span>
-              <button onClick={handleFsNext} className="w-10 h-10 rounded-full bg-white border border-stone-200 text-stone-700 flex items-center justify-center hover:bg-[#b77305] hover:text-white hover:border-[#b77305] disabled:opacity-20 transition-all shadow-sm">
+              <button onClick={handleFsNext} aria-label="Halaman Selanjutnya" className="w-10 h-10 rounded-full bg-white border border-stone-200 text-stone-700 flex items-center justify-center hover:bg-[#b77305] hover:text-white hover:border-[#b77305] disabled:opacity-20 transition-all shadow-sm">
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>

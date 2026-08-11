@@ -213,6 +213,7 @@ export default function AiChatWidget() {
 
               <button
                 onClick={() => setIsOpen(false)}
+                aria-label="Tutup AI Chat Assistant"
                 className="p-1.5 text-stone-400 hover:text-white rounded-lg hover:bg-white/10 transition"
               >
                 <X className="w-5 h-5" />
@@ -359,6 +360,7 @@ export default function AiChatWidget() {
                 type="file"
                 ref={fileInputRef}
                 accept="image/*"
+                aria-label="Upload Foto Inspirasi Kain"
                 onChange={handleImageSelect}
                 className="hidden"
               />
@@ -366,6 +368,7 @@ export default function AiChatWidget() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
+                aria-label="Upload Foto Inspirasi"
                 title="Upload foto inspirasi kain/baju"
                 className="p-2.5 bg-stone-800 hover:bg-stone-700 text-amber-300 hover:text-amber-200 rounded-xl transition border border-stone-700"
               >
@@ -375,6 +378,7 @@ export default function AiChatWidget() {
               <input
                 type="text"
                 value={inputMessage}
+                aria-label="Pesan Chat AI"
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                 placeholder="Tanya warna, model, atau brokat wisuda..."
@@ -384,6 +388,7 @@ export default function AiChatWidget() {
 
               <button
                 onClick={() => sendMessage()}
+                aria-label="Kirim Pesan"
                 disabled={loading || (!inputMessage.trim() && !selectedImage)}
                 className="p-2.5 bg-amber-700 hover:bg-amber-600 disabled:opacity-50 disabled:hover:bg-amber-700 text-amber-50 rounded-xl transition shadow"
               >
