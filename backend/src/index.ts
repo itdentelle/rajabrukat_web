@@ -1,4 +1,6 @@
 import express, { Request, Response } from 'express';
+import path from 'path';
+import fs from 'fs';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -27,16 +29,17 @@ const genAI = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
 
 
 // --- DATABASE SETUP ---
-const connectionString = process.env.DATABASE_URL || '';
+const connectionString = process.env.DATABASE_URL || process.env.DIRECT_URL || '';
 if (!connectionString) {
   console.error('[WARNING] DATABASE_URL environment variable is missing or empty!');
 }
 const isCloudDb = connectionString.includes('supabase') || connectionString.includes('pooler') || connectionString.includes('aws') || connectionString.includes('railway');
 const pool = new Pool({ 
   connectionString,
-  max: 10,
-  idleTimeoutMillis: 10000,
-  connectionTimeoutMillis: 10000,
+  max: 15,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 30000,
+  keepAlive: true,
   ssl: isCloudDb ? { rejectUnauthorized: false } : undefined
 });
 
@@ -136,7 +139,8 @@ app.use(cors({
   origin: true,
   credentials: true,
 }));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // --- HEALTH CHECK ENDPOINTS FOR RAILWAY CONTAINER ---
 app.get('/', (req: Request, res: Response) => {
@@ -147,9 +151,46 @@ app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Serve scraped product images directly from scraping output directory if exists
+// Serve scraped product images & CMS uploaded images
 const SCRAPED_IMAGES_DIR = process.env.SCRAPED_IMAGES_DIR || `C:\\Users\\DWIKY SUMARLIN\\Documents\\PORTOFOLIO\\web-scrapping-rb\\hasil_scraping`;
 app.use('/scraped-images', express.static(SCRAPED_IMAGES_DIR));
+
+const UPLOADS_DIR = path.join(__dirname, '../public/uploads');
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+app.use('/uploads', express.static(UPLOADS_DIR));
+
+// Endpoint upload gambar dari CMS Admin (Anti RLS, menghasilkan URL bersih)
+app.post('/api/upload', (req: Request, res: Response) => {
+  try {
+    const { image } = req.body;
+    if (!image) return res.status(400).json({ error: 'Data gambar tidak ditemukan' });
+
+    const matches = image.match(/^data:image\/([a-zA-Z0-9+.=-]+);base64,(.+)$/);
+    if (!matches) {
+      // Jika sudah berupa URL biasa
+      return res.json({ url: image });
+    }
+
+    const rawExt = matches[1].split('+')[0];
+    const ext = rawExt === 'jpeg' ? 'jpg' : rawExt || 'png';
+    const base64Data = matches[2];
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    const fileName = `upload_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+    const filePath = path.join(UPLOADS_DIR, fileName);
+
+    fs.writeFileSync(filePath, buffer);
+
+    const url = `/uploads/${fileName}`;
+
+    return res.json({ url });
+  } catch (err: any) {
+    console.error("Error pada /api/upload:", err);
+    return res.status(500).json({ error: err.message || 'Gagal menyimpan gambar di server' });
+  }
+});
 
 
 const authLimiter = rateLimit({
@@ -299,19 +340,30 @@ const initializeAdmin = async () => {
     const defaultEmails = ['admin@rajabrukat.com', 'admin@dragonworm.com', ADMIN_EMAIL];
     const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
     
-    for (const email of defaultEmails) {
-      if (!email) continue;
-      const adminExists = await prisma.user.findUnique({ where: { email } });
-      if (!adminExists) {
-        await prisma.user.create({
-          data: {
-            name: 'Super Admin',
-            email: email,
-            password: hashedPassword,
-            role: 'ADMIN'
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        for (const email of defaultEmails) {
+          if (!email) continue;
+          const adminExists = await prisma.user.findUnique({ where: { email } });
+          if (!adminExists) {
+            await prisma.user.create({
+              data: {
+                name: 'Super Admin',
+                email: email,
+                password: hashedPassword,
+                role: 'ADMIN'
+              }
+            });
+            console.log(`Admin account [${email}] seeded successfully.`);
           }
-        });
-        console.log(`Admin account [${email}] seeded successfully.`);
+        }
+        break; // Success, exit retry loop
+      } catch (e: any) {
+        retries--;
+        if (retries === 0) throw e;
+        console.log(`[DB INIT] Retrying connection to database (${retries} attempts left)...`);
+        await new Promise(r => setTimeout(r, 2000));
       }
     }
   } catch (err) {
@@ -708,9 +760,29 @@ app.get('/api/products/:id', cacheMiddleware(3600), async (req: Request, res: Re
 // API Route: Create a new product
 app.post('/api/products', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const { name, price, discountPrice, category, description, image, galleryImages, colors, sizeGuide, stock } = req.body;
+    const { name, price, discountPrice, category, description, image, galleryImages, colors, sizeGuide, stock, colorStocks, colorImages } = req.body;
+    let computedStock = stock !== undefined ? Number(stock) : 100;
+    let parsedColorStocks = colorStocks && typeof colorStocks === 'object' ? colorStocks : null;
+    let parsedColorImages = colorImages && typeof colorImages === 'object' ? colorImages : null;
+    if (parsedColorStocks && Object.keys(parsedColorStocks).length > 0) {
+      computedStock = Object.values(parsedColorStocks).reduce((sum: number, val: any) => sum + (Number(val) || 0), 0);
+    }
+
     const product = await prisma.product.create({
-      data: { name, price: Number(price), discountPrice: discountPrice ? Number(discountPrice) : null, category, description, image, galleryImages: galleryImages || [], colors: colors || [], sizeGuide, stock: stock !== undefined ? Number(stock) : 100 }
+      data: { 
+        name, 
+        price: Number(price), 
+        discountPrice: discountPrice ? Number(discountPrice) : null, 
+        category, 
+        description, 
+        image, 
+        galleryImages: galleryImages || [], 
+        colors: colors || [], 
+        colorStocks: parsedColorStocks ? parsedColorStocks : undefined,
+        colorImages: parsedColorImages ? parsedColorImages : undefined,
+        sizeGuide, 
+        stock: computedStock 
+      }
     });
     if (redisClient) {
       const keys = await redisClient.keys('cache:/api/products*');
@@ -727,10 +799,30 @@ app.post('/api/products', authenticateToken, async (req: Request, res: Response)
 app.put('/api/products/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const { name, price, discountPrice, category, description, image, galleryImages, colors, sizeGuide, stock } = req.body;
+    const { name, price, discountPrice, category, description, image, galleryImages, colors, sizeGuide, stock, colorStocks, colorImages } = req.body;
+    let parsedColorStocks = colorStocks && typeof colorStocks === 'object' ? colorStocks : undefined;
+    let parsedColorImages = colorImages && typeof colorImages === 'object' ? colorImages : undefined;
+    let computedStock = stock !== undefined ? Number(stock) : undefined;
+    if (parsedColorStocks && Object.keys(parsedColorStocks).length > 0) {
+      computedStock = Object.values(parsedColorStocks).reduce((sum: number, val: any) => sum + (Number(val) || 0), 0);
+    }
+
     const product = await prisma.product.update({
       where: { id },
-      data: { name, price: Number(price), discountPrice: discountPrice ? Number(discountPrice) : null, category, description, image, galleryImages: galleryImages || [], colors: colors || [], sizeGuide, stock: stock !== undefined ? Number(stock) : undefined }
+      data: { 
+        name, 
+        price: Number(price), 
+        discountPrice: discountPrice ? Number(discountPrice) : null, 
+        category, 
+        description, 
+        image, 
+        galleryImages: galleryImages || [], 
+        colors: colors || [], 
+        colorStocks: parsedColorStocks,
+        colorImages: parsedColorImages,
+        sizeGuide, 
+        stock: computedStock 
+      }
     });
     if (redisClient) {
       const keys = await redisClient.keys('cache:/api/products*');
@@ -797,6 +889,48 @@ app.put('/api/products/:id/restore', authenticateToken, async (req: Request, res
   }
 });
 
+// API Route: Quick update product stock (supports overall stock or per-color stock)
+app.patch('/api/products/:id/stock', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const { stock, colorStocks, color } = req.body;
+    
+    const existing = await prisma.product.findUnique({ where: { id } });
+    if (!existing) return res.status(404).json({ error: "Produk tidak ditemukan" });
+
+    let updatedColorStocks: any = existing.colorStocks && typeof existing.colorStocks === 'object' ? { ...(existing.colorStocks as object) } : {};
+    let newTotalStock = existing.stock;
+
+    if (color && stock !== undefined) {
+      updatedColorStocks[color] = Math.max(0, Math.floor(Number(stock)));
+      newTotalStock = Object.values(updatedColorStocks).reduce((sum: number, v: any) => sum + (Number(v) || 0), 0);
+    } else if (colorStocks && typeof colorStocks === 'object') {
+      updatedColorStocks = colorStocks;
+      newTotalStock = Object.values(colorStocks).reduce((sum: number, v: any) => sum + (Number(v) || 0), 0);
+    } else if (stock !== undefined) {
+      newTotalStock = Math.max(0, Math.floor(Number(stock)));
+    }
+
+    const product = await prisma.product.update({
+      where: { id },
+      data: { 
+        stock: newTotalStock,
+        colorStocks: Object.keys(updatedColorStocks).length > 0 ? updatedColorStocks : undefined
+      }
+    });
+
+    if (redisClient) {
+      const keys = await redisClient.keys('cache:/api/products*');
+      if (keys.length > 0) await redisClient.del(...keys);
+    }
+
+    res.json(product);
+  } catch (error) {
+    console.error("Error updating product stock:", error);
+    res.status(500).json({ error: "Gagal memperbarui stok produk" });
+  }
+});
+
 // API Route: Create a new order (Checkout)
 app.post('/api/orders', async (req: Request, res: Response) => {
   try {
@@ -810,15 +944,22 @@ app.post('/api/orders', async (req: Request, res: Response) => {
     }
     if (redisClient) await redisClient.setex(idempotencyKey, 5, 'locked');
     
-    // items should be an array of { productId, quantity, price }
-    // Verify stock first
+    // Verify stock first (including color variant stock)
     for (const item of items) {
       const product = await prisma.product.findUnique({ where: { id: item.productId } });
       if (!product) {
         if (redisClient) await redisClient.del(idempotencyKey);
         return res.status(404).json({ error: `Produk tidak ditemukan.` });
       }
-      if (product.stock < item.quantity) {
+      
+      const colorStocks: any = product.colorStocks && typeof product.colorStocks === 'object' ? (product.colorStocks as any) : null;
+      if (item.color && colorStocks && colorStocks[item.color] !== undefined) {
+        const variantStock = Number(colorStocks[item.color]);
+        if (variantStock < item.quantity) {
+          if (redisClient) await redisClient.del(idempotencyKey);
+          return res.status(400).json({ error: `Stok warna "${item.color}" untuk ${product.name} tidak mencukupi. Tersisa: ${variantStock}` });
+        }
+      } else if (product.stock < item.quantity) {
         if (redisClient) await redisClient.del(idempotencyKey);
         return res.status(400).json({ error: `Stok tidak mencukupi untuk ${product.name}. Tersisa: ${product.stock}` });
       }
@@ -827,9 +968,19 @@ app.post('/api/orders', async (req: Request, res: Response) => {
     // calculate totalAmount and decrease stock
     let totalItemsAmount = 0;
     for (const item of items) {
+      const product = await prisma.product.findUnique({ where: { id: item.productId } });
+      let updatedColorStocks = product?.colorStocks && typeof product.colorStocks === 'object' ? { ...(product.colorStocks as any) } : null;
+      
+      if (item.color && updatedColorStocks && updatedColorStocks[item.color] !== undefined) {
+        updatedColorStocks[item.color] = Math.max(0, Number(updatedColorStocks[item.color]) - item.quantity);
+      }
+
       await prisma.product.update({
         where: { id: item.productId },
-        data: { stock: { decrement: item.quantity } }
+        data: { 
+          stock: { decrement: item.quantity },
+          colorStocks: updatedColorStocks ? updatedColorStocks : undefined
+        }
       });
       totalItemsAmount += item.price * item.quantity;
     }
@@ -1306,7 +1457,7 @@ app.get('/api/admin/stats', authenticateToken, async (req: Request, res: Respons
       return res.status(403).json({ error: "Access Denied: Admins Only" });
     }
 
-    const [totalUsers, totalOrders, recentOrders, allOrders] = await Promise.all([
+    const [totalUsers, totalOrders, recentOrders, allOrders, allProducts] = await Promise.all([
       prisma.user.count({ where: { role: 'CUSTOMER' } }),
       prisma.order.count(),
       prisma.order.findMany({
@@ -1318,8 +1469,18 @@ app.get('/api/admin/stats', authenticateToken, async (req: Request, res: Respons
       }),
       prisma.order.findMany({
         select: { createdAt: true, totalAmount: true, status: true }
+      }),
+      prisma.product.findMany({
+        where: { isActive: true },
+        select: { id: true, stock: true }
       })
     ]);
+
+    // Calculate stock statistics
+    const outOfStockCount = allProducts.filter(p => p.stock <= 0).length;
+    const lowStockCount = allProducts.filter(p => p.stock > 0 && p.stock <= 10).length;
+    const inStockCount = allProducts.filter(p => p.stock > 10).length;
+    const totalProducts = allProducts.length;
 
     // Calculate total revenue (only from COMPLETED orders)
     const totalRevenue = allOrders
@@ -1368,7 +1529,11 @@ app.get('/api/admin/stats', authenticateToken, async (req: Request, res: Respons
       totalRevenue,
       recentOrders,
       orderStatusData,
-      revenueData
+      revenueData,
+      totalProducts,
+      inStockCount,
+      lowStockCount,
+      outOfStockCount
     });
   } catch (error) {
     console.error("Error fetching admin stats:", error);
@@ -2102,11 +2267,13 @@ async function ensureSiteConfigColumns() {
       ADD COLUMN IF NOT EXISTS "tulleImage" TEXT DEFAULT '/images/cornely_silk_satin.png',
       ADD COLUMN IF NOT EXISTS "contactHeroTitle" TEXT DEFAULT 'Layanan & Konsultasi Kain Raja Brukat',
       ADD COLUMN IF NOT EXISTS "contactHeroSubtitle" TEXT DEFAULT 'HUBUNGI TIM CS KAMI',
+      ADD COLUMN IF NOT EXISTS "contactHeroImage" TEXT DEFAULT '/images/white_lace_hero.png',
       ADD COLUMN IF NOT EXISTS "contactPhone" TEXT DEFAULT '+62 858-8166-7778',
       ADD COLUMN IF NOT EXISTS "contactWhatsapp" TEXT DEFAULT '6285881667778',
       ADD COLUMN IF NOT EXISTS "contactEmail" TEXT DEFAULT 'info@rajabrukat.com',
       ADD COLUMN IF NOT EXISTS "contactAddress" TEXT DEFAULT 'Pusat Tekstil Raja Brukat, Indonesia',
       ADD COLUMN IF NOT EXISTS "contactHours" TEXT DEFAULT 'Senin - Sabtu: 08:00 - 17:00 WIB',
+      ADD COLUMN IF NOT EXISTS "contactGoogleMapsUrl" TEXT DEFAULT 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3960.970220677598!2d107.5458!3d-6.8906!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNsKwNTMnMjYuMiJTIDEwN8KwMzInNDQuOSJF!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid',
       ADD COLUMN IF NOT EXISTS "faqPageTitle" TEXT DEFAULT 'Pertanyaan Umum (FAQ)',
       ADD COLUMN IF NOT EXISTS "faqPageSubtitle" TEXT DEFAULT 'Temukan jawaban lengkap seputar pembelian kain, meteran/roll, spesifikasi bahan brukat, pengiriman kargo, hingga garansi retur.',
       ADD COLUMN IF NOT EXISTS "returnsPageTitle" TEXT DEFAULT 'Kebijakan Garansi & Retur Kain',
@@ -2380,7 +2547,7 @@ app.put('/api/faqs/:id', async (req: Request, res: Response) => {
     const { category, question, answer, order, isActive } = req.body;
 
     const faq = await prisma.faqItem.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         category,
         question,
@@ -2403,7 +2570,7 @@ app.delete('/api/faqs/:id', async (req: Request, res: Response) => {
     const { id } = req.params;
 
     await prisma.faqItem.delete({
-      where: { id }
+      where: { id: id as string }
     });
 
     res.json({ message: "FAQ item deleted successfully" });
@@ -2910,14 +3077,16 @@ app.post("/api/analytics/log", async (req, res) => {
     if (/mobile/i.test(ua)) device = "Mobile";
     else if (/tablet|ipad/i.test(ua)) device = "Tablet";
 
-    await prisma.visitorLog.create({
-      data: {
-        path,
-        ip,
-        userAgent: ua,
-        device,
-      },
-    });
+    if ((prisma as any).visitorLog) {
+      await (prisma as any).visitorLog.create({
+        data: {
+          path,
+          ip,
+          userAgent: ua,
+          device,
+        },
+      });
+    }
 
     res.json({ success: true });
   } catch (err) {
@@ -2933,17 +3102,22 @@ app.get("/api/analytics/stats", async (req, res) => {
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
+    const vLog = (prisma as any).visitorLog;
+    if (!vLog) {
+      return res.json({ todayCount: 0, monthCount: 0, totalCount: 0, topPages: [], devices: [], dailyChart: [] });
+    }
+
     const [todayCount, monthCount, totalCount, topPagesGroup, deviceGroup] = await Promise.all([
-      prisma.visitorLog.count({ where: { createdAt: { gte: startOfToday } } }),
-      prisma.visitorLog.count({ where: { createdAt: { gte: startOfMonth } } }),
-      prisma.visitorLog.count(),
-      prisma.visitorLog.groupBy({
+      vLog.count({ where: { createdAt: { gte: startOfToday } } }),
+      vLog.count({ where: { createdAt: { gte: startOfMonth } } }),
+      vLog.count(),
+      vLog.groupBy({
         by: ["path"],
         _count: { path: true },
         orderBy: { _count: { path: "desc" } },
         take: 6,
       }),
-      prisma.visitorLog.groupBy({
+      vLog.groupBy({
         by: ["device"],
         _count: { device: true },
       }),
@@ -2956,7 +3130,7 @@ app.get("/api/analytics/stats", async (req, res) => {
       const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
       const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
 
-      const count = await prisma.visitorLog.count({
+      const count = await vLog.count({
         where: {
           createdAt: {
             gte: dayStart,
@@ -2973,8 +3147,8 @@ app.get("/api/analytics/stats", async (req, res) => {
       todayCount,
       monthCount,
       totalCount,
-      topPages: topPagesGroup.map(item => ({ path: item.path, count: item._count.path })),
-      devices: deviceGroup.map(item => ({ device: item.device || "Desktop", count: item._count.device })),
+      topPages: (topPagesGroup as any[]).map((item: any) => ({ path: item.path, count: item._count.path })),
+      devices: (deviceGroup as any[]).map((item: any) => ({ device: item.device || "Desktop", count: item._count.device })),
       dailyChart,
     });
   } catch (err) {

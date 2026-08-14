@@ -17,6 +17,8 @@ model Product {
   image         String
   galleryImages String[] @default([])
   colors        String[] @default([])
+  colorStocks   Json?
+  colorImages   Json?
   weight        Int      @default(500) // Default weight 500 grams
   stock         Int      @default(100)
   sizeGuide     String?
@@ -281,11 +283,13 @@ model SiteConfig {
   // Contact Us Page
   contactHeroTitle    String?  @default("Layanan & Konsultasi Kain Raja Brukat")
   contactHeroSubtitle String?  @default("HUBUNGI TIM CS KAMI")
+  contactHeroImage    String?  @default("/images/white_lace_hero.png")
   contactPhone        String?  @default("+62 858-8166-7778")
   contactWhatsapp     String?  @default("6285881667778")
   contactEmail        String?  @default("info@rajabrukat.com")
   contactAddress      String?  @default("Pusat Tekstil Raja Brukat, Indonesia")
   contactHours        String?  @default("Senin - Sabtu: 08:00 - 17:00 WIB")
+  contactGoogleMapsUrl String? @default("https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3960.970220677598!2d107.5458!3d-6.8906!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNsKwNTMnMjYuMiJTIDEwN8KwMzInNDQuOSJF!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid")
 
   // FAQ Page
   faqPageTitle        String?  @default("Pertanyaan Umum (FAQ)")

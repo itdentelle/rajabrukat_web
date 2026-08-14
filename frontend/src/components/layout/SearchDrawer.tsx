@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchStore } from "@/store/searchStore";
-import { X, Search, Sparkles, TrendingUp, ArrowRight, Tag, Command, Camera, Image as ImageIcon, Loader2 } from "lucide-react";
+import { X, Search, Cpu, TrendingUp, ArrowRight, Tag, Command, Camera, Image as ImageIcon, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -225,8 +225,8 @@ export default function SearchDrawer() {
                       : "bg-stone-800 text-amber-300 hover:bg-stone-700"
                   }`}
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  {isAiMode ? "Mode Smart AI: Aktif ✨" : "Aktifkan Pencarian AI"}
+                  <Cpu className="w-3.5 h-3.5" />
+                  {isAiMode ? "Mode Smart AI: Aktif" : "Aktifkan Pencarian AI"}
                 </button>
               </div>
 
@@ -323,7 +323,7 @@ export default function SearchDrawer() {
                   animate={{ opacity: 1, y: 0 }}
                   className="p-3.5 bg-gradient-to-r from-amber-50 via-amber-100/50 to-stone-50 rounded-2xl border border-amber-300/60 flex items-start gap-3 shadow-sm"
                 >
-                  <Sparkles className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <Cpu className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                   <p className="text-xs text-stone-800 leading-relaxed font-medium">{aiSummary}</p>
                 </motion.div>
               )}

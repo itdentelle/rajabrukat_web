@@ -9,7 +9,6 @@ import { API_BASE_URL } from "@/lib/api";
 const CatalogFlipbookSection = dynamic(() => import("@/components/home/CatalogFlipbookSection"));
 const AboutBrand = dynamic(() => import("@/components/home/AboutBrand"));
 const LatestDrops = dynamic(() => import("@/components/home/LatestDrops"));
-const DealsAndRecommendations = dynamic(() => import("@/components/home/DealsAndRecommendations"));
 const FabricComparisonSlider = dynamic(() => import("@/components/home/FabricComparisonSlider"));
 const ShopTheLook = dynamic(() => import("@/components/home/ShopTheLook"));
 const BestSellers = dynamic(() => import("@/components/home/BestSellers"));
@@ -49,7 +48,6 @@ export default async function Home() {
       <CatalogFlipbookSection config={config} />
       <AboutBrand config={config} />
       <LatestDrops products={products} config={config} />
-      <DealsAndRecommendations products={products} config={config} />
       <FabricComparisonSlider config={config} />
       <ShopTheLook config={config} />
       <BestSellers products={products} config={config} />

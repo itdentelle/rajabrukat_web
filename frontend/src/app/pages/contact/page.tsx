@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Phone, Mail, MapPin, Clock, Send, MessageSquare, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
 import FullWidthHeroSlider from "@/components/home/FullWidthHeroSlider";
+import { cleanImageUrl } from "@/utils/cleanImageUrl";
 
 function TikTokIcon({ className = "w-5 h-5" }: { className?: string }) {
   return (
@@ -66,14 +68,37 @@ export default function ContactPage() {
   const contactHeroConfig = {
     title: config?.contactHeroTitle || "Layanan & Konsultasi Kain Raja Brukat",
     subtitle: config?.contactHeroSubtitle || "HUBUNGI TIM CS KAMI",
+    imageUrl: config?.contactHeroImage || "/images/white_lace_hero.png",
     buttonText: "Konsultasi Sekarang",
     buttonLink: "#form-section",
   };
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900 pb-24 pt-16">
-      {/* Full-width Horizontal Sliding Hero Banner */}
-      <FullWidthHeroSlider config={contactHeroConfig} />
+      {/* Single Static Hero Banner (Khusus Halaman Contact Us) */}
+      <div className="relative w-full h-[360px] sm:h-[420px] bg-stone-950 overflow-hidden flex items-center justify-center">
+        <Image
+          src={cleanImageUrl(config?.contactHeroImage, "/images/white_lace_hero.png")}
+          alt={config?.contactHeroTitle || "Layanan & Konsultasi Kain Raja Brukat"}
+          fill
+          priority
+          className="object-cover object-center opacity-40"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-900/40 to-transparent" />
+        <div className="relative z-10 container mx-auto px-6 text-center max-w-4xl space-y-4">
+          <h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white font-serif drop-shadow-md">
+            {config?.contactHeroTitle || "Layanan & Konsultasi Kain Raja Brukat"}
+          </h1>
+          <div className="pt-2">
+            <a
+              href="#form-section"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#b77305] hover:bg-[#d4af37] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg hover:scale-105"
+            >
+              <span>Konsultasi Sekarang</span>
+            </a>
+          </div>
+        </div>
+      </div>
 
       {/* Main Content Section */}
       <div id="form-section" className="container mx-auto px-6 max-w-6xl pt-16">
@@ -279,6 +304,50 @@ export default function ContactPage() {
           </div>
 
         </div>
+
+        {/* Google Maps Embed Section */}
+        <div className="mt-12 bg-white p-6 sm:p-8 rounded-3xl border border-stone-200 shadow-md space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-[#b77305]/10 text-[#b77305] rounded-2xl border border-[#b77305]/20">
+                <MapPin className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold uppercase tracking-tight text-stone-900">
+                  Lokasi Toko Fisik & Gudang Raja Brukat
+                </h3>
+                <p className="text-xs text-stone-500">
+                  {config?.contactAddress || "Pusat Tekstil Raja Brukat, Bandung Barat, Jawa Barat"}
+                </p>
+              </div>
+            </div>
+            <a
+              href="https://www.google.com/maps/place/PT+DENTELLE+JAYA+INFINITEX/@-6.8956179,107.4896587,19z"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-stone-900 hover:bg-[#b77305] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm shrink-0"
+            >
+              <MapPin className="w-4 h-4 text-amber-300" />
+              <span>Petunjuk Arah (Buka di Maps)</span>
+            </a>
+          </div>
+
+          {/* Map Frame Container */}
+          <div className="w-full h-[380px] sm:h-[450px] rounded-2xl overflow-hidden border border-stone-200 shadow-inner bg-stone-100 relative">
+            <iframe
+              src={config?.contactGoogleMapsUrl || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1187.2240338601398!2d107.48965865213147!3d-6.8956179324681655!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e5e6c2ac2c03%3A0xba4f6af7cd349986!2sPT%20DENTELLE%20JAYA%20INFINITEX!5e0!3m2!1sen!2sid!4v1786429590520!5m2!1sen!2sid"}
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen={false}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Lokasi Google Maps PT DENTELLE JAYA INFINITEX (Raja Brukat)"
+              className="w-full h-full"
+            />
+          </div>
+        </div>
+
       </div>
     </div>
   );

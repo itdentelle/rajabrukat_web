@@ -8,12 +8,16 @@ export interface Product {
   price: number;
   discountPrice?: number | null;
   image: string;
+  galleryImages?: string[];
   category: string;
   description?: string;
   size?: string;
   color?: string;
   colors?: string[];
+  colorStocks?: Record<string, number> | any;
+  colorImages?: Record<string, string> | any;
   sizeGuide?: string | null;
+  stock?: number;
   createdAt?: string;
 }
 
@@ -97,15 +101,22 @@ export const useCartStore = create<CartState>()(
       },
       addItem: (product) => {
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        const colorStocks = product.colorStocks && typeof product.colorStocks === 'object' ? (product.colorStocks as Record<string, number>) : null;
+        const maxStock = (product.color && colorStocks && colorStocks[product.color] !== undefined)
+          ? Number(colorStocks[product.color])
+          : (product.stock !== undefined ? product.stock : Infinity);
         
+        if (maxStock <= 0) return;
+
         set((state) => {
           const cartItemId = `${product.id}-${product.size || 'default'}-${product.color || 'default'}`;
           const existingItem = state.items.find((item) => item.cartItemId === cartItemId);
           if (existingItem) {
+            const newQty = Math.min(existingItem.quantity + 1, maxStock);
             return {
               items: state.items.map((item) =>
                 item.cartItemId === cartItemId
-                  ? { ...item, quantity: item.quantity + 1 }
+                  ? { ...item, quantity: newQty }
                   : item
               ),
             };
@@ -141,9 +152,17 @@ export const useCartStore = create<CartState>()(
         const targetItem = get().items.find(i => i.cartItemId === cartItemId);
         
         set((state) => ({
-          items: state.items.map((item) =>
-            item.cartItemId === cartItemId ? { ...item, quantity: Math.max(0, quantity) } : item
-          ).filter(item => item.quantity > 0),
+          items: state.items.map((item) => {
+            if (item.cartItemId === cartItemId) {
+              const colorStocks = item.colorStocks && typeof item.colorStocks === 'object' ? (item.colorStocks as Record<string, number>) : null;
+              const maxStock = (item.color && colorStocks && colorStocks[item.color] !== undefined)
+                ? Number(colorStocks[item.color])
+                : (item.stock !== undefined ? item.stock : Infinity);
+              const boundedQty = Math.max(0, Math.min(quantity, maxStock));
+              return { ...item, quantity: boundedQty };
+            }
+            return item;
+          }).filter(item => item.quantity > 0),
         }));
 
         if (token && targetItem) {

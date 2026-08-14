@@ -22,25 +22,9 @@ export function cleanTitle(rawName: string): { displayTitle: string; code?: stri
     .replace(/\s+/g, " ")
     .trim();
 
-  if (!cleaned || cleaned.length < 3) {
-    cleaned = "Brukat Premium Eksklusif";
+  if (!cleaned || cleaned.length < 1) {
+    cleaned = rawName || "Kain Brukat Premium";
   }
 
-  // Ensure the title sounds like a fabric product if it's too generic
-  let displayTitle = cleaned
-    .toLowerCase()
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-
-  const lowerTitle = displayTitle.toLowerCase();
-  const fabricKeywords = ["brukat", "tile", "renda", "satin", "cornely", "kain", "tulle", "lace", "panel", "metalic", "metallic"];
-  const hasFabricKeyword = fabricKeywords.some(keyword => lowerTitle.includes(keyword));
-
-  if (!hasFabricKeyword) {
-    // If it's too generic, prepend "Brukat "
-    displayTitle = `Brukat ${displayTitle}`;
-  }
-
-  return { displayTitle, code };
+  return { displayTitle: cleaned, code };
 }

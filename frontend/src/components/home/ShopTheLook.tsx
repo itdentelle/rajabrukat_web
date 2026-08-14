@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { API_BASE_URL } from "@/lib/api";
 import { cleanTitle } from "@/utils/cleanTitle";
 import { cleanDescription } from "@/utils/cleanDescription";
+import { cleanImageUrl } from "@/utils/cleanImageUrl";
 
 interface LookbookItem {
   id: string;
@@ -194,7 +195,7 @@ export default function ShopTheLook({ config }: { config?: any }) {
           </p>
         </div>
 
-        {/* Lookbook 4-Card Grid */}
+        {/* Lookbook 4-Card Grid (Split Modern Card UI/UX Design) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7">
           {looks.map((item) => (
             <div
@@ -203,54 +204,58 @@ export default function ShopTheLook({ config }: { config?: any }) {
               tabIndex={0}
               aria-label={`Lihat Detail ${item.title}`}
               onClick={() => setSelectedLook(item)}
-              className="group relative bg-stone-950 rounded-3xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500 border border-stone-200 aspect-[3/4] flex flex-col justify-between"
+              className="group relative bg-white rounded-3xl overflow-hidden cursor-pointer shadow-md hover:shadow-xl transition-all duration-500 border border-stone-200/80 flex flex-col justify-between hover:-translate-y-1.5"
             >
-              {/* Image Background with Hover Zoom */}
-              <Image
-                src={item.image}
-                alt={item.title}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                className="object-cover object-center group-hover:scale-108 transition-transform duration-700 opacity-90 group-hover:opacity-100"
-              />
+              {/* Top Image Container */}
+              <div className="relative w-full aspect-[4/5] bg-stone-100 overflow-hidden">
+                <Image
+                  src={cleanImageUrl(item.image, "/images/white_lace_hero.png")}
+                  alt={item.title}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  className="object-cover object-center group-hover:scale-108 transition-transform duration-700"
+                />
 
-              {/* Gradient Dark Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/40 to-transparent z-10 opacity-90 group-hover:opacity-80 transition-opacity" />
+                {/* Subtle Image Bottom Fade Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-950/40 via-transparent to-transparent z-10 opacity-70 group-hover:opacity-50 transition-opacity" />
 
-              {/* Top Tag & Quick View Pill */}
-              <div className="relative z-20 p-5 flex items-center justify-between">
-                <span className="px-3.5 py-1 bg-white/95 backdrop-blur-md text-stone-900 text-xs font-bold uppercase tracking-wider rounded-full shadow-md">
-                  {item.categoryTag}
-                </span>
+                {/* Top Category Tag & Quick View Eye Icon */}
+                <div className="relative z-20 p-4 flex items-center justify-between">
+                  <span className="px-3 py-1 bg-stone-900/80 backdrop-blur-md border border-white/20 text-white text-[11px] font-bold uppercase tracking-wider rounded-full shadow-md">
+                    {item.categoryTag}
+                  </span>
 
-                <div className="w-9 h-9 rounded-full bg-stone-900/80 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md">
-                  <Eye className="w-4 h-4 text-[#d4af37]" />
+                  <div className="w-8 h-8 rounded-full bg-stone-900/80 backdrop-blur-md border border-white/20 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-md hover:bg-[#b77305] hover:border-[#b77305]">
+                    <Eye className="w-4 h-4 text-white" />
+                  </div>
                 </div>
               </div>
 
-              {/* Bottom Card Content & Hotspot Product Banner */}
-              <div className="relative z-20 p-6 space-y-3">
-                <h3 className="text-xl font-serif font-medium text-white leading-snug group-hover:text-[#d4af37] transition-colors">
-                  {item.title}
-                </h3>
-                <p className="text-xs text-stone-300 font-light line-clamp-2">
-                  {item.description}
-                </p>
+              {/* Bottom Card Content Body (Clean White Surface) */}
+              <div className="p-5 bg-white flex flex-col justify-between flex-1 space-y-3">
+                <div>
+                  <h3 className="text-base sm:text-lg font-serif font-bold text-stone-950 leading-snug line-clamp-2 group-hover:text-[#b77305] transition-colors">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs text-stone-600 font-light line-clamp-2 mt-1.5 leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
 
-                {/* Hotspot Fabric Badge Box */}
-                <div className="pt-3 border-t border-white/20 flex items-center justify-between gap-2">
+                {/* Footer Price & CTA Button */}
+                <div className="pt-3 border-t border-stone-100 flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <span className="text-[10px] uppercase font-bold text-[#d4af37] block tracking-wider">
+                    <span className="text-[10px] uppercase font-bold text-stone-600 block tracking-wider">
                       Bahan yang Digunakan:
                     </span>
-                    <span className="text-sm font-serif font-bold text-white truncate block">
+                    <span className="text-sm font-serif font-bold text-[#b77305] truncate block">
                       Rp {item.fabricUsed.price.toLocaleString("id-ID")}/m
                     </span>
                   </div>
 
                   <button
                     onClick={(e) => handleBuyFabric(item.fabricUsed, e)}
-                    className="px-4 py-2.5 bg-gradient-to-r from-[#b77305] to-[#d4af37] hover:from-[#965e04] hover:to-[#b77305] text-white text-xs font-bold rounded-full flex items-center gap-1.5 transition-all shadow-lg hover:scale-105 active:scale-95 flex-shrink-0"
+                    className="px-3.5 py-2 bg-gradient-to-r from-[#b77305] via-[#c58c1b] to-[#d4af37] hover:from-[#965e04] hover:to-[#b77305] text-white text-xs font-bold rounded-full flex items-center gap-1.5 transition-all shadow-md hover:shadow-lg hover:scale-105 active:scale-95 flex-shrink-0"
                   >
                     <ShoppingBag className="w-3.5 h-3.5" />
                     <span>Beli Bahan</span>
@@ -261,16 +266,16 @@ export default function ShopTheLook({ config }: { config?: any }) {
           ))}
         </div>
 
-        {/* Bottom Consultation CTA Banner */}
-        <div className="mt-16 bg-gradient-to-r from-stone-900 via-stone-950 to-stone-900 text-white border border-[#b77305]/30 rounded-3xl p-8 sm:p-10 max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 shadow-2xl relative overflow-hidden">
+        {/* Bottom Consultation CTA Banner (Safe Spacing from Floating WA) */}
+        <div className="mt-16 bg-gradient-to-r from-stone-900 via-stone-950 to-stone-900 text-white border border-[#b77305]/30 rounded-3xl p-8 sm:p-10 max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 shadow-2xl relative overflow-hidden mb-8">
           {/* Top Gold Highlight Accent Bar */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#b77305] to-transparent" />
 
-          <div className="text-left space-y-1">
+          <div className="text-left space-y-1.5 max-w-xl">
             <h4 className="text-xl sm:text-2xl font-serif font-medium text-white tracking-wide">
               Ingin Konsultasi Model & Kebutuhan Kain?
             </h4>
-            <p className="text-stone-300 text-xs sm:text-sm font-light">
+            <p className="text-stone-300 text-xs sm:text-sm font-light leading-relaxed">
               Konsultasikan gratis rekomendasi jenis bahan & takaran meteran bersama Tim Ahli Raja Brukat via WhatsApp.
             </p>
           </div>

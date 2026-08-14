@@ -9,12 +9,19 @@ interface ProductGalleryClientProps {
   mainImage: string;
   galleryImages: string[];
   productName: string;
+  selectedImage?: string;
 }
 
-export default function ProductGalleryClient({ mainImage, galleryImages, productName }: ProductGalleryClientProps) {
+export default function ProductGalleryClient({ mainImage, galleryImages, productName, selectedImage }: ProductGalleryClientProps) {
   const [activeImage, setActiveImage] = useState(mainImage);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  useEffect(() => {
+    if (selectedImage) {
+      setActiveImage(selectedImage);
+    }
+  }, [selectedImage]);
 
   // Combine main image with gallery images for the thumbnails, ensuring uniqueness
   const allImages = Array.from(new Set([mainImage, ...(galleryImages || [])].filter(Boolean)));

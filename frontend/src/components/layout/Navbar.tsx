@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingBag, Search, Menu, User, Heart, Package, ChevronDown, X, ExternalLink, ArrowUpRight, Sparkles } from "lucide-react";
+import { ShoppingBag, Search, Menu, User, Heart, Package, ChevronDown, ChevronRight, X, ExternalLink, ArrowUpRight, Sparkles } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useSearchStore } from "@/store/searchStore";
 import { useState, useEffect } from "react";
@@ -333,7 +333,7 @@ export default function Navbar() {
                             className="flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium text-stone-800 hover:text-[#b77305] hover:bg-[#b77305]/10 transition-all duration-200 group/item"
                           >
                             <span>{cat.name}</span>
-                            <Sparkles className="w-3.5 h-3.5 text-[#b77305] opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                            <ChevronRight className="w-4 h-4 text-[#b77305] opacity-0 group-hover/item:opacity-100 group-hover/item:translate-x-0.5 transition-all" />
                           </Link>
                         </motion.div>
                       ))}
@@ -386,7 +386,7 @@ export default function Navbar() {
                             className="flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium text-stone-800 hover:text-[#b77305] hover:bg-[#b77305]/10 transition-all duration-200 group/item"
                           >
                             <span>{item.name}</span>
-                            <Sparkles className="w-3.5 h-3.5 text-[#b77305] opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                            <ChevronRight className="w-4 h-4 text-[#b77305] opacity-0 group-hover/item:opacity-100 group-hover/item:translate-x-0.5 transition-all" />
                           </Link>
                         </motion.div>
                       ))}

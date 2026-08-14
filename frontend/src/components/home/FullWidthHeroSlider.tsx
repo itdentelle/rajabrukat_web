@@ -45,18 +45,36 @@ const DEFAULT_SLIDES = [
   },
 ];
 
+import { cleanImageUrl } from "@/utils/cleanImageUrl";
+
 export default function FullWidthHeroSlider({ config }: FullWidthHeroSliderProps) {
-  const slides = config?.title && config.title !== "Define Your Street." ? [
+  const cfg = config as any;
+  const slides = [
     {
       id: 1,
-      title: config.title.replace(/\n/g, ", "),
-      category: config.subtitle || "KOLEKSI TERBARU 2026",
-      buttonText: config.buttonText || "Mulai Belanja",
-      buttonLink: config.buttonLink || "/shop",
-      image: config.imageUrl || DEFAULT_SLIDES[0].image,
+      title: cfg?.title ? cfg.title.replace(/\n/g, ", ") : DEFAULT_SLIDES[0].title,
+      category: cfg?.subtitle || DEFAULT_SLIDES[0].category,
+      buttonText: cfg?.buttonText || DEFAULT_SLIDES[0].buttonText,
+      buttonLink: cfg?.buttonLink || DEFAULT_SLIDES[0].buttonLink,
+      image: cleanImageUrl(cfg?.imageUrl, DEFAULT_SLIDES[0].image),
     },
-    ...DEFAULT_SLIDES.slice(1)
-  ] : DEFAULT_SLIDES;
+    {
+      id: 2,
+      title: cfg?.panel2Title ? cfg.panel2Title.replace(/\n/g, ", ") : DEFAULT_SLIDES[1].title,
+      category: cfg?.panel2Subtitle || DEFAULT_SLIDES[1].category,
+      buttonText: cfg?.panel2ButtonText || DEFAULT_SLIDES[1].buttonText,
+      buttonLink: cfg?.panel2ButtonLink || DEFAULT_SLIDES[1].buttonLink,
+      image: cleanImageUrl(cfg?.panel2ImageUrl, DEFAULT_SLIDES[1].image),
+    },
+    {
+      id: 3,
+      title: cfg?.panel3Title ? cfg.panel3Title.replace(/\n/g, ", ") : DEFAULT_SLIDES[2].title,
+      category: cfg?.panel3Subtitle || DEFAULT_SLIDES[2].category,
+      buttonText: cfg?.panel3ButtonText || DEFAULT_SLIDES[2].buttonText,
+      buttonLink: cfg?.panel3ButtonLink || DEFAULT_SLIDES[2].buttonLink,
+      image: cleanImageUrl(cfg?.panel3ImageUrl, DEFAULT_SLIDES[2].image),
+    },
+  ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
 

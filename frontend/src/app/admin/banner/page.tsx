@@ -94,11 +94,15 @@ export default function CMSSettingsPage() {
   // 5. Contact Page
   const [contactHeroTitle, setContactHeroTitle] = useState("");
   const [contactHeroSubtitle, setContactHeroSubtitle] = useState("");
+  const [contactHeroImgOption, setContactHeroImgOption] = useState<"url" | "upload">("url");
+  const [contactHeroImgUrl, setContactHeroImgUrl] = useState("");
+  const [contactHeroImgFile, setContactHeroImgFile] = useState<File | null>(null);
   const [contactPhone, setContactPhone] = useState("");
   const [contactWhatsapp, setContactWhatsapp] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactAddress, setContactAddress] = useState("");
   const [contactHours, setContactHours] = useState("");
+  const [contactGoogleMapsUrl, setContactGoogleMapsUrl] = useState("");
 
   // 6. FAQ & Returns Page
   const [faqPageTitle, setFaqPageTitle] = useState("");
@@ -388,11 +392,13 @@ export default function CMSSettingsPage() {
           // Contact Page
           setContactHeroTitle(data.contactHeroTitle || "Layanan & Konsultasi Kain Raja Brukat");
           setContactHeroSubtitle(data.contactHeroSubtitle || "HUBUNGI TIM CS KAMI");
+          setContactHeroImgUrl(data.contactHeroImage || "/images/white_lace_hero.png");
           setContactPhone(data.contactPhone || "+62 858-8166-7778");
           setContactWhatsapp(data.contactWhatsapp || "6285881667778");
           setContactEmail(data.contactEmail || "info@rajabrukat.com");
           setContactAddress(data.contactAddress || "Pusat Tekstil Raja Brukat, Indonesia");
           setContactHours(data.contactHours || "Senin - Sabtu: 08:00 - 17:00 WIB");
+          setContactGoogleMapsUrl(data.contactGoogleMapsUrl || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1187.2240338601398!2d107.48965865213147!3d-6.8956179324681655!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e5e6c2ac2c03%3A0xba4f6af7cd349986!2sPT%20DENTELLE%20JAYA%20INFINITEX!5e0!3m2!1sen!2sid!4v1786429590520!5m2!1sen!2sid");
 
           // FAQ & Returns Page
           setFaqPageTitle(data.faqPageTitle || "Pertanyaan Umum (FAQ)");
@@ -623,6 +629,46 @@ export default function CMSSettingsPage() {
     e.preventDefault();
     setLoading(true);
 
+    const uploadFileWithFallback = async (bucket: string, path: string, file: File, options?: any): Promise<string> => {
+      // 1. Try Supabase Storage first
+      try {
+        const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file, options || { upsert: true });
+        if (!uploadError) {
+          const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(path);
+          if (publicUrlData?.publicUrl) return publicUrlData.publicUrl;
+        }
+      } catch (e: any) {
+        console.warn("Supabase Storage upload warning:", e?.message);
+      }
+
+      // 2. Fallback: Convert to Base64 and upload via Backend /api/upload to generate a clean URL
+      const dataUrl: string = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+
+      try {
+        const token = localStorage.getItem("admin_token") || localStorage.getItem("token");
+        const res = await fetch(`${API_BASE_URL}/api/upload`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ image: dataUrl })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.url) return json.url;
+        }
+      } catch (err) {
+        console.warn("Backend /api/upload error:", err);
+      }
+
+      return dataUrl;
+    };
+
     try {
       let finalHeroImageUrl = imageUrl;
       let finalPanel2ImageUrl = panel2ImageUrl;
@@ -633,30 +679,21 @@ export default function CMSSettingsPage() {
       if (imageOption === "upload" && imageFile) {
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `hero1_${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('products').upload(fileName, imageFile, { upsert: true });
-        if (uploadError) throw uploadError;
-        const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
-        finalHeroImageUrl = publicUrlData.publicUrl;
+        finalHeroImageUrl = await uploadFileWithFallback('products', fileName, imageFile);
       }
 
       // Handle Hero Image 2 Upload
       if (panel2ImageOption === "upload" && panel2ImageFile) {
         const fileExt = panel2ImageFile.name.split('.').pop();
         const fileName = `hero2_${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('products').upload(fileName, panel2ImageFile, { upsert: true });
-        if (uploadError) throw uploadError;
-        const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
-        finalPanel2ImageUrl = publicUrlData.publicUrl;
+        finalPanel2ImageUrl = await uploadFileWithFallback('products', fileName, panel2ImageFile);
       }
 
       // Handle Hero Image 3 Upload
       if (panel3ImageOption === "upload" && panel3ImageFile) {
         const fileExt = panel3ImageFile.name.split('.').pop();
         const fileName = `hero3_${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('products').upload(fileName, panel3ImageFile, { upsert: true });
-        if (uploadError) throw uploadError;
-        const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
-        finalPanel3ImageUrl = publicUrlData.publicUrl;
+        finalPanel3ImageUrl = await uploadFileWithFallback('products', fileName, panel3ImageFile);
       }
 
       let finalFeaturedCard1ImgUrl = featuredCard1ImgUrl;
@@ -667,50 +704,35 @@ export default function CMSSettingsPage() {
       if (featuredCard1ImgOption === "upload" && featuredCard1ImgFile) {
         const fileExt = featuredCard1ImgFile.name.split('.').pop();
         const fileName = `feat_card1_${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('products').upload(fileName, featuredCard1ImgFile, { upsert: true });
-        if (uploadError) throw uploadError;
-        const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
-        finalFeaturedCard1ImgUrl = publicUrlData.publicUrl;
+        finalFeaturedCard1ImgUrl = await uploadFileWithFallback('products', fileName, featuredCard1ImgFile);
       }
 
       // Handle Featured Card 2 Image Upload
       if (featuredCard2ImgOption === "upload" && featuredCard2ImgFile) {
         const fileExt = featuredCard2ImgFile.name.split('.').pop();
         const fileName = `feat_card2_${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('products').upload(fileName, featuredCard2ImgFile, { upsert: true });
-        if (uploadError) throw uploadError;
-        const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
-        finalFeaturedCard2ImgUrl = publicUrlData.publicUrl;
+        finalFeaturedCard2ImgUrl = await uploadFileWithFallback('products', fileName, featuredCard2ImgFile);
       }
 
       // Handle Featured Card 3 Image Upload
       if (featuredCard3ImgOption === "upload" && featuredCard3ImgFile) {
         const fileExt = featuredCard3ImgFile.name.split('.').pop();
         const fileName = `feat_card3_${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('products').upload(fileName, featuredCard3ImgFile, { upsert: true });
-        if (uploadError) throw uploadError;
-        const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
-        finalFeaturedCard3ImgUrl = publicUrlData.publicUrl;
+        finalFeaturedCard3ImgUrl = await uploadFileWithFallback('products', fileName, featuredCard3ImgFile);
       }
 
       // Handle About Page Image Upload
       if (aboutPageImgOption === "upload" && aboutPageImgFile) {
         const fileExt = aboutPageImgFile.name.split('.').pop();
         const fileName = `about_${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('products').upload(fileName, aboutPageImgFile, { upsert: true });
-        if (uploadError) throw uploadError;
-        const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
-        finalAboutPageImgUrl = publicUrlData.publicUrl;
+        finalAboutPageImgUrl = await uploadFileWithFallback('products', fileName, aboutPageImgFile);
       }
 
       let finalCatalogPdfUrl = catalogPdfUrl;
       if (catalogPdfOption === "upload" && catalogPdfFile) {
         const fileExt = catalogPdfFile.name.split('.').pop();
         const fileName = `catalog_${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('products').upload(fileName, catalogPdfFile, { upsert: true, contentType: "application/pdf" });
-        if (uploadError) throw uploadError;
-        const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
-        finalCatalogPdfUrl = publicUrlData.publicUrl;
+        finalCatalogPdfUrl = await uploadFileWithFallback('products', fileName, catalogPdfFile, { contentType: "application/pdf" });
       }
 
       const token = localStorage.getItem("admin_token") || localStorage.getItem("token");
@@ -719,26 +741,14 @@ export default function CMSSettingsPage() {
       if (compareBeforeImgOption === "upload" && compareBeforeImgFile) {
         const fileExt = compareBeforeImgFile.name.split('.').pop();
         const fileName = `compare-before-${Date.now()}.${fileExt}`;
-        const { error: uploadErr } = await supabase.storage
-          .from('products')
-          .upload(fileName, compareBeforeImgFile);
-        if (!uploadErr) {
-          const { data: pubUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
-          finalCompareBeforeImgUrl = pubUrlData.publicUrl;
-        }
+        finalCompareBeforeImgUrl = await uploadFileWithFallback('products', fileName, compareBeforeImgFile);
       }
 
       let finalCompareAfterImgUrl = compareAfterImage;
       if (compareAfterImgOption === "upload" && compareAfterImgFile) {
         const fileExt = compareAfterImgFile.name.split('.').pop();
         const fileName = `compare-after-${Date.now()}.${fileExt}`;
-        const { error: uploadErr } = await supabase.storage
-          .from('products')
-          .upload(fileName, compareAfterImgFile);
-        if (!uploadErr) {
-          const { data: pubUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
-          finalCompareAfterImgUrl = pubUrlData.publicUrl;
-        }
+        finalCompareAfterImgUrl = await uploadFileWithFallback('products', fileName, compareAfterImgFile);
       }
 
       // Category Banners Upload
@@ -746,33 +756,21 @@ export default function CMSSettingsPage() {
       if (gradeAImgOption === "upload" && gradeAImgFile) {
         const fileExt = gradeAImgFile.name.split('.').pop();
         const fileName = `cat-grade-a-${Date.now()}.${fileExt}`;
-        const { error: uploadErr } = await supabase.storage.from('products').upload(fileName, gradeAImgFile);
-        if (!uploadErr) {
-          const { data: pubUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
-          finalGradeAImgUrl = pubUrlData.publicUrl;
-        }
+        finalGradeAImgUrl = await uploadFileWithFallback('products', fileName, gradeAImgFile);
       }
 
       let finalGradeBImgUrl = gradeBImage;
       if (gradeBImgOption === "upload" && gradeBImgFile) {
         const fileExt = gradeBImgFile.name.split('.').pop();
         const fileName = `cat-grade-b-${Date.now()}.${fileExt}`;
-        const { error: uploadErr } = await supabase.storage.from('products').upload(fileName, gradeBImgFile);
-        if (!uploadErr) {
-          const { data: pubUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
-          finalGradeBImgUrl = pubUrlData.publicUrl;
-        }
+        finalGradeBImgUrl = await uploadFileWithFallback('products', fileName, gradeBImgFile);
       }
 
       let finalTulleImgUrl = tulleImage;
       if (tulleImgOption === "upload" && tulleImgFile) {
         const fileExt = tulleImgFile.name.split('.').pop();
         const fileName = `cat-tulle-${Date.now()}.${fileExt}`;
-        const { error: uploadErr } = await supabase.storage.from('products').upload(fileName, tulleImgFile);
-        if (!uploadErr) {
-          const { data: pubUrlData } = supabase.storage.from('products').getPublicUrl(fileName);
-          finalTulleImgUrl = pubUrlData.publicUrl;
-        }
+        finalTulleImgUrl = await uploadFileWithFallback('products', fileName, tulleImgFile);
       }
 
       const processedCategoryBanners = await Promise.all(
@@ -781,11 +779,7 @@ export default function CMSSettingsPage() {
           if (cat.imgOption === "upload" && cat.imgFile) {
             const fileExt = cat.imgFile.name.split(".").pop();
             const fileName = `cat-${cat.slug || Date.now()}-${Date.now()}.${fileExt}`;
-            const { error: uploadErr } = await supabase.storage.from("products").upload(fileName, cat.imgFile);
-            if (!uploadErr) {
-              const { data: pubUrlData } = supabase.storage.from("products").getPublicUrl(fileName);
-              finalImg = pubUrlData.publicUrl;
-            }
+            finalImg = await uploadFileWithFallback('products', fileName, cat.imgFile);
           }
           return {
             id: cat.id,
@@ -798,6 +792,13 @@ export default function CMSSettingsPage() {
           };
         })
       );
+
+      let finalContactHeroImgUrl = contactHeroImgUrl;
+      if (contactHeroImgOption === "upload" && contactHeroImgFile) {
+        const fileExt = contactHeroImgFile.name.split('.').pop();
+        const fileName = `contact_hero_${Date.now()}.${fileExt}`;
+        finalContactHeroImgUrl = await uploadFileWithFallback('products', fileName, contactHeroImgFile);
+      }
 
       const res = await fetch(`${API_BASE_URL}/api/config/hero`, {
         method: "PUT",
@@ -820,7 +821,7 @@ export default function CMSSettingsPage() {
           shopTitle, shopDescription, catalogPdfUrl: finalCatalogPdfUrl, catalogTitleLine1, catalogTitleLine2,
           aboutPageTitle, aboutPageStory1, aboutPageStory2, aboutPageImgUrl: finalAboutPageImgUrl, aboutPageImgText, aboutPageImgSubtext,
           aboutPagePhil1Title, aboutPagePhil1Desc, aboutPagePhil2Title, aboutPagePhil2Desc, aboutPagePhil3Title, aboutPagePhil3Desc,
-          contactHeroTitle, contactHeroSubtitle, contactPhone, contactWhatsapp, contactEmail, contactAddress, contactHours,
+          contactHeroTitle, contactHeroSubtitle, contactHeroImage: finalContactHeroImgUrl, contactPhone, contactWhatsapp, contactEmail, contactAddress, contactHours, contactGoogleMapsUrl,
           faqPageTitle, faqPageSubtitle,
           returnsPageTitle, returnsPageSubtitle, returnsSection1Title, returnsSection1Desc, returnsSection2Title, returnsSection2Desc, returnsSection3Title, returnsSection3Desc,
           footerDesc, instagramUrl, facebookUrl, tiktokUrl, whatsappUrl,
@@ -3099,6 +3100,88 @@ export default function CMSSettingsPage() {
                   />
                 </div>
 
+                {/* Gambar Banner Contact Us */}
+                <div className="md:col-span-2 p-5 bg-stone-50 rounded-2xl border border-stone-200 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-stone-900 uppercase tracking-wider">
+                      Gambar Banner Hero Halaman Contact Us
+                    </label>
+                    <div className="flex items-center gap-4 text-xs">
+                      <label className="flex items-center gap-1.5 cursor-pointer font-semibold text-stone-700">
+                        <input
+                          type="radio"
+                          name="contactHeroImgOpt"
+                          checked={contactHeroImgOption === "url"}
+                          onChange={() => setContactHeroImgOption("url")}
+                          className="accent-[#b77305]"
+                        />
+                        <span>URL Gambar</span>
+                      </label>
+                      <label className="flex items-center gap-1.5 cursor-pointer font-semibold text-stone-700">
+                        <input
+                          type="radio"
+                          name="contactHeroImgOpt"
+                          checked={contactHeroImgOption === "upload"}
+                          onChange={() => setContactHeroImgOption("upload")}
+                          className="accent-[#b77305]"
+                        />
+                        <span>Upload dari Komputer</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {contactHeroImgOption === "url" ? (
+                    <input
+                      type="text"
+                      value={contactHeroImgUrl}
+                      onChange={(e) => setContactHeroImgUrl(e.target.value)}
+                      placeholder="/images/white_lace_hero.png"
+                      className="w-full px-4 py-3 bg-white border border-stone-300 rounded-xl text-sm font-medium"
+                    />
+                  ) : (
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setContactHeroImgFile(e.target.files?.[0] || null)}
+                      className="w-full text-xs text-stone-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#b77305] file:text-white cursor-pointer"
+                    />
+                  )}
+
+                  {/* Sample Preset Images Selector */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-stone-500 uppercase tracking-wider mb-2">
+                      Pilih dari Sampel Gambar Bawaan:
+                    </label>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+                      {[
+                        { name: "Brukat Putih 3D", url: "/images/white_lace_hero.png" },
+                        { name: "Chantilly Beige", url: "/images/beige_lace_hero.png" },
+                        { name: "Metallic Lace", url: "/images/metallic_lace_hero.png" },
+                        { name: "Brukat Tile Mutiara", url: "/images/brukat_tile_mutiara.png" },
+                      ].map((img) => (
+                        <button
+                          key={img.url}
+                          type="button"
+                          onClick={() => {
+                            setContactHeroImgOption("url");
+                            setContactHeroImgUrl(img.url);
+                          }}
+                          className={`p-2 rounded-xl border text-left flex flex-col items-center gap-1.5 transition-all ${
+                            contactHeroImgUrl === img.url
+                              ? "border-[#b77305] bg-[#b77305]/10 text-[#b77305] font-bold shadow-sm"
+                              : "border-stone-200 bg-white text-stone-600 hover:border-stone-300"
+                          }`}
+                        >
+                          <div className="w-full h-12 relative rounded-lg overflow-hidden border border-stone-200">
+                            <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                          </div>
+                          <span className="text-[10px] font-medium text-center truncate w-full">{img.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
                     Nomor WhatsApp CS Hotline Tampilan (cth: +62 858-8166-7778)
@@ -3162,6 +3245,22 @@ export default function CMSSettingsPage() {
                     placeholder="Pusat Tekstil Raja Brukat, Indonesia"
                     className="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-sm font-medium"
                   />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
+                    URL Embed Google Maps (iFrame Src Link)
+                  </label>
+                  <input
+                    type="text"
+                    value={contactGoogleMapsUrl}
+                    onChange={(e) => setContactGoogleMapsUrl(e.target.value)}
+                    placeholder="https://www.google.com/maps/embed?pb=..."
+                    className="w-full px-4 py-3 bg-stone-50 border border-stone-300 rounded-xl text-xs font-mono text-stone-800"
+                  />
+                  <p className="text-[11px] text-stone-500 mt-1">
+                    *Buka Google Maps &gt; Bagikan (Share) &gt; Sematkan Peta (Embed a Map) &gt; Salin link atribut <code className="text-[#b77305] font-bold">src="..."</code>
+                  </p>
                 </div>
               </div>
             </div>

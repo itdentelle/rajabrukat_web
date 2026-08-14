@@ -44,9 +44,17 @@ export default function AdminDashboard() {
   if (!stats) return null;
 
   const statCards = [
-    { title: "Total Revenue", value: `Rp ${stats.totalRevenue.toLocaleString('id-ID')}`, icon: DollarSign, color: "text-green-600", bg: "bg-green-100" },
-    { title: "Total Orders", value: stats.totalOrders, icon: ShoppingBag, color: "text-blue-600", bg: "bg-blue-100" },
-    { title: "Pengunjung Hari Ini", value: analytics?.todayCount ?? 0, icon: Eye, color: "text-[#b77305]", bg: "bg-[#b77305]/10" }
+    { title: "Total Revenue", value: `Rp ${(stats.totalRevenue || 0).toLocaleString('id-ID')}`, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-100" },
+    { title: "Total Orders", value: stats.totalOrders || 0, icon: ShoppingBag, color: "text-blue-600", bg: "bg-blue-100" },
+    { title: "Pengunjung Hari Ini", value: analytics?.todayCount ?? 0, icon: Eye, color: "text-[#b77305]", bg: "bg-[#b77305]/10" },
+    { 
+      title: "Stok Perlu Perhatian", 
+      value: (stats.outOfStockCount || 0) + (stats.lowStockCount || 0), 
+      subtitle: `${stats.outOfStockCount || 0} Habis • ${stats.lowStockCount || 0} Menipis`, 
+      icon: Package, 
+      color: (stats.outOfStockCount || 0) > 0 ? "text-rose-600" : "text-amber-600", 
+      bg: (stats.outOfStockCount || 0) > 0 ? "bg-rose-100" : "bg-amber-100" 
+    }
   ];
 
   return (
@@ -56,20 +64,22 @@ export default function AdminDashboard() {
         <p className="text-gray-500">Welcome to your store's command center.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((card, idx) => (
           <motion.div 
             key={card.title}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: idx * 0.1 }}
-            className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between"
+            className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-[#b77305] transition-colors"
+            onClick={() => card.title === "Stok Perlu Perhatian" && router.push('/admin/products')}
           >
             <div>
-              <p className="text-sm font-bold uppercase tracking-widest text-gray-500 mb-1">{card.title}</p>
-              <h3 className="text-3xl font-black">{card.value}</h3>
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">{card.title}</p>
+              <h3 className="text-2xl font-black">{card.value}</h3>
+              {card.subtitle && <p className="text-xs text-stone-500 mt-1 font-semibold">{card.subtitle}</p>}
             </div>
-            <div className={`w-14 h-14 rounded-full flex items-center justify-center ${card.bg} ${card.color}`}>
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${card.bg} ${card.color}`}>
               <card.icon className="w-6 h-6" />
             </div>
           </motion.div>

@@ -301,8 +301,8 @@ function ShopContent() {
 
         {/* Header Section */}
         <Reveal>
-          <div className="mb-6 border-b border-stone-200 pb-6 flex flex-col md:flex-row items-start md:items-end justify-between gap-4">
-            <div>
+          <div className="mb-6 border-b border-stone-200 pb-6 flex flex-col lg:flex-row items-start lg:items-end justify-between gap-4 w-full">
+            <div className="w-full flex-1 min-w-0">
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-stone-900 mb-2">
                 {siteConfig?.shopTitle
                   ? siteConfig.shopTitle.includes("\n") || siteConfig.shopTitle.includes("\\n")
@@ -310,10 +310,12 @@ function ShopContent() {
                     : siteConfig.shopTitle
                   : "Katalog Kain Raja Brukat"}
               </h1>
-              <p className="text-stone-600 text-sm md:text-base max-w-xl font-normal">
+              <p className="text-stone-600 text-sm md:text-base w-full font-normal leading-relaxed whitespace-normal block">
                 {searchQuery
                   ? `Menampilkan hasil pencarian untuk "${searchQuery}"`
-                  : siteConfig?.shopDescription || "Koleksi lengkap kain brukat pilihan: Grade A, Grade B, dan Tulle dengan varian Chantilly, Polos, Metallic, & 3D."}
+                  : siteConfig?.shopDescription
+                  ? siteConfig.shopDescription.replace(/\\n/g, " ").replace(/\n/g, " ")
+                  : "Koleksi lengkap kain brukat pilihan: Grade A, Grade B, dan Tulle format Panel & Meteran dengan Tipe Jacquardtronic, Non-Jacquard, 3D serta Quality Chantilly, Plain, Cord, dan Metallic (Outline, Inlay, Full Metallic)."}
               </p>
             </div>
 
@@ -337,7 +339,10 @@ function ShopContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
           {/* LEFT SIDEBAR FILTER (Desktop Sticky Sidebar) */}
-          <aside className="hidden lg:block lg:col-span-3 sticky top-28 max-h-[calc(100vh-140px)] overflow-y-auto scrollbar-hide space-y-6 bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
+          <aside
+            data-lenis-prevent
+            className="hidden lg:block lg:col-span-3 sticky top-28 max-h-[calc(100vh-140px)] overflow-y-auto space-y-6 bg-white p-6 rounded-2xl border border-stone-200 shadow-sm overscroll-contain"
+          >
 
             {/* Sidebar Header & Reset */}
             <div className="flex items-center justify-between pb-4 border-b border-stone-100">
@@ -475,7 +480,7 @@ function ShopContent() {
                 <Award className="w-3.5 h-3.5 text-[#b77305]" />
                 <span>Nama Quality</span>
               </h4>
-              <div className="space-y-1 max-h-60 overflow-y-auto pr-1 scrollbar-thin">
+              <div data-lenis-prevent className="space-y-1 max-h-60 overflow-y-auto pr-1 scrollbar-thin overscroll-contain">
                 {QUALITY_NAME_OPTIONS.map((quality) => {
                   const isSelected = activeQualityName === quality;
                   const count = products.filter((p) => matchesQualityName(p, quality)).length;

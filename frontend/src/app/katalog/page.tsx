@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function FullscreenCatalogPage() {
   return (
-    <main className="min-h-screen bg-stone-950 text-white">
+    <main className="min-h-screen bg-stone-50 text-stone-900 pt-16">
       <CatalogFlipbookSection initialFullscreen={true} />
     </main>
   );

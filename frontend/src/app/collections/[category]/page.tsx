@@ -159,9 +159,19 @@ export default function CategoryPage() {
         if (res.ok && contentType.includes("application/json")) {
           const data = await res.json();
           const allProds: CategoryProduct[] = data.products || data;
-          const filtered = allProds.filter(
-            (p) => p.category?.toLowerCase() === categoryInfo.name.toLowerCase() || p.category?.toLowerCase().includes(slug)
-          );
+          const targetTerm = slug.replace(/-/g, " ").toLowerCase();
+          const filtered = allProds.filter((p) => {
+            const cat = (p.category || "").toLowerCase();
+            const name = (p.name || "").toLowerCase();
+            return (
+              cat === targetTerm ||
+              cat.includes(targetTerm) ||
+              name.includes(targetTerm) ||
+              (targetTerm.includes("grade a") && (cat.includes("grade a") || name.includes("grade a"))) ||
+              (targetTerm.includes("grade b") && (cat.includes("grade b") || name.includes("grade b"))) ||
+              (targetTerm.includes("tulle") && (cat.includes("tulle") || cat.includes("tile") || name.includes("tulle") || name.includes("tile")))
+            );
+          });
           setProducts(filtered);
         } else {
           setProducts([]);

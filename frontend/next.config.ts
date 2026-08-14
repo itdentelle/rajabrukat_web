@@ -3,6 +3,7 @@ import path from "path";
 
 const nextConfig: NextConfig = {
   images: {
+    qualities: [75, 80],
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
@@ -48,6 +49,14 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       }
     ]
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/uploads/:path*",
+        destination: "http://localhost:5000/uploads/:path*",
+      },
+    ];
   },
   devIndicators: false,
   // Turbopack alias (Next.js 15+ top-level key)

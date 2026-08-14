@@ -5,7 +5,7 @@ import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Reveal } from "@/components/ui/Reveal";
-import { ArrowRight, Sparkles, Feather, Palette } from "lucide-react";
+import { ArrowRight, LayoutGrid, Feather, Palette, Gem } from "lucide-react";
 
 import { cleanTitle } from "@/utils/cleanTitle";
 import { API_BASE_URL } from "@/lib/api";
@@ -258,7 +258,7 @@ export default function AboutBrand({ config: propConfig }: AboutBrandProps) {
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-stone-100 hover:bg-[#b77305] text-stone-700 hover:text-white font-medium text-xs rounded-full border border-stone-200 transition-all shadow-sm hover:scale-105 active:scale-95 group"
               title="Tombol Opsi Tampilan Kategori Bulat"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#b77305] group-hover:text-white" />
+              <LayoutGrid className="w-3.5 h-3.5 text-[#b77305] group-hover:text-white" />
               <span>{showCircles ? "Sembunyikan / Hapus Kategori Bulat" : "Tampilkan Kategori Bulat"}</span>
             </button>
           </div>
@@ -307,7 +307,7 @@ export default function AboutBrand({ config: propConfig }: AboutBrandProps) {
               {
                 title: config?.aboutPagePhil1Title || "01. Kualitas Premium Impor",
                 desc: config?.aboutPagePhil1Desc || "Serat renda Chantilly dan tile pilihan yang ekstra lembut di kulit, tahan lama, dingin, dan tidak gatal.",
-                icon: Sparkles,
+                icon: Gem,
               },
               {
                 title: config?.aboutPagePhil2Title || "02. Motif Anggun & Mewah",

@@ -25,12 +25,27 @@ const cormorant = Cormorant_Garamond({
 
 export const metadata: Metadata = {
   metadataBase: new URL("http://localhost:3000"),
-  title: "Raja Brukat - Kain Brukat & Lace Premium",
-  description: "Pusat Grosir & Eceran Kain Brukat, Tile Mutiara, Renda Chantilly, dan Silk Mewah untuk Kebaya & Gaun Pesta.",
-  keywords: ["kain brukat", "tile mutiara", "renda chantilly", "silk satin", "kebaya pengantin", "gaun pesta"],
+  title: "Raja Brukat - Grosir & Satuan Kain Brukat",
+  description: "Pusat grosir dan eceran kain brukat berkualitas. Koleksi brukat terlengkap dengan berbagai motif yang indah dan elegan dengan harga yang terjangkau.",
+  keywords: [
+    "raja brukat",
+    "kain brukat bandung",
+    "grosir kain brukat bandung barat",
+    "eceran kain brukat bandung",
+    "kain brukat berkualitas",
+    "brukat tile mutiara",
+    "renda chantilly",
+    "brukat cornely 3d",
+    "silk satin furing",
+    "kain kebaya pengantin",
+    "kain gaun pesta",
+    "bahan kebaya wisuda",
+    "grosir kain bandung barat",
+    "toko kain brukat bandung"
+  ],
   openGraph: {
-    title: "Raja Brukat - Kain Brukat & Lace Premium",
-    description: "Pusat Grosir & Eceran Kain Brukat, Tile Mutiara, Renda Chantilly, dan Silk Mewah untuk Kebaya & Gaun Pesta.",
+    title: "Raja Brukat - Grosir & Satuan Kain Brukat",
+    description: "Pusat grosir dan eceran kain brukat berkualitas. Koleksi brukat terlengkap dengan berbagai motif yang indah dan elegan dengan harga yang terjangkau.",
     type: "website",
     locale: "id_ID",
     siteName: "Raja Brukat",
@@ -66,6 +81,27 @@ export default function RootLayout({
         <meta name="theme-color" content="#b77305" />
         <link rel="icon" href="/icon.png" type="image/png" sizes="any" />
         <link rel="apple-touch-icon" href="/icon.png" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Store",
+              "name": "Raja Brukat",
+              "image": "http://localhost:3000/images/logo_rajabrukat-removebg-preview.png",
+              "description": "Pusat grosir dan eceran kain brukat berkualitas. Koleksi brukat terlengkap dengan berbagai motif yang indah dan elegan dengan harga yang terjangkau.",
+              "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Bandung Barat",
+                "addressRegion": "Jawa Barat",
+                "addressCountry": "ID"
+              },
+              "priceRange": "Rp",
+              "telephone": "+6285881667778",
+              "url": "http://localhost:3000"
+            })
+          }}
+        />
       </head>
       <body className="min-h-full flex flex-col font-sans bg-[var(--background)] text-[var(--foreground)] overflow-x-hidden overscroll-x-none">
         {googleClientId ? (

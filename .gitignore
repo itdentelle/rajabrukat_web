@@ -31,6 +31,10 @@ dist/
 .vscode/
 .idea/
 
+# Uploads
+backend/public/uploads/*
+!backend/public/uploads/.gitkeep
+
 # Agent/AI Data
 .gemini/
 scratch/

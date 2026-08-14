@@ -25,41 +25,44 @@ interface FabricCardItem {
 const FABRIC_CARDS: FabricCardItem[] = [
   {
     id: "left",
-    name: "Renda Chantilly Halus Impor",
-    category: "Grade B",
-    priceTag: "Rp 85.000 / meter",
-    badgeTop: "✨ Renda Chantilly Impor Halus",
-    badgeBottom: "“ Lembut & Tidak Gatal di Kulit ”",
-    description: "Serat renda Chantilly kualitas ekspor yang sangat halus, ringan, dan tidak gatal. Pilihan utama para desainer untuk gaun pesta & kebaya pengantin.",
-    image: "/images/renda_chantilly_french.png",
-    link: "/collections/grade-b",
+    name: "Brukat Putih 3D Premium",
+    category: "Grade A",
+    priceTag: "Rp 120.000",
+    badgeTop: "✨ Brukat Putih 3D Premium",
+    badgeBottom: "“ Kerapatan Bordir Maksimal ”",
+    description: "Kerapatan bordir presisi diperkaya dengan taburan mutiara timbul dan payet kilau eksklusif.",
+    image: "/images/white_lace_hero.png",
+    link: "/shop?category=Grade A",
   },
   {
     id: "center",
-    name: "Brukat Tile Mutiara 3D Premium",
-    category: "Grade A",
-    priceTag: "Rp 120.000 / meter",
-    badgeTop: "🌟 100% Premium Quality Guaranteed",
-    badgeBottom: "“ Motif Brukat Mutiara 2026 ”",
-    description: "Kerapatan bordir presisi diperkaya dengan taburan mutiara timbul dan payet kilau eksklusif. Sempurna untuk busana pesta, wisuda, dan seragam keluarga.",
-    image: "/images/brukat_tile_mutiara.png",
-    link: "/collections/grade-a",
+    name: "Panel Brukat Chantily",
+    category: "Grade B",
+    priceTag: "Rp 85.000",
+    badgeTop: "🌟 Renda Chantilly French Impor",
+    badgeBottom: "“ Lembut & Tidak Gatal di Kulit ”",
+    description: "Serat renda Chantilly kualitas ekspor yang sangat halus, ringan, dan tidak gatal. Pilihan utama para desainer untuk gaun pesta & kebaya pengantin.",
+    image: "/images/beige_lace_hero.png",
+    link: "/shop?category=Renda Chantilly",
   },
   {
     id: "right",
-    name: "Silk & Satin Furing Premium",
-    category: "Tulle",
-    priceTag: "Rp 55.000 / meter",
-    badgeTop: "💎 Silk Satin Polos Premium",
-    badgeBottom: "“ Jatuh Sempurna & Adem ”",
-    description: "Bahan furing satin silk impor dengan Kilau lembut mewah, tekstur dingin di kulit, serta jatuh secara sempurna untuk dalaman kebaya dan gaun.",
-    image: "/images/cornely_silk_satin.png",
-    link: "/collections/tulle",
+    name: "Panel Metallic Ellegant",
+    category: "Metallic",
+    priceTag: "Rp 95.000",
+    badgeTop: "💎 Metallic Lace Elegant",
+    badgeBottom: "“ Kilau Benang Metalik Mewah ”",
+    description: "Memakai benang metalik yang menambah kesan elegan dan mewah untuk busana pesta dan kebaya modern.",
+    image: "/images/metallic_lace_hero.png",
+    link: "/shop?category=Metallic",
   },
 ];
 
 interface FeaturedCategoriesProps {
   config?: {
+    imageUrl?: string;
+    panel2ImageUrl?: string;
+    panel3ImageUrl?: string;
     featuredTitle?: string;
     featuredSubtitle?: string;
     badge1Title?: string;
@@ -83,40 +86,42 @@ interface FeaturedCategoriesProps {
   };
 }
 
+import { cleanImageUrl } from "@/utils/cleanImageUrl";
+
 export default function FeaturedCategories({ config }: FeaturedCategoriesProps) {
   const initialCards: FabricCardItem[] = [
     {
       id: "left",
-      name: config?.featuredCard1Title || FABRIC_CARDS[0].name,
-      category: "Grade B",
+      name: config?.featuredCard1Title || "Brukat Putih 3D Premium",
+      category: "Grade A",
       priceTag: "Lihat Koleksi",
-      badgeTop: "✨ " + (config?.featuredCard1Title || FABRIC_CARDS[0].name),
-      badgeBottom: "“ Koleksi Eksklusif ”",
-      description: config?.featuredCard1Desc || FABRIC_CARDS[0].description,
-      image: config?.featuredCard1ImgUrl || FABRIC_CARDS[0].image,
-      link: config?.featuredCard1Link || FABRIC_CARDS[0].link,
+      badgeTop: "✨ " + (config?.featuredCard1Title || "Brukat Putih 3D Premium"),
+      badgeBottom: "“ Kerapatan Bordir Maksimal ”",
+      description: config?.featuredCard1Desc || "Kerapatan bordir presisi diperkaya dengan taburan mutiara timbul dan payet kilau eksklusif.",
+      image: cleanImageUrl(config?.featuredCard1ImgUrl || config?.imageUrl, "/images/white_lace_hero.png"),
+      link: config?.featuredCard1Link || "/shop?category=Grade A",
     },
     {
       id: "center",
-      name: config?.featuredCard2Title || FABRIC_CARDS[1].name,
-      category: "Grade A",
+      name: config?.featuredCard2Title || "Panel Brukat Chantily",
+      category: "Grade B",
       priceTag: "Lihat Koleksi",
-      badgeTop: "🌟 " + (config?.featuredCard2Title || FABRIC_CARDS[1].name),
-      badgeBottom: "“ Koleksi Eksklusif ”",
-      description: config?.featuredCard2Desc || FABRIC_CARDS[1].description,
-      image: config?.featuredCard2ImgUrl || FABRIC_CARDS[1].image,
-      link: config?.featuredCard2Link || FABRIC_CARDS[1].link,
+      badgeTop: "🌟 " + (config?.featuredCard2Title || "Panel Brukat Chantily"),
+      badgeBottom: "“ Renda Chantilly Impor ”",
+      description: config?.featuredCard2Desc || "Serat renda Chantilly kualitas ekspor yang sangat halus, ringan, dan tidak gatal.",
+      image: cleanImageUrl(config?.featuredCard2ImgUrl || config?.panel2ImageUrl, "/images/beige_lace_hero.png"),
+      link: config?.featuredCard2Link || "/shop?category=Renda Chantilly",
     },
     {
       id: "right",
-      name: config?.featuredCard3Title || FABRIC_CARDS[2].name,
-      category: "Tulle",
+      name: config?.featuredCard3Title || "Panel Metallic Ellegant",
+      category: "Metallic",
       priceTag: "Lihat Koleksi",
-      badgeTop: "💎 " + (config?.featuredCard3Title || FABRIC_CARDS[2].name),
-      badgeBottom: "“ Koleksi Eksklusif ”",
-      description: config?.featuredCard3Desc || FABRIC_CARDS[2].description,
-      image: config?.featuredCard3ImgUrl || FABRIC_CARDS[2].image,
-      link: config?.featuredCard3Link || FABRIC_CARDS[2].link,
+      badgeTop: "💎 " + (config?.featuredCard3Title || "Panel Metallic Ellegant"),
+      badgeBottom: "“ Metallic Lace Elegant ”",
+      description: config?.featuredCard3Desc || "Memakai benang metalik yang menambah kesan elegan dan mewah untuk busana pesta.",
+      image: cleanImageUrl(config?.featuredCard3ImgUrl || config?.panel3ImageUrl, "/images/metallic_lace_hero.png"),
+      link: config?.featuredCard3Link || "/shop?category=Metallic",
     },
   ];
 
@@ -137,36 +142,41 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
   const badge3Subtitle = config?.badge3Subtitle || "Pengiriman Cepat";
 
   useEffect(() => {
-    if (config?.featuredCard1ImgUrl) return; // use custom config cards
-    fetch(`${API_BASE_URL}/api/products?limit=3`, { priority: "low" } as any)
-      .then((res) => {
-        const contentType = res.headers.get("content-type") || "";
-        if (!res.ok || !contentType.includes("application/json")) return null;
-        return res.json();
-      })
-      .then((data) => {
-        if (!data) return;
-        const products = data.products || data;
-        if (Array.isArray(products) && products.length >= 3) {
-          const ids = ["left", "center", "right"];
-          const dynamicCards: FabricCardItem[] = products.slice(0, 3).map((p: any, idx: number) => {
-            const { displayTitle } = cleanTitle(p.name);
-            return {
-              id: ids[idx] || `card-${p.id}`,
-              name: displayTitle,
-              category: p.category || "Grade A",
-              priceTag: `Rp ${p.price?.toLocaleString("id-ID") || "0"} / meter`,
-              badgeTop: `✨ ${displayTitle}`,
-              badgeBottom: `“ ${p.category || "Koleksi Eksklusif"} ”`,
-              description: cleanDescription(p.description),
-              image: p.image || "/images/brukat_tile_mutiara.png",
-              link: `/products/${p.id}`,
-            };
-          });
-          setCards(dynamicCards);
-        }
-      })
-      .catch((err) => console.warn("Failed to fetch dynamic featured categories:", err));
+    setCards([
+      {
+        id: "left",
+        name: config?.featuredCard1Title || "Brukat Putih 3D Premium",
+        category: "Grade A",
+        priceTag: "Lihat Koleksi",
+        badgeTop: "✨ " + (config?.featuredCard1Title || "Brukat Putih 3D Premium"),
+        badgeBottom: "“ Kerapatan Bordir Maksimal ”",
+        description: config?.featuredCard1Desc || "Kerapatan bordir presisi diperkaya dengan taburan mutiara timbul dan payet kilau eksklusif.",
+        image: cleanImageUrl(config?.featuredCard1ImgUrl || config?.imageUrl, "/images/white_lace_hero.png"),
+        link: config?.featuredCard1Link || "/shop?category=Grade A",
+      },
+      {
+        id: "center",
+        name: config?.featuredCard2Title || "Panel Brukat Chantily",
+        category: "Grade B",
+        priceTag: "Lihat Koleksi",
+        badgeTop: "🌟 " + (config?.featuredCard2Title || "Panel Brukat Chantily"),
+        badgeBottom: "“ Renda Chantilly Impor ”",
+        description: config?.featuredCard2Desc || "Serat renda Chantilly kualitas ekspor yang sangat halus, ringan, dan tidak gatal.",
+        image: cleanImageUrl(config?.featuredCard2ImgUrl || config?.panel2ImageUrl, "/images/beige_lace_hero.png"),
+        link: config?.featuredCard2Link || "/shop?category=Renda Chantilly",
+      },
+      {
+        id: "right",
+        name: config?.featuredCard3Title || "Panel Metallic Ellegant",
+        category: "Metallic",
+        priceTag: "Lihat Koleksi",
+        badgeTop: "💎 " + (config?.featuredCard3Title || "Panel Metallic Ellegant"),
+        badgeBottom: "“ Metallic Lace Elegant ”",
+        description: config?.featuredCard3Desc || "Memakai benang metalik yang menambah kesan elegan dan mewah untuk busana pesta.",
+        image: cleanImageUrl(config?.featuredCard3ImgUrl || config?.panel3ImageUrl, "/images/metallic_lace_hero.png"),
+        link: config?.featuredCard3Link || "/shop?category=Metallic",
+      },
+    ]);
   }, [config]);
 
   const handleCardHover = useCallback((id: string) => {
@@ -313,8 +323,8 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
                 />
                 <div className="absolute inset-0 bg-black/20 hover:bg-transparent transition-colors" />
                 {activeCardId === "left" && (
-                  <div className="absolute bottom-6 left-3 right-3 text-center">
-                    <span className="inline-block px-3.5 py-1.5 bg-[#b77305] text-white rounded-full text-xs font-bold shadow-lg">
+                  <div className="absolute bottom-6 left-2 right-2 text-center">
+                    <span className="inline-block px-3 py-1.5 bg-[#b77305] text-white rounded-full text-[11px] font-bold shadow-lg max-w-full truncate">
                       {(cards[0] || FABRIC_CARDS[0]).name}
                     </span>
                   </div>
@@ -343,8 +353,8 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
                 />
                 <div className="absolute inset-0 bg-black/20 hover:bg-transparent transition-colors" />
                 {activeCardId === "right" && (
-                  <div className="absolute bottom-6 left-3 right-3 text-center">
-                    <span className="inline-block px-3.5 py-1.5 bg-[#b77305] text-white rounded-full text-xs font-bold shadow-lg">
+                  <div className="absolute bottom-6 left-2 right-2 text-center">
+                    <span className="inline-block px-3 py-1.5 bg-[#b77305] text-white rounded-full text-[11px] font-bold shadow-lg max-w-full truncate">
                       {(cards[2] || FABRIC_CARDS[2]).name}
                     </span>
                   </div>
@@ -374,8 +384,8 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-stone-950/60 via-transparent to-transparent" />
                 {activeCardId === "center" && (
-                  <div className="absolute bottom-8 left-3 right-3 text-center">
-                    <span className="inline-block px-4 py-1.5 bg-[#b77305] text-white rounded-full text-xs font-bold shadow-lg">
+                  <div className="absolute bottom-8 left-2 right-2 text-center">
+                    <span className="inline-block px-3.5 py-1.5 bg-[#b77305] text-white rounded-full text-xs font-bold shadow-lg max-w-full truncate">
                       {(cards[1] || FABRIC_CARDS[1]).name}
                     </span>
                   </div>

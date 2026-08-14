@@ -51,8 +51,16 @@ export default function ProductCard({ product }: { product: Product }) {
   const imageSrc = getFabricImageSrc(product.image, product.name, product.category);
   const { displayTitle, code } = cleanTitle(product.name);
 
+  const stock = product.stock !== undefined ? product.stock : 100;
+  const isOutOfStock = stock <= 0;
+  const isLowStock = stock > 0 && stock <= 10;
+
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (isOutOfStock) {
+      toast.error(`Maaf, stok ${displayTitle} sedang habis.`);
+      return;
+    }
     addItem(product);
     toast.success(`${displayTitle} berhasil ditambahkan ke keranjang!`);
     openCart();
@@ -77,7 +85,9 @@ export default function ProductCard({ product }: { product: Product }) {
     <Link
       href={`/products/${product.id}`}
       onClick={handleCardClick}
-      className="group block bg-white rounded-2xl border border-stone-200/80 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+      className={`group block bg-white rounded-2xl border border-stone-200/80 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${
+        isOutOfStock ? "opacity-90" : ""
+      }`}
     >
       {/* Product Image Container */}
       <div className="relative aspect-[3/4] bg-stone-50 overflow-hidden border-b border-stone-100">
@@ -87,7 +97,9 @@ export default function ProductCard({ product }: { product: Product }) {
           fill
           unoptimized={imageSrc.includes("supabase.co")}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-          className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+          className={`object-cover object-center transition-transform duration-700 group-hover:scale-105 ${
+            isOutOfStock ? "grayscale-[30%]" : ""
+          }`}
         />
 
         {/* Top Badges & Actions */}
@@ -101,16 +113,26 @@ export default function ProductCard({ product }: { product: Product }) {
             <Heart className={`w-4 h-4 transition-colors ${isWished ? "fill-red-500 text-red-500" : "text-stone-700"}`} />
           </button>
 
-          {/* Grade / Sale Badge */}
-          {product.discountPrice ? (
-            <div className="bg-[#b77305] text-white px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shadow-md backdrop-blur-xs">
-              OFF {Math.round(((product.price - product.discountPrice) / product.price) * 100)}%
-            </div>
-          ) : (
-            <div className="bg-stone-900/80 text-white px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shadow-md backdrop-blur-xs">
-              {gradeLabel}
-            </div>
-          )}
+          {/* Stock & Sale Badges */}
+          <div className="flex flex-col items-end gap-1">
+            {isOutOfStock ? (
+              <div className="bg-rose-600 text-white px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase shadow-md">
+                Stok Habis
+              </div>
+            ) : isLowStock ? (
+              <div className="bg-amber-500 text-white px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase shadow-md animate-pulse">
+                Sisa {stock} pcs!
+              </div>
+            ) : product.discountPrice ? (
+              <div className="bg-[#b77305] text-white px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shadow-md backdrop-blur-xs">
+                OFF {Math.round(((product.price - product.discountPrice) / product.price) * 100)}%
+              </div>
+            ) : (
+              <div className="bg-stone-900/80 text-white px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shadow-md backdrop-blur-xs">
+                {gradeLabel}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Subtle Bottom Shadow Gradient for Hover Button */}
@@ -120,10 +142,15 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="absolute inset-x-3 bottom-3 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 z-20">
           <button
             onClick={handleQuickAdd}
-            className="w-full py-2.5 bg-stone-950 hover:bg-[#b77305] text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all transform active:scale-95"
+            disabled={isOutOfStock}
+            className={`w-full py-2.5 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all transform active:scale-95 ${
+              isOutOfStock 
+                ? "bg-stone-400 cursor-not-allowed" 
+                : "bg-stone-950 hover:bg-[#b77305]"
+            }`}
           >
             <ShoppingBag className="w-4 h-4" />
-            <span>Tambah Ke Keranjang</span>
+            <span>{isOutOfStock ? "Stok Habis" : "Tambah Ke Keranjang"}</span>
           </button>
         </div>
       </div>
@@ -146,22 +173,30 @@ export default function ProductCard({ product }: { product: Product }) {
           {displayTitle}
         </h3>
 
-        {/* Pricing Display */}
-        <div className="flex items-baseline gap-2 pt-1">
-          {product.discountPrice ? (
-            <>
-              <span className="font-sans font-bold text-base text-[#965e04]">
-                Rp {product.discountPrice.toLocaleString("id-ID")}<span className="text-xs font-normal text-stone-600"> / meter</span>
-              </span>
-              <span className="text-xs text-stone-500 line-through font-sans">
+        {/* Pricing Display & Stock info */}
+        <div className="flex items-center justify-between pt-1">
+          <div className="flex items-baseline gap-2">
+            {product.discountPrice ? (
+              <>
+                <span className="font-sans font-bold text-base text-[#965e04]">
+                  Rp {product.discountPrice.toLocaleString("id-ID")}
+                </span>
+                <span className="text-xs text-stone-500 line-through font-sans">
+                  Rp {product.price.toLocaleString("id-ID")}
+                </span>
+              </>
+            ) : (
+              <span className="font-sans font-bold text-base text-stone-900">
                 Rp {product.price.toLocaleString("id-ID")}
               </span>
-            </>
-          ) : (
-            <span className="font-sans font-bold text-base text-stone-900">
-              Rp {product.price.toLocaleString("id-ID")}<span className="text-xs font-normal text-stone-600"> / meter</span>
-            </span>
-          )}
+            )}
+          </div>
+
+          <span className={`text-[11px] font-bold ${
+            isOutOfStock ? "text-rose-600" : isLowStock ? "text-amber-600" : "text-emerald-600"
+          }`}>
+            {isOutOfStock ? "Stok Habis" : `Stok: ${stock} pcs`}
+          </span>
         </div>
       </div>
     </Link>

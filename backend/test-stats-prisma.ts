@@ -26,8 +26,9 @@ async function test() {
       })
     ]);
 
-    console.log("allOrders count:", allOrders.length);
-    console.log("recentOrders count:", recentOrders.length);
+    const products = await prisma.product.findMany({ take: 5 });
+    console.log("Products count:", products.length);
+    console.log("Sample product colorStocks:", products[0]?.colorStocks);
     console.log("Success!");
   } catch (err) {
     console.error("Prisma logic error:", err);

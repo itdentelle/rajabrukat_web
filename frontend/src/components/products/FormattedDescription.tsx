@@ -27,15 +27,28 @@ export default function FormattedDescription({ description }: FormattedDescripti
   // Extract Grade Info
   const gradeMatch = rawText.match(/KETERANGAN GRADE\s*:\s*([^:\n\r]+)/i) || 
                      rawText.match(/GRADE\s+([AB])\s*–\s*([^:\n\r]+)/i);
+  // Extract Informasi Kain & Deskripsi Produk
+  let fabricInfoText = "";
+  let productDescText = "";
 
-  // Extract Product Information
-  let infoText = "";
-  const infoMatch = rawText.match(/INFORMASI PRODUK\s*:\s*([\s\S]*?)(?=CATATAN PENGIRIMAN|#|$)/i);
-  if (infoMatch) {
-    infoText = infoMatch[1].trim();
-  } else {
-    // Clean out known header strings if no explicit INFORMASI PRODUK tag exists
-    infoText = rawText
+  const fabricInfoMatch = rawText.match(/INFORMASI KAIN\s*:\s*([\s\S]*?)(?=DESKRIPSI PRODUK|DESKRIPSI:|CATATAN PENGIRIMAN|#|$)/i) ||
+                          rawText.match(/INFORMASI PRODUK\s*:\s*([\s\S]*?)(?=DESKRIPSI PRODUK|DESKRIPSI:|CATATAN PENGIRIMAN|#|$)/i);
+  
+  const descMatch = rawText.match(/DESKRIPSI PRODUK\s*:\s*([\s\S]*?)(?=CATATAN PENGIRIMAN|#|$)/i) ||
+                    rawText.match(/DESKRIPSI\s*:\s*([\s\S]*?)(?=CATATAN PENGIRIMAN|#|$)/i);
+
+  if (fabricInfoMatch) {
+    fabricInfoText = fabricInfoMatch[1].trim();
+  }
+  if (descMatch) {
+    productDescText = descMatch[1].trim();
+  }
+
+  // Fallback if no explicit tags exist
+  if (!fabricInfoMatch && !descMatch) {
+    fabricInfoText = rawText
+      .replace(/Panjang\s*1?\s*Kain\s*:\s*[^\n\r]+\n?/gi, "")
+      .replace(/Lebar\s*1?\s*Kain\s*:\s*[^\n\r]+\n?/gi, "")
       .replace(/Informasi Kain\s*:\s*/gi, "")
       .replace(/KETERSEDIAAN WARNA\s*:[\s\S]*?SUB TOTAL[^\n\r–\-]*/gi, "")
       .replace(/---.*?---/gi, "")
@@ -54,7 +67,7 @@ export default function FormattedDescription({ description }: FormattedDescripti
   const hashtags = rawText.match(/#[\w]+/g);
 
   // Check if text was parsed into structured sections
-  const hasStructuredSections = lengthVal || widthVal || gradeMatch || infoText || shippingText;
+  const hasStructuredSections = lengthVal || widthVal || gradeMatch || fabricInfoText || productDescText || shippingText;
 
   if (!hasStructuredSections) {
     return (
@@ -68,26 +81,26 @@ export default function FormattedDescription({ description }: FormattedDescripti
     <div className="space-y-6 text-sm">
       {/* Dimension Badges / Specs */}
       {(lengthVal || widthVal) && (
-        <div className="grid grid-cols-2 gap-3 p-3.5 bg-gray-50 rounded-xl border border-gray-200">
+        <div className="grid grid-cols-2 gap-3 p-4 bg-stone-50/70 rounded-2xl border border-stone-200/80 shadow-2xs">
           {lengthVal && (
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-white rounded-lg border border-gray-200 text-gray-700">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white rounded-xl border border-stone-200 flex items-center justify-center text-stone-700 shadow-2xs shrink-0">
                 <Ruler className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-xs text-gray-400 font-medium">Panjang Kain</p>
-                <p className="text-xs font-semibold text-gray-800">{lengthVal}</p>
+                <p className="text-[11px] text-stone-400 font-medium leading-none mb-1">Panjang Kain</p>
+                <p className="text-sm font-extrabold text-stone-900 leading-none">{lengthVal}</p>
               </div>
             </div>
           )}
           {widthVal && (
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-white rounded-lg border border-gray-200 text-gray-700">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white rounded-xl border border-stone-200 flex items-center justify-center text-stone-700 shadow-2xs shrink-0">
                 <Ruler className="w-4 h-4 rotate-90" />
               </div>
               <div>
-                <p className="text-xs text-gray-400 font-medium">Lebar Kain</p>
-                <p className="text-xs font-semibold text-gray-800">{widthVal}</p>
+                <p className="text-[11px] text-stone-400 font-medium leading-none mb-1">Lebar Kain</p>
+                <p className="text-sm font-extrabold text-stone-900 leading-none">{widthVal}</p>
               </div>
             </div>
           )}
@@ -105,28 +118,53 @@ export default function FormattedDescription({ description }: FormattedDescripti
         </div>
       )}
 
-      {/* Product Description Body */}
-      {infoText && (
-        <div className="space-y-2">
-          <h4 className="font-semibold text-gray-900 text-xs uppercase tracking-wider">Detail & Keunggulan Produk</h4>
-          <p className="text-gray-600 leading-relaxed whitespace-pre-line text-sm">
-            {infoText}
+      {/* Fabric Info Section */}
+      {fabricInfoText && (
+        <div className="space-y-1.5">
+          <h4 className="font-bold text-stone-900 text-xs uppercase tracking-wider">INFORMASI KAIN</h4>
+          <p className="text-stone-700 leading-relaxed whitespace-pre-line text-sm">
+            {fabricInfoText}
           </p>
         </div>
       )}
 
-      {/* Shipping Note */}
-      {shippingText && (
-        <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-xl space-y-1.5 text-xs text-gray-600">
-          <div className="flex items-center gap-2 font-semibold text-gray-800">
-            <Truck className="w-4 h-4 text-gray-600" />
-            <span>Catatan Pengiriman</span>
-          </div>
-          <p className="leading-relaxed pl-6 whitespace-pre-line">
-            {shippingText.replace(/•/g, "\n• ").trim()}
+      {/* Product Description Section */}
+      {productDescText && (
+        <div className="space-y-1.5">
+          <h4 className="font-bold text-stone-900 text-xs uppercase tracking-wider">DESKRIPSI PRODUK</h4>
+          <p className="text-stone-700 leading-relaxed whitespace-pre-line text-sm">
+            {productDescText}
           </p>
         </div>
       )}
+
+      {/* Catatan Pengiriman (Default Automatic on All Products) */}
+      <div className="p-4 bg-stone-50/80 border border-stone-200/80 rounded-2xl space-y-3 text-xs text-stone-700 shadow-2xs">
+        <div className="flex items-center gap-2 font-extrabold text-stone-900 text-sm">
+          <Truck className="w-4 h-4 text-stone-800" />
+          <span>Catatan Pengiriman</span>
+        </div>
+        {shippingText ? (
+          <p className="leading-relaxed pl-6 whitespace-pre-line text-stone-600">
+            {shippingText.replace(/•/g, "\n• ").trim()}
+          </p>
+        ) : (
+          <ul className="space-y-2 text-stone-600 font-medium pl-1">
+            <li className="flex items-start gap-2">
+              <span className="text-stone-400 font-bold">•</span>
+              <span>Closing hari Senin – Jumat pukul 14.30 | Sabtu pukul 11.30</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-stone-400 font-bold">•</span>
+              <span>Pemesanan di luar jam operasional akan diproses esok hari.</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-stone-400 font-bold">•</span>
+              <span>Tidak ada pengiriman di hari Minggu dan tanggal merah.</span>
+            </li>
+          </ul>
+        )}
+      </div>
 
       {/* Hashtags */}
       {hashtags && hashtags.length > 0 && (

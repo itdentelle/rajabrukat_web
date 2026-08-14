@@ -98,31 +98,43 @@ export default function CartDrawer() {
 
                     <div className="flex items-center justify-between mt-4">
                       {/* Quantity Control */}
-                      <div className="flex items-center border border-[var(--border)]">
-                        <button 
-                          onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
-                          aria-label="Decrease Quantity"
-                          className="px-3 py-1 hover:bg-[var(--muted)] transition-colors"
-                        >
-                          <Minus size={14} />
-                        </button>
-                        <span className="px-3 py-1 text-sm font-medium min-w-[2rem] text-center">
-                          {item.quantity}
-                        </span>
-                        <button 
-                          onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
-                          aria-label="Increase Quantity"
-                          className="px-3 py-1 hover:bg-[var(--muted)] transition-colors"
-                        >
-                          <Plus size={14} />
-                        </button>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center border border-[var(--border)]">
+                          <button 
+                            onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
+                            aria-label="Decrease Quantity"
+                            className="px-3 py-1 hover:bg-[var(--muted)] transition-colors"
+                          >
+                            <Minus size={14} />
+                          </button>
+                          <span className="px-3 py-1 text-sm font-medium min-w-[2rem] text-center">
+                            {item.quantity}
+                          </span>
+                          <button 
+                            onClick={() => {
+                              if (item.stock !== undefined && item.quantity >= item.stock) {
+                                toast(`Mencapai batas stok tersedia (${item.stock} pcs)`, { icon: "⚠️" });
+                                return;
+                              }
+                              updateQuantity(item.cartItemId, item.quantity + 1);
+                            }}
+                            disabled={item.stock !== undefined && item.quantity >= item.stock}
+                            aria-label="Increase Quantity"
+                            className="px-3 py-1 hover:bg-[var(--muted)] transition-colors disabled:opacity-30"
+                          >
+                            <Plus size={14} />
+                          </button>
+                        </div>
+                        {item.stock !== undefined && item.quantity >= item.stock && (
+                          <span className="text-[10px] text-amber-600 font-bold">Max stok ({item.stock} pcs)</span>
+                        )}
                       </div>
 
                       {/* Remove */}
                       <button 
                         onClick={() => {
                           removeItem(item.cartItemId);
-                          toast(`${item.name} removed`, { icon: '🗑️' });
+                          toast(`${item.name} dihapus`, { icon: '🗑️' });
                         }}
                         aria-label="Remove Item"
                         className="text-gray-400 hover:text-red-500 transition-colors p-2"
