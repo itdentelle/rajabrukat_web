@@ -160,10 +160,10 @@ export default function ProductCard({ product }: { product: Product }) {
         {/* Category & Code Subtitle */}
         <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#965e04] uppercase tracking-wider">
           <span>{gradeLabel}</span>
-          {code && (
+          {(product.code || code) && (
             <>
               <span className="text-stone-400">•</span>
-              <span className="text-stone-600 font-medium">{code}</span>
+              <span className="text-stone-600 font-medium font-mono">{product.code || code}</span>
             </>
           )}
         </div>

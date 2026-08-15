@@ -22,6 +22,7 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
+    code: "",
     price: "",
     category: "Brukat Tile Mutiara",
     description: "",
@@ -40,6 +41,12 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
   const [colorStocks, setColorStocks] = useState<Record<string, string>>({});
   const [colorImages, setColorImages] = useState<Record<string, string>>({});
   const [colorImageFiles, setColorImageFiles] = useState<Record<string, File>>({});
+
+  const extractCode = (name: string): string => {
+    if (!name) return "";
+    const m = name.match(/\[\s*(?:KODE\s*)?([A-Za-z0-9]+)\s*\]/i) || name.match(/KODE\s*[:\-_]?\s*\[?\s*([A-Za-z0-9]+)\s*\]?/i);
+    return m ? m[1].trim().toUpperCase() : "";
+  };
 
   const formatCmToMeterAndCm = (val: string): string => {
     if (!val || !val.trim()) return "";
@@ -112,6 +119,7 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
       setColorStocks(initColorStocks);
       setFormData({
         name: initialData.name || "",
+        code: initialData.code || extractCode(initialData.name || ""),
         price: initialData.price ? initialData.price.toString() : "",
         category: initialData.category || "Brukat Tile Mutiara",
         description: parsedDesc,
@@ -133,7 +141,7 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
   const updateColorStock = (colorName: string, stockVal: string) => {
     const nextStocks = { ...colorStocks, [colorName]: stockVal };
     setColorStocks(nextStocks);
-    
+
     // Auto calculate total stock if colors exist
     const total = Object.values(nextStocks).reduce((sum, v) => sum + (parseInt(v) || 0), 0);
     setFormData((prev) => ({ ...prev, stock: total.toString() }));
@@ -245,20 +253,23 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
 
       setUploadingImage(false);
 
-      const url = isEdit 
-        ? `${API_BASE_URL}/api/products/${productId}` 
+      const url = isEdit
+        ? `${API_BASE_URL}/api/products/${productId}`
         : `${API_BASE_URL}/api/products`;
-        
+
       const method = isEdit ? "PUT" : "POST";
 
       const token = localStorage.getItem("admin_token") || localStorage.getItem("token");
+      const cleanPrice = parseFloat(String(formData.price || "").replace(/[^0-9.]/g, "")) || 0;
+      const cleanStock = parseInt(String(formData.stock || "0").replace(/[^0-9]/g, "")) || 0;
+
       let computedDiscountPrice: number | null = null;
-      if (discountType !== "none" && discountValue && formData.price) {
-        const originalPrice = parseInt(formData.price);
+      if (discountType !== "none" && discountValue && cleanPrice > 0) {
+        const discVal = parseFloat(String(discountValue).replace(/[^0-9.]/g, "")) || 0;
         if (discountType === "percentage") {
-          computedDiscountPrice = originalPrice - (originalPrice * parseInt(discountValue) / 100);
+          computedDiscountPrice = Math.max(0, cleanPrice - (cleanPrice * discVal / 100));
         } else if (discountType === "nominal") {
-          computedDiscountPrice = originalPrice - parseInt(discountValue);
+          computedDiscountPrice = Math.max(0, cleanPrice - discVal);
         }
       }
 
@@ -279,24 +290,30 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
 
       const finalDescription = parts.join("\n\n").trim();
 
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const res = await fetch(url, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
+        headers,
+        credentials: "include",
         body: JSON.stringify({
           ...formData,
+          code: formData.code?.trim().toUpperCase() || null,
           description: finalDescription,
-          image: mainImageUrl,
+          image: mainImageUrl || "/images/brukat_tile_mutiara.png",
           galleryImages: newGalleryUrls,
           colors: activeColors,
           colorStocks: Object.keys(payloadColorStocks).length > 0 ? payloadColorStocks : undefined,
           colorImages: Object.keys(payloadColorImages).length > 0 ? payloadColorImages : undefined,
-          price: parseInt(formData.price),
+          price: cleanPrice,
           discountPrice: computedDiscountPrice,
-          sizeGuide: sizeGuideUrl,
-          stock: parseInt(formData.stock) || 0,
+          sizeGuide: sizeGuideUrl || null,
+          stock: cleanStock,
         }),
       });
 
@@ -304,11 +321,16 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
         toast.success("Produk berhasil disimpan!");
         router.push("/admin/products");
       } else {
-        toast.error("Gagal menyimpan produk");
+        const errorData = await res.json().catch(() => ({}));
+        if (res.status === 401 || res.status === 403) {
+          toast.error("Sesi admin berakhir atau belum login. Silakan login kembali ke admin.");
+        } else {
+          toast.error(errorData.error || errorData.message || `Gagal menyimpan produk (Status ${res.status})`);
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving product:", error);
-      toast.error("Terjadi kesalahan saat menyimpan produk.");
+      toast.error(error?.message || "Terjadi kesalahan koneksi saat menyimpan produk.");
     } finally {
       setLoading(false);
     }
@@ -316,15 +338,31 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 w-full bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Product Name</label>
-        <input
-          type="text"
-          required
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2">
+          <label className="block text-sm font-bold text-gray-700">Nama Produk</label>
+          <input
+            type="text"
+            required
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder="Contoh: Panel Brukat Chantilly Premium"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm font-medium"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-bold text-gray-700 flex items-center justify-between">
+            <span>Kode Kain</span>
+          </label>
+          <input
+            type="text"
+            value={formData.code}
+            onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+            placeholder="Contoh: 3947AR, 4224"
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm font-mono uppercase tracking-wider font-bold text-stone-900 bg-stone-50"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -352,16 +390,16 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
         </div>
       </div>
       <datalist id="category-suggestions">
-            <option value="Brukat Tile Mutiara" />
-            <option value="Renda Chantilly" />
-            <option value="Cornely 3D" />
-            <option value="Brukat Cord" />
-            <option value="Silk & Satin" />
-            <option value="Brukat Premium" />
-            <option value="Metallic" />
-            <option value="Panel Full Metalic" />
-            <option value="Panel Brukat Polos" />
-          </datalist>
+        <option value="Brukat Tile Mutiara" />
+        <option value="Renda Chantilly" />
+        <option value="Cornely 3D" />
+        <option value="Brukat Cord" />
+        <option value="Silk & Satin" />
+        <option value="Brukat Premium" />
+        <option value="Metallic" />
+        <option value="Panel Full Metalic" />
+        <option value="Panel Brukat Polos" />
+      </datalist>
 
       <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
         <label className="block text-sm font-medium text-gray-700 mb-2">Diskon / Potongan Harga</label>
@@ -392,9 +430,9 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
         {discountType !== "none" && discountValue && formData.price && (
           <p className="mt-2 text-sm text-green-600">
             Harga akhir setelah diskon: Rp {(
-              discountType === "percentage" 
-              ? parseInt(formData.price) - (parseInt(formData.price) * parseInt(discountValue) / 100) 
-              : parseInt(formData.price) - parseInt(discountValue)
+              discountType === "percentage"
+                ? parseInt(formData.price) - (parseInt(formData.price) * parseInt(discountValue) / 100)
+                : parseInt(formData.price) - parseInt(discountValue)
             ).toLocaleString("id-ID")}
           </p>
         )}
@@ -423,10 +461,10 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
         {formData.image && (
           <div className="mt-4">
             <p className="text-xs text-gray-500 mb-2">Image Preview:</p>
-            <img 
-              src={formData.image} 
-              alt="Preview" 
-              className="h-32 object-cover rounded-md border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity" 
+            <img
+              src={formData.image}
+              alt="Preview"
+              className="h-32 object-cover rounded-md border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => setPreviewImage(formData.image)}
             />
           </div>
@@ -470,10 +508,10 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
               {/* Existing Database Gallery Images */}
               {formData.galleryImages.map((url, idx) => (
                 <div key={`existing-${idx}`} className="relative group rounded-xl overflow-hidden border border-stone-200 shadow-xs h-28 bg-stone-100">
-                  <img 
-                    src={url} 
-                    alt={`Gallery ${idx + 1}`} 
-                    className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                  <img
+                    src={url}
+                    alt={`Gallery ${idx + 1}`}
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   />
                   {/* Remove Existing Photo Button */}
                   <button
@@ -499,10 +537,10 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
                 const objectUrl = URL.createObjectURL(file);
                 return (
                   <div key={`new-${idx}`} className="relative group rounded-xl overflow-hidden border border-amber-300 ring-2 ring-amber-400/30 shadow-xs h-28 bg-stone-100">
-                    <img 
-                      src={objectUrl} 
-                      alt={`New Gallery ${idx + 1}`} 
-                      className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                    <img
+                      src={objectUrl}
+                      alt={`New Gallery ${idx + 1}`}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     />
                     {/* Remove New File Button */}
                     <button
@@ -629,7 +667,7 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
             </span>
           )}
         </div>
-        
+
         {formData.colors.length > 0 ? (
           <div className="overflow-x-auto border border-stone-200 rounded-xl shadow-xs">
             <table className="min-w-full divide-y divide-stone-200">
@@ -651,8 +689,8 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
               </thead>
               <tbody className="bg-white divide-y divide-stone-200">
                 {formData.colors.map((color, index) => {
-                  const previewUrl = colorImageFiles[color] 
-                    ? URL.createObjectURL(colorImageFiles[color]) 
+                  const previewUrl = colorImageFiles[color]
+                    ? URL.createObjectURL(colorImageFiles[color])
                     : (colorImages[color] || (formData.image ? formData.image : ""));
 
                   return (
@@ -742,8 +780,8 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
                             value={
                               colorImageFiles[color]
                                 ? (colorImageFiles[color] === imageFile
-                                    ? "FILE_MAIN"
-                                    : galleryFiles.indexOf(colorImageFiles[color]) >= 0
+                                  ? "FILE_MAIN"
+                                  : galleryFiles.indexOf(colorImageFiles[color]) >= 0
                                     ? `FILE_GALLERY_${galleryFiles.indexOf(colorImageFiles[color])}`
                                     : "")
                                 : (colorImages[color] || "")
@@ -878,21 +916,21 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
 
       {/* Image Preview Modal */}
       {previewImage && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
           onClick={() => setPreviewImage(null)}
         >
           <div className="relative max-w-5xl max-h-[90vh] w-full h-full flex items-center justify-center">
-            <button 
+            <button
               type="button"
               className="absolute top-4 right-4 text-white hover:text-gray-300 bg-black/50 rounded-full p-2 transition-colors z-[101]"
               onClick={() => setPreviewImage(null)}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
-            <img 
-              src={previewImage} 
-              alt="Enlarged Preview" 
+            <img
+              src={previewImage}
+              alt="Enlarged Preview"
               className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             />

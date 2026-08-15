@@ -5,6 +5,7 @@ import { API_BASE_URL } from '@/lib/api';
 export interface Product {
   id: string;
   name: string;
+  code?: string;
   price: number;
   discountPrice?: number | null;
   image: string;

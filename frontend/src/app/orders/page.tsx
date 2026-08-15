@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function OrdersPage() {
     setTrackingData(null);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/orders/${orderId}/track`, {
+      const res = await fetch(`${API_BASE_URL}/api/orders/${orderId}/track`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const data = await res.json();
@@ -53,7 +54,7 @@ export default function OrdersPage() {
       return;
     }
 
-    fetch("http://localhost:5000/api/my-orders", {
+    fetch(`${API_BASE_URL}/api/my-orders`, {
       headers: {
         "Authorization": `Bearer ${token}`
       }

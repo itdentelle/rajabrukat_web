@@ -38,3 +38,15 @@ backend/public/uploads/*
 # Agent/AI Data
 .gemini/
 scratch/
+
+# Temporary Scratch Scripts & Data
+*.xlsx
+*.xls
+*.csv
+test-all.js
+backend/src/analyze-stock-parsing.ts
+backend/src/inspect-excel.ts
+backend/src/populate-product-codes.ts
+backend/src/test-product-update.ts
+backend/src/update-stocks-from-excel.ts
+

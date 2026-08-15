@@ -7,6 +7,7 @@ import { Product } from "@/store/cartStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { Suspense } from "react";
 import ProductSkeleton from "@/components/ui/ProductSkeleton";
+import { API_BASE_URL } from "@/lib/api";
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -20,7 +21,7 @@ function SearchContent() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:5000/api/products/search?q=${encodeURIComponent(query)}`)
+    fetch(`${API_BASE_URL}/api/products/search?q=${encodeURIComponent(query)}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch");
         return res.json();

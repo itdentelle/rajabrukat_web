@@ -7,16 +7,19 @@ import FloatingSocialWidget from "./FloatingSocialWidget";
 import AiChatWidget from "../ai/AiChatWidget";
 
 import { useEffect, useState } from "react";
-
+import { API_BASE_URL } from "@/lib/api";
 
 if (typeof window !== "undefined" && !(window as any).__fetchIntercepted) {
   (window as any).__fetchIntercepted = true;
   const originalFetch = window.fetch;
   window.fetch = async function () {
     let [resource, config] = arguments;
-    if (typeof resource === 'string' && resource.startsWith('http://localhost:5000')) {
+    if (
+      typeof resource === "string" &&
+      (resource.startsWith("http://localhost:5000") || (API_BASE_URL && resource.startsWith(API_BASE_URL)))
+    ) {
       config = config || {};
-      config.credentials = 'include';
+      config.credentials = "include";
     }
     return await originalFetch(resource, config);
   };

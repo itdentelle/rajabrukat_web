@@ -665,7 +665,7 @@ app.get('/api/products', cacheMiddleware(3600), async (req: Request, res: Respon
     }
 
     const [products, total] = await Promise.all([
-      prisma.product.findMany({ where: whereClause, skip, take: limit }),
+      prisma.product.findMany({ where: whereClause, skip, take: limit, orderBy: { createdAt: 'desc' } }),
       prisma.product.count({ where: whereClause })
     ]);
 
@@ -721,6 +721,7 @@ app.get('/api/products/search', cacheMiddleware(3600), async (req: Request, res:
         isActive: true,
         OR: [
           { name: { contains: q, mode: 'insensitive' } },
+          { code: { contains: q, mode: 'insensitive' } },
           { category: { contains: q, mode: 'insensitive' } },
           { description: { contains: q, mode: 'insensitive' } }
         ]
@@ -760,7 +761,7 @@ app.get('/api/products/:id', cacheMiddleware(3600), async (req: Request, res: Re
 // API Route: Create a new product
 app.post('/api/products', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const { name, price, discountPrice, category, description, image, galleryImages, colors, sizeGuide, stock, colorStocks, colorImages } = req.body;
+    const { name, code, price, discountPrice, category, description, image, galleryImages, colors, sizeGuide, stock, colorStocks, colorImages } = req.body;
     let computedStock = stock !== undefined ? Number(stock) : 100;
     let parsedColorStocks = colorStocks && typeof colorStocks === 'object' ? colorStocks : null;
     let parsedColorImages = colorImages && typeof colorImages === 'object' ? colorImages : null;
@@ -771,6 +772,7 @@ app.post('/api/products', authenticateToken, async (req: Request, res: Response)
     const product = await prisma.product.create({
       data: { 
         name, 
+        code: code && typeof code === 'string' ? code.trim().toUpperCase() : undefined,
         price: Number(price), 
         discountPrice: discountPrice ? Number(discountPrice) : null, 
         category, 
@@ -799,7 +801,7 @@ app.post('/api/products', authenticateToken, async (req: Request, res: Response)
 app.put('/api/products/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const { name, price, discountPrice, category, description, image, galleryImages, colors, sizeGuide, stock, colorStocks, colorImages } = req.body;
+    const { name, code, price, discountPrice, category, description, image, galleryImages, colors, sizeGuide, stock, colorStocks, colorImages } = req.body;
     let parsedColorStocks = colorStocks && typeof colorStocks === 'object' ? colorStocks : undefined;
     let parsedColorImages = colorImages && typeof colorImages === 'object' ? colorImages : undefined;
     let computedStock = stock !== undefined ? Number(stock) : undefined;
@@ -811,6 +813,7 @@ app.put('/api/products/:id', authenticateToken, async (req: Request, res: Respon
       where: { id },
       data: { 
         name, 
+        code: code !== undefined ? (code && typeof code === 'string' ? code.trim().toUpperCase() : null) : undefined,
         price: Number(price), 
         discountPrice: discountPrice ? Number(discountPrice) : null, 
         category, 
@@ -1035,9 +1038,9 @@ app.post('/api/orders', async (req: Request, res: Response) => {
             "shopeepay"
           ],
           "callbacks": {
-            "finish": "http://localhost:3000/profile",
-            "error": "http://localhost:3000/profile",
-            "unfinish": "http://localhost:3000/profile"
+            "finish": `${process.env.FRONTEND_URL || "http://localhost:3000"}/profile`,
+            "error": `${process.env.FRONTEND_URL || "http://localhost:3000"}/profile`,
+            "unfinish": `${process.env.FRONTEND_URL || "http://localhost:3000"}/profile`
           },
           "customer_details": {
             "first_name": customerName,

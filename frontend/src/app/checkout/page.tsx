@@ -4,6 +4,7 @@ import { useCartStore } from "@/store/cartStore";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -52,7 +53,7 @@ export default function CheckoutPage() {
     }
 
     // Fetch profile
-    fetch("http://localhost:5000/api/users/profile", {
+    fetch(`${API_BASE_URL}/api/users/profile`, {
       headers: { "Authorization": `Bearer ${token}` }
     })
       .then(res => {
@@ -105,7 +106,7 @@ export default function CheckoutPage() {
       return;
     }
     const delayDebounceFn = setTimeout(() => {
-      fetch(`http://localhost:5000/api/shipping/search?q=${searchQuery}`)
+      fetch(`${API_BASE_URL}/api/shipping/search?q=${searchQuery}`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
@@ -127,7 +128,7 @@ export default function CheckoutPage() {
 
     const weight = items.reduce((total, item) => total + (500 * item.quantity), 0);
 
-    fetch("http://localhost:5000/api/shipping/cost", {
+    fetch(`${API_BASE_URL}/api/shipping/cost`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -213,7 +214,7 @@ export default function CheckoutPage() {
         }))
       };
 
-      const res = await fetch("http://localhost:5000/api/orders", {
+      const res = await fetch(`${API_BASE_URL}/api/orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

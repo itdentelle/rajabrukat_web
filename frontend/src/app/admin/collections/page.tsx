@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { API_BASE_URL } from "@/lib/api";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 interface Collection {
   id: string;
@@ -17,6 +18,14 @@ interface Collection {
 export default function AdminCollections() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    collection: Collection | null;
+  }>({
+    isOpen: false,
+    collection: null,
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchCollections = () => {
     setLoading(true);
@@ -37,22 +46,26 @@ export default function AdminCollections() {
     fetchCollections();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this collection?")) return;
+  const handleConfirmDelete = async () => {
+    if (!deleteModal.collection) return;
+    setIsDeleting(true);
 
     const token = localStorage.getItem("admin_token") || localStorage.getItem("token");
     try {
-      const res = await fetch(`${API_BASE_URL}/api/collections/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/collections/${deleteModal.collection.id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
 
       if (!res.ok) throw new Error("Failed to delete");
-      toast.success("Collection deleted");
+      toast.success("Koleksi berhasil dihapus");
+      setDeleteModal({ isOpen: false, collection: null });
       fetchCollections();
     } catch (err) {
       console.error(err);
-      toast.error("Failed to delete collection");
+      toast.error("Gagal menghapus koleksi");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -106,7 +119,11 @@ export default function AdminCollections() {
                     <Link href={`/admin/collections/edit/${c.id}`} className="text-blue-600 hover:text-blue-800">
                       <Edit className="w-5 h-5" />
                     </Link>
-                    <button onClick={() => handleDelete(c.id)} className="text-red-600 hover:text-red-800">
+                    <button 
+                      onClick={() => setDeleteModal({ isOpen: true, collection: c })} 
+                      className="text-red-600 hover:text-red-800"
+                      title="Hapus Koleksi"
+                    >
                       <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
@@ -123,6 +140,22 @@ export default function AdminCollections() {
           </tbody>
         </table>
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => !isDeleting && setDeleteModal({ isOpen: false, collection: null })}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
+        title="Hapus Koleksi?"
+        description="Apakah Anda yakin ingin menghapus koleksi ini? Tindakan ini tidak dapat dibatalkan."
+        itemName={deleteModal.collection?.title}
+        itemSubtitle={deleteModal.collection?.subtitle}
+        variant="danger"
+        confirmText="Hapus Koleksi"
+        cancelText="Batal"
+      />
     </div>
   );
 }
+

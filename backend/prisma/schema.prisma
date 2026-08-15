@@ -10,6 +10,7 @@ datasource db {
 model Product {
   id            String   @id @default(uuid())
   name          String
+  code          String?  // Kode Kain / SKU (misal: 3947AR, 4224, 210E)
   price         Float
   discountPrice Float?
   category      String

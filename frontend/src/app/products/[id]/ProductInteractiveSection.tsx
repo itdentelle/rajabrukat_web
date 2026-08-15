@@ -49,7 +49,14 @@ export default function ProductInteractiveSection({
 
       {/* Right Column: Product Info & Specifications */}
       <div className="flex flex-col">
-        <p className="text-gray-500 uppercase tracking-widest text-sm font-bold mb-3">{product.category}</p>
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <span className="text-stone-500 uppercase tracking-widest text-xs sm:text-sm font-bold">{product.category}</span>
+          {product.code && (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-mono font-bold bg-[#b77305]/10 text-[#b77305] border border-[#b77305]/20">
+              KODE: {product.code}
+            </span>
+          )}
+        </div>
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-gray-900 leading-snug mb-3">{formattedTitle}</h1>
         
         {reviews.length > 0 && (

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Star, MessageSquare } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { API_BASE_URL } from "@/lib/api";
 
 interface Review {
   id: string;
@@ -33,7 +34,7 @@ export default function ProductReviews({ productId }: { productId: string }) {
 
   const fetchReviews = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/products/${productId}/reviews`);
+      const res = await fetch(`${API_BASE_URL}/api/products/${productId}/reviews`);
       if (res.ok) {
         const data = await res.json();
         setReviews(data);

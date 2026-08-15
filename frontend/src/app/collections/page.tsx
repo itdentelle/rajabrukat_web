@@ -5,6 +5,7 @@ import { Reveal, FadeIn } from "@/components/ui/Reveal";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/lib/api";
 
 interface Collection {
   id: string;
@@ -21,7 +22,7 @@ export default function CollectionsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/collections")
+    fetch(`${API_BASE_URL}/api/collections`)
       .then(res => {
         const contentType = res.headers.get("content-type") || "";
         if (!res.ok || !contentType.includes("application/json")) return [];

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LogOut, Package, MapPin } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useCartStore } from "@/store/cartStore";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -38,7 +39,7 @@ export default function ProfilePage() {
     setTrackingData(null);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/orders/${orderId}/track`, {
+      const res = await fetch(`${API_BASE_URL}/api/orders/${orderId}/track`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const data = await res.json();
@@ -75,7 +76,7 @@ export default function ProfilePage() {
     setSubmittingReview(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/products/${reviewProductId}/reviews`, {
+      const res = await fetch(`${API_BASE_URL}/api/products/${reviewProductId}/reviews`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -115,7 +116,7 @@ export default function ProfilePage() {
     }
 
     // Fetch User Profile
-    fetch("http://localhost:5000/api/users/profile", {
+    fetch(`${API_BASE_URL}/api/users/profile`, {
       headers: { "Authorization": `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -153,7 +154,7 @@ export default function ProfilePage() {
       .catch(console.error);
 
     // Fetch Orders
-    fetch("http://localhost:5000/api/my-orders", {
+    fetch(`${API_BASE_URL}/api/my-orders`, {
       headers: { "Authorization": `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -175,7 +176,7 @@ export default function ProfilePage() {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:5000/api/auth/logout", { method: "POST" });
+      await fetch(`${API_BASE_URL}/api/auth/logout`, { method: "POST" });
     } catch (err) {
       console.error("Logout failed:", err);
     }
@@ -189,14 +190,14 @@ export default function ProfilePage() {
     if (!window.confirm("Apakah Anda yakin ingin membatalkan pesanan ini? (Tindakan ini tidak bisa dibatalkan)")) return;
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/orders/${orderId}/cancel`, {
+      const res = await fetch(`${API_BASE_URL}/api/orders/${orderId}/cancel`, {
         method: "PUT",
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
         toast.success("Pesanan berhasil dibatalkan!");
         // Refresh orders
-        const updatedRes = await fetch("http://localhost:5000/api/my-orders", {
+        const updatedRes = await fetch(`${API_BASE_URL}/api/my-orders`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         const updatedData = await updatedRes.json();
@@ -270,7 +271,7 @@ export default function ProfilePage() {
                 setUpdatingProfile(true);
                 try {
                   const token = localStorage.getItem("token");
-                  const res = await fetch("http://localhost:5000/api/users/profile", {
+                  const res = await fetch(`${API_BASE_URL}/api/users/profile`, {
                     method: "PUT",
                     headers: { 
                       "Content-Type": "application/json",
