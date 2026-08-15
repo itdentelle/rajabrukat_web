@@ -59,7 +59,7 @@ export const metadata: Metadata = {
 
 import { Toaster } from "react-hot-toast";
 
-const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "dummy-client-id.apps.googleusercontent.com";
 
 export default function RootLayout({
   children,
@@ -104,13 +104,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col font-sans bg-[var(--background)] text-[var(--foreground)] overflow-x-hidden overscroll-x-none">
-        {googleClientId ? (
-          <GoogleOAuthProvider clientId={googleClientId}>
-            {content}
-          </GoogleOAuthProvider>
-        ) : (
-          content
-        )}
+        <GoogleOAuthProvider clientId={googleClientId}>
+          {content}
+        </GoogleOAuthProvider>
       </body>
     </html>
   );
