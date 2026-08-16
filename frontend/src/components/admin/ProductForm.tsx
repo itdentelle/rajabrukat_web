@@ -188,6 +188,7 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
       let sizeGuideUrl = formData.sizeGuide;
 
       const uploadFileWithFallback = async (bucket: string, path: string, file: File): Promise<string> => {
+        // 1. Try direct Supabase storage first
         try {
           const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
           if (!uploadError) {
@@ -195,13 +196,35 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
             if (publicUrlData?.publicUrl) return publicUrlData.publicUrl;
           }
         } catch (e) {
-          // Ignore Supabase storage errors
+          // Fall through to backend upload
         }
-        return new Promise((resolve) => {
+
+        // 2. Fallback: Convert to Base64 and upload via Backend /api/upload (which uploads to Supabase Storage with Admin Key)
+        const dataUrl: string = await new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result as string);
           reader.readAsDataURL(file);
         });
+
+        try {
+          const token = localStorage.getItem("admin_token") || localStorage.getItem("token");
+          const res = await fetch(`${API_BASE_URL}/api/upload`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify({ image: dataUrl }),
+          });
+          if (res.ok) {
+            const json = await res.json();
+            if (json.url) return json.url;
+          }
+        } catch (err) {
+          console.warn("Backend /api/upload error:", err);
+        }
+
+        return dataUrl;
       };
 
       if (imageFile || galleryFiles.length > 0 || sizeGuideFile || Object.keys(colorImageFiles).length > 0) {

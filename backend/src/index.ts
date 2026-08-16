@@ -19,9 +19,19 @@ import Redis from 'ioredis';
 import { Queue, Worker } from 'bullmq';
 import { RedisStore } from 'rate-limit-redis';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { createClient } from '@supabase/supabase-js';
 const midtransClient = require('midtrans-client');
 
 dotenv.config();
+
+// --- SUPABASE STORAGE SETUP ---
+const SUPABASE_STORAGE_URL = process.env.SUPABASE_URL || 'https://ykzpelepxkrkzbxlrydi.supabase.co';
+const SUPABASE_STORAGE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
+const SUPABASE_STORAGE_BUCKET = process.env.SUPABASE_BUCKET || 'products';
+
+const supabaseAdmin = (SUPABASE_STORAGE_URL && SUPABASE_STORAGE_KEY)
+  ? createClient(SUPABASE_STORAGE_URL, SUPABASE_STORAGE_KEY)
+  : null;
 
 // --- GEMINI AI SETUP ---
 const geminiApiKey = process.env.GEMINI_API_KEY || '';
@@ -161,15 +171,19 @@ if (!fs.existsSync(UPLOADS_DIR)) {
 }
 app.use('/uploads', express.static(UPLOADS_DIR));
 
-// Endpoint upload gambar dari CMS Admin (Anti RLS, menghasilkan URL bersih)
-app.post('/api/upload', (req: Request, res: Response) => {
+// Endpoint upload gambar dari CMS Admin (Upload langsung ke Supabase Storage Cloud CDN)
+app.post('/api/upload', async (req: Request, res: Response) => {
   try {
     const { image } = req.body;
     if (!image) return res.status(400).json({ error: 'Data gambar tidak ditemukan' });
 
+    // Jika sudah berupa URL publik lengkap (cth: https://...)
+    if (typeof image === 'string' && (image.startsWith('http://') || image.startsWith('https://'))) {
+      return res.json({ url: image });
+    }
+
     const matches = image.match(/^data:image\/([a-zA-Z0-9+.=-]+);base64,(.+)$/);
     if (!matches) {
-      // Jika sudah berupa URL biasa
       return res.json({ url: image });
     }
 
@@ -177,13 +191,38 @@ app.post('/api/upload', (req: Request, res: Response) => {
     const ext = rawExt === 'jpeg' ? 'jpg' : rawExt || 'png';
     const base64Data = matches[2];
     const buffer = Buffer.from(base64Data, 'base64');
-
     const fileName = `upload_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+
+    // 1. Prioritaskan Upload ke Supabase Cloud Storage (Permanen & CDN Cepat)
+    if (supabaseAdmin) {
+      try {
+        const mimeType = ext === 'jpg' ? 'image/jpeg' : `image/${ext}`;
+        const { error: upErr } = await supabaseAdmin.storage
+          .from(SUPABASE_STORAGE_BUCKET)
+          .upload(fileName, buffer, { contentType: mimeType, upsert: true });
+
+        if (!upErr) {
+          const { data: pubData } = supabaseAdmin.storage
+            .from(SUPABASE_STORAGE_BUCKET)
+            .getPublicUrl(fileName);
+
+          if (pubData?.publicUrl) {
+            console.log(`[UPLOAD] Image saved to Supabase Storage: ${pubData.publicUrl}`);
+            return res.json({ url: pubData.publicUrl });
+          }
+        } else {
+          console.warn(`[UPLOAD WARNING] Supabase Storage upload failed:`, upErr.message);
+        }
+      } catch (storageErr: any) {
+        console.warn(`[UPLOAD WARNING] Supabase Storage exception:`, storageErr.message);
+      }
+    }
+
+    // 2. Fallback jika Supabase tidak tersedia: simpan ke disk lokal
     const filePath = path.join(UPLOADS_DIR, fileName);
-
     fs.writeFileSync(filePath, buffer);
-
-    const url = `/uploads/${fileName}`;
+    const backendBaseUrl = process.env.BACKEND_URL || '';
+    const url = backendBaseUrl ? `${backendBaseUrl}/uploads/${fileName}` : `/uploads/${fileName}`;
 
     return res.json({ url });
   } catch (err: any) {

@@ -38,6 +38,14 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "*.up.railway.app",
+      },
+      {
+        protocol: "https",
+        hostname: "*.railway.app",
+      },
+      {
+        protocol: "https",
         hostname: "ykzpelepxkrkzbxlrydi.supabase.co",
         port: "",
         pathname: "/storage/v1/object/public/**",
@@ -51,10 +59,16 @@ const nextConfig: NextConfig = {
     ]
   },
   async rewrites() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const cleanApiUrl = apiUrl.replace(/\/$/, "");
     return [
       {
         source: "/uploads/:path*",
-        destination: "http://localhost:5000/uploads/:path*",
+        destination: `${cleanApiUrl}/uploads/:path*`,
+      },
+      {
+        source: "/scraped-images/:path*",
+        destination: `${cleanApiUrl}/scraped-images/:path*`,
       },
     ];
   },
