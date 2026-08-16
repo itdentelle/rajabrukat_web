@@ -19,7 +19,7 @@ import Redis from 'ioredis';
 import { Queue, Worker } from 'bullmq';
 import { RedisStore } from 'rate-limit-redis';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { createClient } from '@supabase/supabase-js';
+import { StorageClient } from '@supabase/storage-js';
 const midtransClient = require('midtrans-client');
 
 dotenv.config();
@@ -29,8 +29,11 @@ const SUPABASE_STORAGE_URL = process.env.SUPABASE_URL || 'https://ykzpelepxkrkzb
 const SUPABASE_STORAGE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
 const SUPABASE_STORAGE_BUCKET = process.env.SUPABASE_BUCKET || 'products';
 
-const supabaseAdmin = (SUPABASE_STORAGE_URL && SUPABASE_STORAGE_KEY)
-  ? createClient(SUPABASE_STORAGE_URL, SUPABASE_STORAGE_KEY)
+const supabaseStorage = (SUPABASE_STORAGE_URL && SUPABASE_STORAGE_KEY)
+  ? new StorageClient(`${SUPABASE_STORAGE_URL}/storage/v1`, {
+      apikey: SUPABASE_STORAGE_KEY,
+      Authorization: `Bearer ${SUPABASE_STORAGE_KEY}`,
+    })
   : null;
 
 // --- GEMINI AI SETUP ---
@@ -194,15 +197,15 @@ app.post('/api/upload', async (req: Request, res: Response) => {
     const fileName = `upload_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
 
     // 1. Prioritaskan Upload ke Supabase Cloud Storage (Permanen & CDN Cepat)
-    if (supabaseAdmin) {
+    if (supabaseStorage) {
       try {
         const mimeType = ext === 'jpg' ? 'image/jpeg' : `image/${ext}`;
-        const { error: upErr } = await supabaseAdmin.storage
+        const { error: upErr } = await supabaseStorage
           .from(SUPABASE_STORAGE_BUCKET)
           .upload(fileName, buffer, { contentType: mimeType, upsert: true });
 
         if (!upErr) {
-          const { data: pubData } = supabaseAdmin.storage
+          const { data: pubData } = supabaseStorage
             .from(SUPABASE_STORAGE_BUCKET)
             .getPublicUrl(fileName);
 
