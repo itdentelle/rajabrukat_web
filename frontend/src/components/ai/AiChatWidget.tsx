@@ -28,10 +28,12 @@ interface Message {
 }
 
 const PRESET_CHIPS = [
-  "Brokat Warna Sage Green 🌿",
-  "Rekomendasi Wisuda 🎓",
-  "Tile Mutiara Premium ✨",
-  "Model Kondangan Modern 👗",
+  "Koleksi Produk Terbaru",
+  "Kain di Bawah 100 Ribu",
+  "Kain di Bawah 150 Ribu",
+  "Best Seller Terlaris",
+  "Kain Brukat Wisuda",
+  "Renda Chantilly Mewah",
 ];
 
 function formatRupiah(amount: number) {
@@ -82,7 +84,7 @@ export default function AiChatWidget() {
     {
       id: "welcome-1",
       sender: "bot",
-      text: "Halo Kak! ✨ Saya **RajaBot**, AI Fashion Advisor RajaBrukat. Ada yang bisa saya bantu hari ini? Kakak bisa tanya warna, model brokat untuk wisuda/kondangan, atau upload foto kain favorit Kakak!",
+      text: "Halo Kak! Saya **RajaBot**, AI Fashion Advisor RajaBrukat. Ada yang bisa saya bantu hari ini? Kakak bisa tanya warna, model brokat untuk wisuda/kondangan, atau upload foto kain favorit Kakak!",
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -194,10 +196,14 @@ export default function AiChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.95 }}
             transition={{ duration: 0.25 }}
-            className="w-[90vw] sm:w-[420px] h-[580px] bg-stone-900 border border-amber-900/40 text-stone-100 rounded-2xl shadow-2xl flex flex-col overflow-hidden backdrop-blur-xl"
+            data-lenis-prevent="true"
+            data-lenis-prevent
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+            className="w-[90vw] sm:w-[420px] h-[580px] bg-stone-900 border border-amber-900/40 text-stone-100 rounded-2xl shadow-2xl flex flex-col overflow-hidden backdrop-blur-xl overscroll-contain"
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-stone-900 via-amber-950 to-stone-900 px-4 py-3.5 border-b border-amber-800/30 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-stone-900 via-amber-950 to-stone-900 px-4 py-3.5 border-b border-amber-800/30 flex items-center justify-between select-none">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-amber-600/30 border border-amber-500/40 flex items-center justify-center relative">
                   <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
@@ -221,7 +227,12 @@ export default function AiChatWidget() {
             </div>
 
             {/* Quick Suggestion Chips */}
-            <div className="px-3 py-2 bg-stone-950/60 border-b border-stone-800/50 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <div 
+              data-lenis-prevent="true"
+              data-lenis-prevent
+              onWheel={(e) => e.stopPropagation()}
+              className="px-3 py-2 bg-stone-950/60 border-b border-stone-800/50 flex items-center gap-1.5 overflow-x-auto no-scrollbar overscroll-contain"
+            >
               {PRESET_CHIPS.map((chip, idx) => (
                 <button
                   key={idx}
@@ -235,7 +246,14 @@ export default function AiChatWidget() {
             </div>
 
             {/* Message History Area */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-4 text-sm no-scrollbar bg-gradient-to-b from-stone-950 to-stone-900">
+            <div 
+              data-lenis-prevent="true"
+              data-lenis-prevent
+              onWheel={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+              className="flex-1 p-4 overflow-y-auto space-y-4 text-sm no-scrollbar bg-gradient-to-b from-stone-950 to-stone-900 overscroll-contain"
+              style={{ touchAction: "pan-y" }}
+            >
               {messages.map((msg) => (
                 <div
                   key={msg.id}

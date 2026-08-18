@@ -2925,21 +2925,35 @@ Jika pelanggan mengunggah gambar, analisis warna dan pola kain pada gambar lalu 
     // Smart Filter Rule Engine if AI response empty or no API key set
     if (!aiReply) {
       const lowerQuery = (message || "").toLowerCase();
-      const matchedProducts = products.filter(p => {
-        const nameMatch = p.name.toLowerCase().includes(lowerQuery);
-        const catMatch = p.category.toLowerCase().includes(lowerQuery);
-        const descMatch = (p.description || "").toLowerCase().includes(lowerQuery);
-        const colorMatch = p.colors.some(c => lowerQuery.includes(c.toLowerCase()) || c.toLowerCase().includes(lowerQuery));
-        return nameMatch || catMatch || descMatch || colorMatch;
-      });
+      let matched = [...products];
 
-      recommendedProductIds = matchedProducts.slice(0, 4).map(p => p.id);
+      if (lowerQuery.includes("terbaru") || lowerQuery.includes("rilis")) {
+        matched = matched.slice(0, 4);
+      } else if (lowerQuery.includes("100") || lowerQuery.includes("100rb") || lowerQuery.includes("100k") || lowerQuery.includes("100.000")) {
+        matched = matched.filter(p => (p.discountPrice || p.price) <= 100000);
+      } else if (lowerQuery.includes("150") || lowerQuery.includes("150rb") || lowerQuery.includes("150k") || lowerQuery.includes("150.000")) {
+        matched = matched.filter(p => (p.discountPrice || p.price) <= 150000);
+      } else if (lowerQuery.includes("200") || lowerQuery.includes("200rb") || lowerQuery.includes("200k") || lowerQuery.includes("200.000")) {
+        matched = matched.filter(p => (p.discountPrice || p.price) <= 200000);
+      } else if (lowerQuery.includes("laris") || lowerQuery.includes("best seller")) {
+        matched = matched.slice(0, 4);
+      } else {
+        matched = matched.filter(p => {
+          const nameMatch = p.name.toLowerCase().includes(lowerQuery);
+          const catMatch = p.category.toLowerCase().includes(lowerQuery);
+          const descMatch = (p.description || "").toLowerCase().includes(lowerQuery);
+          const colorMatch = p.colors.some(c => lowerQuery.includes(c.toLowerCase()) || c.toLowerCase().includes(lowerQuery));
+          return nameMatch || catMatch || descMatch || colorMatch;
+        });
+      }
+
+      recommendedProductIds = matched.slice(0, 4).map(p => p.id);
 
       if (recommendedProductIds.length > 0) {
-        aiReply = `Halo Kak! ✨ Berdasarkan pencarian Anda "${message}", berikut adalah pilihan produk RajaBrukat yang cocok:`;
+        aiReply = `Halo Kak! Berdasarkan pencarian Anda "${message}", berikut adalah pilihan produk RajaBrukat yang cocok:`;
       } else {
         recommendedProductIds = [];
-        aiReply = `Halo Kak! Terima kasih sudah bertanya. 😊 Saat ini kami belum menemukan produk yang persis sama dengan "${message}". Silakan tanyakan warna atau model lain ya!`;
+        aiReply = `Halo Kak! Saat ini kami belum menemukan produk yang persis sama dengan kriteria "${message}". Silakan tanyakan warna, model, atau rentang harga lainnya.`;
       }
     }
 

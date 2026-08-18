@@ -208,7 +208,10 @@ export default function SearchDrawer() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed top-12 sm:top-20 inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 w-full max-w-2xl bg-white z-50 rounded-3xl shadow-2xl overflow-hidden border border-stone-200"
+            data-lenis-prevent="true"
+            data-lenis-prevent
+            onWheel={(e) => e.stopPropagation()}
+            className="fixed top-12 sm:top-20 inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 w-full max-w-2xl bg-white z-50 rounded-3xl shadow-2xl overflow-hidden border border-stone-200 overscroll-contain"
           >
             {/* Mode Switcher Banner */}
             <div className="bg-gradient-to-r from-stone-900 via-amber-950 to-stone-900 px-6 py-2.5 flex items-center justify-between border-b border-amber-800/30">
@@ -290,7 +293,12 @@ export default function SearchDrawer() {
             </div>
 
             {/* Modal Body Content */}
-            <div className="p-6 max-h-[60vh] overflow-y-auto space-y-5">
+            <div 
+              data-lenis-prevent="true"
+              data-lenis-prevent
+              onWheel={(e) => e.stopPropagation()}
+              className="p-6 max-h-[60vh] overflow-y-auto space-y-5 overscroll-contain"
+            >
               {/* Image Preview if Visual Search Active */}
               {uploadedImage && (
                 <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-between">
