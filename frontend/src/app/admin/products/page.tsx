@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Edit, Trash2, Archive, RotateCcw, Package, AlertTriangle, CheckCircle2, XCircle, Search, Filter, ArrowUpDown, Check, RefreshCw } from "lucide-react";
+import { Plus, Edit, Trash2, Archive, RotateCcw, Package, AlertTriangle, CheckCircle2, XCircle, Search, Filter, ArrowUpDown, Check, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "react-hot-toast";
 import TableSkeleton from "@/components/ui/TableSkeleton";
 import ConfirmModal from "@/components/ui/ConfirmModal";
@@ -35,6 +35,8 @@ export default function AdminProductsPage() {
     productGrade: "",
   });
   const [actionLoading, setActionLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(15);
 
   useEffect(() => {
     fetchProducts();
@@ -42,7 +44,7 @@ export default function AdminProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/products?all=true`);
+      const res = await fetch(`${API_BASE_URL}/api/products?all=true&limit=1000`, { cache: "no-store" });
       const data = await res.json();
       setProducts(data.products || data);
     } catch (error) {
@@ -240,6 +242,16 @@ export default function AdminProductsPage() {
       return 0;
     });
 
+  // Reset pagination when filter/search/sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, stockFilter, sortBy, itemsPerPage]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
+  const startIndex = filteredProducts.length === 0 ? 0 : (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredProducts.length);
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
   if (loading) return (
     <div>
       <div className="flex justify-between items-center mb-8">
@@ -362,137 +374,219 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      {/* Products Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-x-auto">
-        <table className="min-w-full divide-y divide-stone-200">
-          <thead className="bg-stone-50">
-            <tr>
-              <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-stone-500 uppercase tracking-wider min-w-[260px] max-w-md">
-                Produk
-              </th>
-              <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-stone-500 uppercase tracking-wider">
-                Kategori
-              </th>
-              <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-stone-500 uppercase tracking-wider">
-                Harga
-              </th>
-              <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-stone-500 uppercase tracking-wider">
-                Ketersediaan Stok
-              </th>
-              <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-stone-500 uppercase tracking-wider">
-                Status Katalog
-              </th>
-              <th scope="col" className="px-6 py-3.5 text-right text-xs font-bold text-stone-500 uppercase tracking-wider min-w-[140px]">
-                Aksi
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-stone-200">
-            {filteredProducts.map((product) => {
-              const currentStock = product.stock !== undefined ? product.stock : 100;
-              const isLow = currentStock > 0 && currentStock <= 10;
-              const isOut = currentStock <= 0;
+      {/* Products Table Container */}
+      <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-stone-200">
+            <thead className="bg-stone-50">
+              <tr>
+                <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-stone-500 uppercase tracking-wider min-w-[260px] max-w-md">
+                  Produk
+                </th>
+                <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-stone-500 uppercase tracking-wider">
+                  Kategori
+                </th>
+                <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-stone-500 uppercase tracking-wider">
+                  Harga
+                </th>
+                <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-stone-500 uppercase tracking-wider">
+                  Ketersediaan Stok
+                </th>
+                <th scope="col" className="px-6 py-3.5 text-left text-xs font-bold text-stone-500 uppercase tracking-wider">
+                  Status Katalog
+                </th>
+                <th scope="col" className="px-6 py-3.5 text-right text-xs font-bold text-stone-500 uppercase tracking-wider min-w-[140px]">
+                  Aksi
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-stone-200">
+              {paginatedProducts.map((product) => {
+                const currentStock = product.stock !== undefined ? product.stock : 100;
+                const isLow = currentStock > 0 && currentStock <= 10;
+                const isOut = currentStock <= 0;
 
-              return (
-                <tr key={product.id} className="hover:bg-stone-50/80 transition-colors">
-                  {/* Product Details */}
-                  <td className="px-6 py-4 max-w-md">
-                    <Link href={`/admin/products/${product.id}/edit`} className="flex items-start group">
-                      <div className="h-12 w-12 flex-shrink-0 relative rounded-xl overflow-hidden border border-stone-200 shadow-xs group-hover:border-[#b77305] transition-colors mt-0.5">
-                        <img className="h-12 w-12 object-cover" src={product.image} alt={product.name} />
-                      </div>
-                      <div className="ml-4 flex-1">
-                        <div className="text-xs font-bold text-stone-900 group-hover:text-[#b77305] transition-colors leading-snug break-words">{product.name}</div>
-                        {product.code && (
-                          <div className="mt-1.5">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-[#b77305]/10 text-[#b77305] border border-[#b77305]/20">
-                              KODE: {product.code}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-                  </td>
-
-                  {/* Category */}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-3 py-1 inline-flex text-xs font-bold rounded-full bg-stone-100 text-stone-700 border border-stone-200">
-                      {product.category || "General"}
-                    </span>
-                  </td>
-
-                  {/* Price */}
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-stone-900">
-                    Rp {product.price?.toLocaleString("id-ID") || 0}
-                  </td>
-
-                  {/* Read-Only Total Stock Badge */}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-3 py-1 inline-flex items-center gap-1.5 text-xs font-bold rounded-full border ${
-                      isOut
-                        ? 'bg-rose-50 text-rose-700 border-rose-200'
-                        : isLow
-                        ? 'bg-amber-50 text-amber-800 border-amber-200'
-                        : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${isOut ? 'bg-rose-500' : isLow ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`} />
-                      {isOut ? 'Habis (0 pcs)' : isLow ? `Menipis (${currentStock} pcs)` : `${currentStock} pcs`}
-                    </span>
-                  </td>
-
-                  {/* Active Catalog Status */}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2.5 py-1 inline-flex text-xs font-bold rounded-full ${product.isActive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-stone-100 text-stone-500 border border-stone-200'}`}>
-                      {product.isActive ? 'Aktif' : 'Diarsip'}
-                    </span>
-                  </td>
-
-                  {/* Actions */}
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <Link
-                        href={`/admin/products/${product.id}/edit`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-200/80 hover:bg-amber-100 text-xs font-bold transition-colors"
-                        title="Edit Produk"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                        <span>Edit</span>
+                return (
+                  <tr key={product.id} className="hover:bg-stone-50/80 transition-colors">
+                    {/* Product Details */}
+                    <td className="px-6 py-4 max-w-md">
+                      <Link href={`/admin/products/${product.id}/edit`} className="flex items-start group">
+                        <div className="h-12 w-12 flex-shrink-0 relative rounded-xl overflow-hidden border border-stone-200 shadow-xs group-hover:border-[#b77305] transition-colors mt-0.5">
+                          <img className="h-12 w-12 object-cover" src={product.image} alt={product.name} />
+                        </div>
+                        <div className="ml-4 flex-1">
+                          <div className="text-xs font-bold text-stone-900 group-hover:text-[#b77305] transition-colors leading-snug break-words">{product.name}</div>
+                          {product.code && (
+                            <div className="mt-1.5">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono font-bold bg-[#b77305]/10 text-[#b77305] border border-[#b77305]/20">
+                                KODE: {product.code}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </Link>
+                    </td>
 
-                      {product.isActive ? (
-                        <button
-                          onClick={() => openArchiveRestoreModal(product, true)}
-                          className="p-1.5 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-colors"
-                          title="Arsipkan Produk"
-                        >
-                          <Archive className="w-4 h-4" />
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => openArchiveRestoreModal(product, false)}
-                          className="p-1.5 rounded-xl text-emerald-600 hover:bg-emerald-50 hover:text-emerald-800 transition-colors"
-                          title="Aktifkan Kembali"
-                        >
-                          <RotateCcw className="w-4 h-4" />
-                        </button>
-                      )}
+                    {/* Category */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-3 py-1 inline-flex text-xs font-bold rounded-full bg-stone-100 text-stone-700 border border-stone-200">
+                        {product.category || "General"}
+                      </span>
+                    </td>
 
-                      <button
-                        onClick={() => openDeleteModal(product)}
-                        className="p-1.5 rounded-xl text-rose-600 hover:bg-rose-50 hover:text-rose-800 transition-colors"
-                        title="Hapus Permanen"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    {/* Price */}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-stone-900">
+                      Rp {product.price?.toLocaleString("id-ID") || 0}
+                    </td>
+
+                    {/* Read-Only Total Stock Badge */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-3 py-1 inline-flex items-center gap-1.5 text-xs font-bold rounded-full border ${
+                        isOut
+                          ? 'bg-rose-50 text-rose-700 border-rose-200'
+                          : isLow
+                          ? 'bg-amber-50 text-amber-800 border-amber-200'
+                          : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${isOut ? 'bg-rose-500' : isLow ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`} />
+                        {isOut ? 'Habis (0 pcs)' : isLow ? `Menipis (${currentStock} pcs)` : `${currentStock} pcs`}
+                      </span>
+                    </td>
+
+                    {/* Active Catalog Status */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2.5 py-1 inline-flex text-xs font-bold rounded-full ${product.isActive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-stone-100 text-stone-500 border border-stone-200'}`}>
+                        {product.isActive ? 'Aktif' : 'Diarsip'}
+                      </span>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Link
+                          href={`/admin/products/${product.id}/edit`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-200/80 hover:bg-amber-100 text-xs font-bold transition-colors"
+                          title="Edit Produk"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                          <span>Edit</span>
+                        </Link>
+
+                        {product.isActive ? (
+                          <button
+                            onClick={() => openArchiveRestoreModal(product, true)}
+                            className="p-1.5 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-colors"
+                            title="Arsipkan Produk"
+                          >
+                            <Archive className="w-4 h-4" />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => openArchiveRestoreModal(product, false)}
+                            className="p-1.5 rounded-xl text-emerald-600 hover:bg-emerald-50 hover:text-emerald-800 transition-colors"
+                            title="Aktifkan Kembali"
+                          >
+                            <RotateCcw className="w-4 h-4" />
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => openDeleteModal(product)}
+                          className="p-1.5 rounded-xl text-rose-600 hover:bg-rose-50 hover:text-rose-800 transition-colors"
+                          title="Hapus Permanen"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
         {filteredProducts.length === 0 && (
           <div className="text-center py-12 text-gray-500">Tidak ada produk ditemukan sesuai filter.</div>
+        )}
+
+        {/* Pagination & Rows per Page Footer */}
+        {filteredProducts.length > 0 && (
+          <div className="px-6 py-4 border-t border-stone-200 bg-stone-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Range info */}
+            <div className="text-xs text-stone-500 font-medium">
+              Menampilkan <strong className="text-stone-900 font-bold">{startIndex + 1}</strong> – <strong className="text-stone-900 font-bold">{endIndex}</strong> dari <strong className="text-stone-900 font-bold">{filteredProducts.length}</strong> produk
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Rows Per Page Selector */}
+              <div className="flex items-center gap-2 text-xs text-stone-600">
+                <span>Per halaman:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  className="px-2.5 py-1.5 bg-white border border-stone-200 rounded-lg text-xs font-semibold text-stone-800 focus:outline-none focus:ring-1 focus:ring-[#b77305]"
+                >
+                  <option value={10}>10</option>
+                  <option value={15}>15</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={filteredProducts.length || 100}>Semua ({filteredProducts.length})</option>
+                </select>
+              </div>
+
+              {/* Page Buttons */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  aria-label="Halaman Sebelumnya"
+                  className="p-1.5 rounded-lg border border-stone-200 bg-white text-stone-700 hover:bg-stone-100 disabled:opacity-35 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                  // Show current, first, last, and immediate siblings
+                  if (
+                    totalPages > 7 &&
+                    pageNum !== 1 &&
+                    pageNum !== totalPages &&
+                    Math.abs(pageNum - currentPage) > 1
+                  ) {
+                    if (pageNum === 2 || pageNum === totalPages - 1) {
+                      return <span key={pageNum} className="px-1 text-stone-400 text-xs">...</span>;
+                    }
+                    return null;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`min-w-[32px] h-8 text-xs font-bold rounded-lg transition-all ${
+                        currentPage === pageNum
+                          ? "bg-[#b77305] text-white shadow-xs"
+                          : "border border-stone-200 bg-white text-stone-700 hover:bg-stone-100"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  aria-label="Halaman Selanjutnya"
+                  className="p-1.5 rounded-lg border border-stone-200 bg-white text-stone-700 hover:bg-stone-100 disabled:opacity-35 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 

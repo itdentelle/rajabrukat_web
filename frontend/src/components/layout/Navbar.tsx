@@ -111,6 +111,11 @@ export default function Navbar() {
   }, [pathname]);
 
   const [isInCatalog, setIsInCatalog] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (pathname.startsWith("/katalog")) {
@@ -118,31 +123,31 @@ export default function Navbar() {
       return;
     }
 
-    const checkCatalogPosition = () => {
+    const checkElement = () => {
       const el = document.getElementById("katalog-section");
-      if (!el) {
-        setIsInCatalog(false);
-        return;
-      }
+      if (!el) return null;
 
-      const rect = el.getBoundingClientRect();
-      const windowH = window.innerHeight;
-      // Active when catalog section is currently in or entering viewport
-      const isVisible = rect.top < windowH * 0.85 && rect.bottom > windowH * 0.15;
-      setIsInCatalog(isVisible);
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          setIsInCatalog(entry.isIntersecting);
+        },
+        { threshold: 0.1, rootMargin: "-5% 0px -5% 0px" }
+      );
+      observer.observe(el);
+      return observer;
     };
 
-    window.addEventListener("scroll", checkCatalogPosition, { passive: true });
-    // Check periodically on mount in case section is loaded via dynamic import
-    const interval = setInterval(checkCatalogPosition, 300);
-    const timeout = setTimeout(() => clearInterval(interval), 5000);
-
-    checkCatalogPosition();
+    let observer = checkElement();
+    let timeout: NodeJS.Timeout | null = null;
+    if (!observer) {
+      timeout = setTimeout(() => {
+        observer = checkElement();
+      }, 800);
+    }
 
     return () => {
-      window.removeEventListener("scroll", checkCatalogPosition);
-      clearInterval(interval);
-      clearTimeout(timeout);
+      if (timeout) clearTimeout(timeout);
+      if (observer) observer.disconnect();
     };
   }, [pathname]);
 
@@ -150,7 +155,7 @@ export default function Navbar() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     const token = localStorage.getItem("token");
     if (token) {
@@ -454,7 +459,7 @@ export default function Navbar() {
               suppressHydrationWarning
             >
               <ShoppingBag className="w-5 h-5" />
-              {totalItems > 0 && (
+              {mounted && totalItems > 0 && (
                 <span className="absolute top-0 right-0 bg-[#b77305] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                   {totalItems}
                 </span>

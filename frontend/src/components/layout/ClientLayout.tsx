@@ -37,22 +37,22 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return <main className="min-h-screen flex flex-col">{children}</main>;
-  }
-
   if (isAdminRoute) {
     return <main className="min-h-screen flex flex-col">{children}</main>;
   }
 
   return (
     <SmoothScrollProvider>
-      <VisitorTracker />
+      {mounted && <VisitorTracker />}
       <Navbar />
       <main className="min-h-screen flex flex-col">{children}</main>
       <Footer />
-      <FloatingSocialWidget />
-      <AiChatWidget />
+      {mounted && (
+        <>
+          <FloatingSocialWidget />
+          <AiChatWidget />
+        </>
+      )}
     </SmoothScrollProvider>
   );
 }

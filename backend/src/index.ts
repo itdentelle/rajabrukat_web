@@ -697,8 +697,8 @@ app.put('/api/admin/settings', authenticateToken, async (req: Request, res: Resp
 app.get('/api/products', cacheMiddleware(3600), async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 24;
     const all = req.query.all === 'true';
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : (all ? 1000 : 24);
     const minimal = req.query.minimal === 'true';
     const skip = (page - 1) * limit;
 

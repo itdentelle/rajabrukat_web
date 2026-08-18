@@ -2,9 +2,11 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
+  compress: true,
   images: {
     qualities: [75, 80],
     formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 2592000,
     remotePatterns: [
       {
         protocol: "http",
@@ -68,6 +70,9 @@ const nextConfig: NextConfig = {
       }
     ]
   },
+  experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion", "recharts"],
+  },
   async rewrites() {
     let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
     apiUrl = (apiUrl || "").trim();
@@ -88,6 +93,15 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      {
+        source: "/images/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
+          },
+        ],
+      },
       {
         source: "/:path*",
         headers: [

@@ -360,7 +360,6 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
                   src={(cards[1] || FABRIC_CARDS[1]).image} 
                   alt={(cards[1] || FABRIC_CARDS[1]).name}
                   fill
-                  priority
                   sizes="40vw"
                   className="object-cover object-center"
                 />

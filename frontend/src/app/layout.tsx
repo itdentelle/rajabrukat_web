@@ -68,7 +68,6 @@ export default function RootLayout({
     <html lang="id" className={`${inter.variable} ${cormorant.variable} h-full antialiased`}>
       <head>
         <meta name="theme-color" content="#b77305" />
-        <link rel="preload" as="image" href="/images/white_lace_hero.png" fetchPriority="high" />
         <link rel="icon" href="/icon.png" type="image/png" sizes="any" />
         <link rel="apple-touch-icon" href="/icon.png" />
         <script

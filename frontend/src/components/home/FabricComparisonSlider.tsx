@@ -151,7 +151,6 @@ export default function FabricComparisonSlider({
               src={resolvedAfterImage}
               alt={resolvedAfterLabel}
               fill
-              priority
               sizes="(max-width: 1700px) 100vw, 1700px"
               className="object-cover object-center"
             />
@@ -176,7 +175,6 @@ export default function FabricComparisonSlider({
               src={resolvedBeforeImage}
               alt={resolvedBeforeLabel}
               fill
-              priority
               sizes="(max-width: 1700px) 100vw, 1700px"
               className="object-cover object-center"
             />
