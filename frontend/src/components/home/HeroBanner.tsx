@@ -113,18 +113,19 @@ export default function HeroBanner({ config }: HeroBannerProps) {
                   src={panel.image}
                   alt={panel.title}
                   fill
-                  priority={idx === 0}
+                  priority
+                  loading="eager"
                   quality={75}
                   sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                   className={`object-cover object-center transition-transform duration-1000 transform-gpu ${isActive ? "scale-105" : "scale-100 group-hover:scale-105"
                     }`}
                 />
 
-                {/* Dark Scrim Gradient Overlay for Maximum Legibility & WCAG Compliance */}
+                {/* Dark Scrim Gradient Overlay for Maximum Legibility & Visible Fabric Texture */}
                 <div
                   className={`absolute inset-0 pointer-events-none transition-opacity duration-700 ${isActive
                       ? "bg-gradient-to-t from-stone-950/95 via-stone-950/45 to-black/30 opacity-100"
-                      : "bg-gradient-to-t from-stone-950/90 via-stone-950/50 to-black/40 opacity-90 group-hover:opacity-75"
+                      : "bg-gradient-to-t from-stone-950/80 via-stone-950/35 to-black/25 opacity-85 group-hover:opacity-70"
                     }`}
                 />
 
