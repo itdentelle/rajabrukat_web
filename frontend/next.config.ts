@@ -69,8 +69,12 @@ const nextConfig: NextConfig = {
     ]
   },
   async rewrites() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-    const cleanApiUrl = apiUrl.replace(/\/$/, "");
+    let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+    apiUrl = (apiUrl || "").trim();
+    if (apiUrl && !apiUrl.startsWith("http://") && !apiUrl.startsWith("https://") && !apiUrl.startsWith("/")) {
+      apiUrl = `https://${apiUrl}`;
+    }
+    const cleanApiUrl = (apiUrl || "http://localhost:5001").replace(/\/+$/, "");
     return [
       {
         source: "/uploads/:path*",
