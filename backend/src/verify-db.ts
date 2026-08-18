@@ -20,11 +20,11 @@ async function main() {
     console.log(`PRODUK #${i + 1}: ${p.name}`);
     console.log(`KODE: ${p.code}`);
     console.log(`FOTO THUMBNAIL (image): ${p.image}`);
-    console.log(`TOTAL FOTO GALERI: ${p.galleryImages.length}`);
-    console.log(`DAFTAR WARNA: [${p.colors.join(', ')}]`);
+    console.log(`TOTAL FOTO GALERI: ${(p.galleryImages || []).length}`);
+    console.log(`DAFTAR WARNA: [${(p.colors || []).join(', ')}]`);
     console.log(`STOK PER WARNA:`, p.colorStocks);
     console.log(`TOTAL STOK: ${p.stock}`);
-    console.log(`DESKRIPSI BERSIH:\n${p.description.substring(0, 200)}...`);
+    console.log(`DESKRIPSI BERSIH:\n${(p.description || '').substring(0, 200)}...`);
   });
 }
 
