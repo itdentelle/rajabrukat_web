@@ -197,7 +197,6 @@ export default function AiChatWidget() {
             exit={{ opacity: 0, y: 30, scale: 0.95 }}
             transition={{ duration: 0.25 }}
             data-lenis-prevent="true"
-            data-lenis-prevent
             onWheel={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
             className="w-[90vw] sm:w-[420px] h-[580px] bg-stone-900 border border-amber-900/40 text-stone-100 rounded-2xl shadow-2xl flex flex-col overflow-hidden backdrop-blur-xl overscroll-contain"
@@ -229,7 +228,6 @@ export default function AiChatWidget() {
             {/* Quick Suggestion Chips */}
             <div 
               data-lenis-prevent="true"
-              data-lenis-prevent
               onWheel={(e) => e.stopPropagation()}
               className="px-3 py-2 bg-stone-950/60 border-b border-stone-800/50 flex items-center gap-1.5 overflow-x-auto no-scrollbar overscroll-contain"
             >
@@ -248,7 +246,6 @@ export default function AiChatWidget() {
             {/* Message History Area */}
             <div 
               data-lenis-prevent="true"
-              data-lenis-prevent
               onWheel={(e) => e.stopPropagation()}
               onTouchMove={(e) => e.stopPropagation()}
               className="flex-1 p-4 overflow-y-auto space-y-4 text-sm no-scrollbar bg-gradient-to-b from-stone-950 to-stone-900 overscroll-contain"

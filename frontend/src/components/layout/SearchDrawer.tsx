@@ -209,7 +209,6 @@ export default function SearchDrawer() {
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
             data-lenis-prevent="true"
-            data-lenis-prevent
             onWheel={(e) => e.stopPropagation()}
             className="fixed top-12 sm:top-20 inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 w-full max-w-2xl bg-white z-50 rounded-3xl shadow-2xl overflow-hidden border border-stone-200 overscroll-contain"
           >
@@ -295,7 +294,6 @@ export default function SearchDrawer() {
             {/* Modal Body Content */}
             <div 
               data-lenis-prevent="true"
-              data-lenis-prevent
               onWheel={(e) => e.stopPropagation()}
               className="p-6 max-h-[60vh] overflow-y-auto space-y-5 overscroll-contain"
             >

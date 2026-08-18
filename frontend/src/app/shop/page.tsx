@@ -340,7 +340,7 @@ function ShopContent() {
 
           {/* LEFT SIDEBAR FILTER (Desktop Sticky Sidebar) */}
           <aside
-            data-lenis-prevent
+            data-lenis-prevent="true"
             className="hidden lg:block lg:col-span-3 sticky top-28 max-h-[calc(100vh-140px)] overflow-y-auto space-y-6 bg-white p-6 rounded-2xl border border-stone-200 shadow-sm overscroll-contain"
           >
 
@@ -480,7 +480,7 @@ function ShopContent() {
                 <Award className="w-3.5 h-3.5 text-[#b77305]" />
                 <span>Nama Quality</span>
               </h4>
-              <div data-lenis-prevent className="space-y-1 max-h-60 overflow-y-auto pr-1 scrollbar-thin overscroll-contain">
+              <div data-lenis-prevent="true" className="space-y-1 max-h-60 overflow-y-auto pr-1 scrollbar-thin overscroll-contain">
                 {QUALITY_NAME_OPTIONS.map((quality) => {
                   const isSelected = activeQualityName === quality;
                   const count = products.filter((p) => matchesQualityName(p, quality)).length;
