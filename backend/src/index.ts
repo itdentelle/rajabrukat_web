@@ -49,9 +49,9 @@ if (!connectionString) {
 const isCloudDb = connectionString.includes('supabase') || connectionString.includes('pooler') || connectionString.includes('aws') || connectionString.includes('railway');
 const pool = new Pool({ 
   connectionString,
-  max: 15,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 30000,
+  max: 5,
+  idleTimeoutMillis: 10000,
+  connectionTimeoutMillis: 10000,
   keepAlive: true,
   ssl: isCloudDb ? { rejectUnauthorized: false } : undefined
 });
@@ -697,8 +697,9 @@ app.put('/api/admin/settings', authenticateToken, async (req: Request, res: Resp
 app.get('/api/products', cacheMiddleware(3600), async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 200;
+    const limit = parseInt(req.query.limit as string) || 24;
     const all = req.query.all === 'true';
+    const minimal = req.query.minimal === 'true';
     const skip = (page - 1) * limit;
 
     const whereClause: any = {};
@@ -706,9 +707,30 @@ app.get('/api/products', cacheMiddleware(3600), async (req: Request, res: Respon
       whereClause.isActive = true;
     }
 
+    const selectClause = minimal
+      ? {
+          id: true,
+          name: true,
+          code: true,
+          price: true,
+          discountPrice: true,
+          category: true,
+          image: true,
+          stock: true,
+          isActive: true,
+          createdAt: true,
+        }
+      : undefined;
+
     const [products, total] = await Promise.all([
-      prisma.product.findMany({ where: whereClause, skip, take: limit, orderBy: { createdAt: 'desc' } }),
-      prisma.product.count({ where: whereClause })
+      prisma.product.findMany({
+        where: whereClause,
+        select: selectClause,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.product.count({ where: whereClause }),
     ]);
 
     res.json({

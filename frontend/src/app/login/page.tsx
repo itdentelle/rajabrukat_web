@@ -7,11 +7,13 @@ import Image from "next/image";
 import { Mail, Lock, ArrowRight, ShieldCheck } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
-import { GoogleLogin } from "@react-oauth/google";
+import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { useCartStore } from "@/store/cartStore";
 import { API_BASE_URL } from "@/lib/api";
 
-export default function LoginPage() {
+const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "dummy-client-id.apps.googleusercontent.com";
+
+function LoginForm() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState("");
@@ -343,5 +345,13 @@ export default function LoginPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <LoginForm />
+    </GoogleOAuthProvider>
   );
 }

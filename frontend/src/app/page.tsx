@@ -15,7 +15,7 @@ const BestSellers = dynamic(() => import("@/components/home/BestSellers"));
 
 async function getProducts() {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/products`, { next: { revalidate: 60 } });
+    const res = await fetch(`${API_BASE_URL}/api/products?minimal=true&limit=24`, { next: { revalidate: 60 } });
     const contentType = res.headers.get("content-type") || "";
     if (!res.ok || !contentType.includes("application/json")) return [];
     const data = await res.json();
@@ -45,9 +45,9 @@ export default async function Home() {
     <div className="min-h-screen">
       <HeroBanner config={config} />
       <FeaturedCategories config={config} />
-      <CatalogFlipbookSection config={config} />
       <AboutBrand config={config} />
       <LatestDrops products={products} config={config} />
+      <CatalogFlipbookSection config={config} />
       <FabricComparisonSlider config={config} />
       <ShopTheLook products={products} config={config} />
       <BestSellers products={products} config={config} />

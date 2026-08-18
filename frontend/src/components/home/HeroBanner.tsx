@@ -114,8 +114,8 @@ export default function HeroBanner({ config }: HeroBannerProps) {
                   alt={panel.title}
                   fill
                   priority={idx === 0}
-                  quality={80}
-                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  quality={75}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                   className={`object-cover object-center transition-transform duration-1000 transform-gpu ${isActive ? "scale-105" : "scale-100 group-hover:scale-105"
                     }`}
                 />

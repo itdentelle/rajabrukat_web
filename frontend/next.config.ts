@@ -13,8 +13,18 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "http",
+        hostname: "localhost",
+        port: "5001",
+      },
+      {
+        protocol: "http",
         hostname: "127.0.0.1",
         port: "5000",
+      },
+      {
+        protocol: "http",
+        hostname: "127.0.0.1",
+        port: "5001",
       },
       {
         protocol: "https",
@@ -69,6 +79,31 @@ const nextConfig: NextConfig = {
       {
         source: "/scraped-images/:path*",
         destination: `${cleanApiUrl}/scraped-images/:path*`,
+      },
+    ];
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+        ],
       },
     ];
   },

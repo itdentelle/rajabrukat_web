@@ -224,7 +224,7 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
           console.warn("Backend /api/upload error:", err);
         }
 
-        return dataUrl;
+        throw new Error("Gagal mengunggah file gambar ke server. Silakan coba lagi.");
       };
 
       if (imageFile || galleryFiles.length > 0 || sizeGuideFile || Object.keys(colorImageFiles).length > 0) {

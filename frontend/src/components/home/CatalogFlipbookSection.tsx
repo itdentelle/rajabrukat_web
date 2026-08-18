@@ -89,10 +89,37 @@ export default function CatalogFlipbookSection({ initialFullscreen = false, conf
     globalProductCodeMapCache || {}
   );
 
-  // Fetch product list to map product codes to product IDs
+  const [hasEnteredViewport, setHasEnteredViewport] = useState(false);
+
+  // Lazy load trigger: only start loading PDF when user scrolls near the catalog section (400px margin)
   useEffect(() => {
-    if (globalProductCodeMapCache) return;
-    fetch(`${API_BASE_URL}/api/products?limit=200`)
+    if (globalPdfPagesCache.length > 0) {
+      setHasEnteredViewport(true);
+      setIsLoading(false);
+      return;
+    }
+
+    const element = sectionRef.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setHasEnteredViewport(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "400px" }
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  // Fetch product list to map product codes to product IDs (only when near viewport)
+  useEffect(() => {
+    if (!hasEnteredViewport || globalProductCodeMapCache) return;
+    fetch(`${API_BASE_URL}/api/products?minimal=true&limit=100`)
       .then((res) => res.json())
       .then((data) => {
         const productList = data.products || data;
@@ -120,14 +147,15 @@ export default function CatalogFlipbookSection({ initialFullscreen = false, conf
       })
       .then((data) => {
         if (data && data.cachedAt) {
-          console.log("⚡ Catalog Redis Cache loaded instantly:", data.cachedAt);
+          console.log("⚡ Catalog Redis Cache loaded:", data.cachedAt);
         }
       })
       .catch(() => {});
-  }, []);
+  }, [hasEnteredViewport]);
 
-  // ── Load PDF via pdf.js ──
+  // ── Load PDF via pdf.js only when visible in viewport ──
   useEffect(() => {
+    if (!hasEnteredViewport) return;
     if (globalPdfPagesCache.length > 0) {
       setIsLoading(false);
       return;
@@ -162,16 +190,13 @@ export default function CatalogFlipbookSection({ initialFullscreen = false, conf
           await new Promise<void>((r) => setTimeout(r, 0));
           if (cancelled) return;
           const page = await pdf.getPage(i);
-          // Reduced scale 1.5 (was 2.0) — 44% less memory, still sharp on screen
           const viewport = page.getViewport({ scale: 1.5 });
           const canvas = document.createElement("canvas");
           canvas.width = viewport.width;
           canvas.height = viewport.height;
           const ctx = canvas.getContext("2d")!;
           await page.render({ canvasContext: ctx, viewport }).promise;
-          // Reduced JPEG quality 0.82 (was 0.88) — visually indistinguishable on screen
           urls.push(canvas.toDataURL("image/jpeg", 0.82));
-          // Store aspect ratio from first page
           if (i === 1 && !cancelled) {
             calculatedRatio = viewport.height / viewport.width;
             setPageRatio(calculatedRatio);
@@ -191,7 +216,7 @@ export default function CatalogFlipbookSection({ initialFullscreen = false, conf
     };
     loadPdf();
     return () => { cancelled = true; };
-  }, []);
+  }, [hasEnteredViewport]);
 
   // ── Scroll Pinning (Vertical) & Horizontal Swipe ──
   useEffect(() => {

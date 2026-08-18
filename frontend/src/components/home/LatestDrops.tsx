@@ -70,7 +70,8 @@ export default function LatestDrops({ products = [], config }: LatestDropsProps)
   return (
     <section className="py-16 sm:py-24 bg-white relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header with Responsive Non-overlapping Filter Pills */}
+        
+        {/* Section Header with Minimalist Editorial Underline Filter Tabs */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-10 gap-6">
           <motion.div
             initial="hidden"
@@ -127,22 +128,34 @@ export default function LatestDrops({ products = [], config }: LatestDropsProps)
             </motion.p>
           </motion.div>
 
-          {/* Category Filter Pills (Aligned with Shop filters) */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 shrink-0 max-w-full lg:max-w-xl no-scrollbar">
-            {FABRIC_CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                aria-label={`Filter kain kategori ${cat}`}
-                className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 whitespace-nowrap shrink-0 ${
-                  activeCategory === cat
-                    ? "bg-stone-950 text-white shadow-md scale-105"
-                    : "bg-stone-100 text-stone-600 hover:bg-stone-200 hover:text-stone-900"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+          {/* Minimalist Editorial Underline Tabs (Gaya Rumah Mode Mewah) */}
+          <div className="flex items-center gap-6 sm:gap-7 overflow-x-auto pb-0.5 shrink-0 max-w-full lg:max-w-2xl [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden border-b border-stone-200">
+            {FABRIC_CATEGORIES.map((cat) => {
+              const isActive = activeCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  aria-label={`Filter kain kategori ${cat}`}
+                  className={`relative pb-3 text-xs sm:text-sm tracking-wider uppercase whitespace-nowrap transition-colors duration-300 cursor-pointer ${
+                    isActive
+                      ? "text-stone-950 font-bold"
+                      : "text-stone-400 hover:text-stone-700 font-medium"
+                  }`}
+                >
+                  <span>{cat}</span>
+
+                  {/* Animated Gold Underline Indicator */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="latestDropsUnderline"
+                      className="absolute bottom-0 inset-x-0 h-0.5 bg-[#b77305]"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 

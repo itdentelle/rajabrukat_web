@@ -95,8 +95,8 @@ export default function ProductCard({ product }: { product: Product }) {
           src={imageSrc}
           alt={displayTitle}
           fill
-          unoptimized={imageSrc.includes("supabase.co")}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+          quality={75}
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className={`object-cover object-center transition-transform duration-700 group-hover:scale-105 ${
             isOutOfStock ? "grayscale-[30%]" : ""
           }`}

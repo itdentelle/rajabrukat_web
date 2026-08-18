@@ -118,21 +118,32 @@ export default function Navbar() {
       return;
     }
 
-    const el = document.getElementById("katalog-section");
-    if (!el) {
-      setIsInCatalog(false);
-      return;
-    }
+    const checkCatalogPosition = () => {
+      const el = document.getElementById("katalog-section");
+      if (!el) {
+        setIsInCatalog(false);
+        return;
+      }
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsInCatalog(entry.isIntersecting);
-      },
-      { rootMargin: "-30% 0px -20% 0px" }
-    );
+      const rect = el.getBoundingClientRect();
+      const windowH = window.innerHeight;
+      // Active when catalog section is currently in or entering viewport
+      const isVisible = rect.top < windowH * 0.85 && rect.bottom > windowH * 0.15;
+      setIsInCatalog(isVisible);
+    };
 
-    observer.observe(el);
-    return () => observer.disconnect();
+    window.addEventListener("scroll", checkCatalogPosition, { passive: true });
+    // Check periodically on mount in case section is loaded via dynamic import
+    const interval = setInterval(checkCatalogPosition, 300);
+    const timeout = setTimeout(() => clearInterval(interval), 5000);
+
+    checkCatalogPosition();
+
+    return () => {
+      window.removeEventListener("scroll", checkCatalogPosition);
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
   }, [pathname]);
 
   useEffect(() => {
