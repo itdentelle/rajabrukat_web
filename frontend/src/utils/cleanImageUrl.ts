@@ -18,6 +18,11 @@ export function cleanImageUrl(url?: string | null, fallback: string = "/images/w
     return trimmed;
   }
 
+  // If pointing to a relative uploads path that might not exist on disk, fallback safely
+  if (trimmed.startsWith("/uploads/upload_")) {
+    return fallback;
+  }
+
   // If relative path starts with /uploads/ or /scraped-images/, prefix with NEXT_PUBLIC_API_URL if available in production
   if (trimmed.startsWith("/uploads/") || trimmed.startsWith("/scraped-images/")) {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;

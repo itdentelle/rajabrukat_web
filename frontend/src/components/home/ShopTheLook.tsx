@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingBag, Eye, Sparkles, X, ArrowRight, CheckCircle2, MessageCircle } from "lucide-react";
+import { ShoppingBag, Eye, X, ArrowRight, CheckCircle2, MessageCircle } from "lucide-react";
 import { useCartStore, Product } from "@/store/cartStore";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,6 +15,7 @@ import { cleanImageUrl } from "@/utils/cleanImageUrl";
 interface LookbookItem {
   id: string;
   title: string;
+  code?: string;
   designer: string;
   categoryTag: string;
   image: string;
@@ -24,85 +25,85 @@ interface LookbookItem {
   description: string;
 }
 
-const LOOKBOOK_ITEMS: LookbookItem[] = [
-  {
-    id: "look-1",
-    title: "Kebaya Pengantin Royal Mutiara 3D",
-    designer: "Desain Kebaya Pengantin",
-    categoryTag: "Kebaya Pengantin",
-    image: "/images/brukat_tile_mutiara.png",
-    fabricUsed: {
-      id: "p1",
-      name: "Brukat Tile Mutiara Royal French Grade A",
-      price: 185000,
-      category: "Grade A",
-      image: "/images/brukat_tile_mutiara.png",
-    },
-    fabricNeeded: "3.5 Meter (Satu Set Kebaya & Selendang)",
-    furingRecommendation: "Silk Satin Furing Cream 2.5 Meter",
-    description:
-      "Perpaduan anggun motif bordir tile timbul 3D dengan kristal mutiara bercahaya. Sangat cocok untuk momen akad & resepsi pengantin mewah.",
-  },
-  {
-    id: "look-2",
-    title: "Gaun Pesta Renda Chantilly French",
-    designer: "Dress Pesta Modern",
-    categoryTag: "Gaun Pesta",
-    image: "/images/renda_chantilly_french.png",
-    fabricUsed: {
-      id: "p3",
-      name: "Renda Chantilly Halus French Grade B",
-      price: 125000,
-      category: "Grade B",
-      image: "/images/renda_chantilly_french.png",
-    },
-    fabricNeeded: "2.5 Meter (Gaun Pesta A-Line)",
-    furingRecommendation: "Furing Satin Silk Nude 2.5 Meter",
-    description: "Serat renda Chantilly impor Prancis yang super lembut, tidak gatal, dan memberikan siluet jatuh yang sangat menawan.",
-  },
-  {
-    id: "look-3",
-    title: "Seragam Kebaya Bridesmaid Cornely 3D",
-    designer: "Seragam Keluarga & Bridesmaid",
-    categoryTag: "Seragam Bridesmaid",
-    image: "/images/cornely_silk_satin.png",
-    fabricUsed: {
-      id: "p5",
-      name: "Cornely 3D Silk Satin Furing Tulle",
-      price: 245000,
-      category: "Tulle",
-      image: "/images/cornely_silk_satin.png",
-    },
-    fabricNeeded: "2.0 Meter per Orang",
-    furingRecommendation: "Silk Satin Rose Gold 2.0 Meter",
-    description: "Pilihan utama seragam kebaya bridesmaid dengan motif cornely timbul yang serasi untuk momen foto bersama.",
-  },
-  {
-    id: "look-4",
-    title: "Kebaya Wisuda & Semi Formal Elegant",
-    designer: "Kebaya Wisuda Modern",
-    categoryTag: "Kebaya Wisuda",
-    image: "/images/kebaya_wisuda_look.png",
-    fabricUsed: {
-      id: "p2",
-      name: "Brukat Tile Mutiara Luxury Gold Grade A",
-      price: 195000,
-      category: "Grade A",
-      image: "/images/brukat_tile_mutiara.png",
-    },
-    fabricNeeded: "2.0 Meter",
-    furingRecommendation: "Furing Cotton Satin 2.0 Meter",
-    description: "Desain kebaya kartini modern bernuansa emas mewah yang ringan dan nyaman digunakan sepanjang hari acara wisuda.",
-  },
-];
+function buildLooksFromProducts(products: any[], config?: any): LookbookItem[] {
+  if (!Array.isArray(products) || products.length === 0) {
+    return [];
+  }
 
-export default function ShopTheLook({ config }: { config?: any }) {
-  const [looks, setLooks] = useState<LookbookItem[]>(LOOKBOOK_ITEMS);
+  // Filter products that have valid images
+  const validProducts = products.filter((p: any) => p && p.image && !p.image.includes("placeholder"));
+  const pool = validProducts.length > 0 ? validProducts : products;
+
+  const cardIds = [
+    config?.lookbookCard1ProductId,
+    config?.lookbookCard2ProductId,
+    config?.lookbookCard3ProductId,
+    config?.lookbookCard4ProductId,
+  ];
+
+  const defaultTags = [
+    config?.lookbookCard1Tag || "Kebaya Pengantin",
+    config?.lookbookCard2Tag || "Gaun Pesta",
+    config?.lookbookCard3Tag || "Seragam Bridesmaid",
+    config?.lookbookCard4Tag || "Kebaya Wisuda",
+  ];
+
+  const chosenProducts = [0, 1, 2, 3].map((idx) => {
+    const specifiedId = cardIds[idx];
+    if (specifiedId) {
+      const found = pool.find((p: any) => p.id === specifiedId);
+      if (found) return found;
+    }
+    return pool[idx % pool.length];
+  });
+
+  return chosenProducts.map((p: any, idx: number) => {
+    const { displayTitle, code } = cleanTitle(p.name);
+    const categoryName = p.category || "Brukat Premium";
+    const productPrice = Number(p.price) || 150000;
+    const cleanImg = cleanImageUrl(p.image, "/images/white_lace_hero.png");
+
+    return {
+      id: `look-${p.id || idx}`,
+      title: code ? `${displayTitle} (${code})` : displayTitle,
+      code: code,
+      designer: `Koleksi ${categoryName}`,
+      categoryTag: defaultTags[idx] || categoryName.toUpperCase(),
+      image: cleanImg,
+      fabricUsed: {
+        id: p.id || `prod-${idx}`,
+        name: p.name || displayTitle,
+        price: productPrice,
+        discountPrice: p.discountPrice,
+        category: p.category,
+        image: cleanImg,
+      },
+      fabricNeeded: "2.5 Meter (Satu Set Kebaya & Selendang)",
+      furingRecommendation: "Furing Silk Satin Premium 2.0 Meter",
+      description: cleanDescription(p.description) || "Kain renda brukat pilihan berkualitas tinggi dengan tekstur halus, adem di kulit, dan motif bordir yang anggun.",
+    };
+  });
+}
+
+interface ShopTheLookProps {
+  products?: any[];
+  config?: any;
+}
+
+export default function ShopTheLook({ products: initialProducts = [], config }: ShopTheLookProps) {
+  const [looks, setLooks] = useState<LookbookItem[]>(() =>
+    buildLooksFromProducts(initialProducts, config)
+  );
   const [selectedLook, setSelectedLook] = useState<LookbookItem | null>(null);
   const addItem = useCartStore((state) => state.addItem);
   const openCart = useCartStore((state) => state.openCart);
 
   useEffect(() => {
+    if (initialProducts && initialProducts.length > 0) {
+      setLooks(buildLooksFromProducts(initialProducts, config));
+      return;
+    }
+
     fetch(`${API_BASE_URL}/api/products?limit=100`)
       .then((res) => {
         const contentType = res.headers.get("content-type") || "";
@@ -111,57 +112,22 @@ export default function ShopTheLook({ config }: { config?: any }) {
       })
       .then((data) => {
         if (!data) return;
-        const products = data.products || data;
-        if (Array.isArray(products) && products.length > 0) {
-          const tags = [
-            config?.lookbookCard1Tag || "Kebaya Pengantin",
-            config?.lookbookCard2Tag || "Gaun Pesta",
-            config?.lookbookCard3Tag || "Seragam Bridesmaid",
-            config?.lookbookCard4Tag || "Kebaya Wisuda"
-          ];
-          const cardIds = [
-            config?.lookbookCard1ProductId,
-            config?.lookbookCard2ProductId,
-            config?.lookbookCard3ProductId,
-            config?.lookbookCard4ProductId
-          ];
-
-          const chosenProducts = cardIds.map((id, idx) => {
-            if (id) {
-              const found = products.find((p: any) => p.id === id);
-              if (found) return found;
-            }
-            return products[idx % products.length];
-          });
-
-          const dynamicLooks: LookbookItem[] = chosenProducts.map((p: any, idx: number) => {
-            const { displayTitle } = cleanTitle(p.name);
-            return {
-              id: `look-${p.id}`,
-              title: `${displayTitle}`,
-              designer: `${p.category || "Grade A"} Collection`,
-              categoryTag: tags[idx] || (p.category ? p.category.toUpperCase() : "KEBAYA ELEGAN"),
-              image: p.image || "/images/brukat_tile_mutiara.png",
-              fabricUsed: {
-                id: p.id,
-                name: p.name,
-                price: p.price,
-                discountPrice: p.discountPrice,
-                category: p.category,
-                image: p.image || "/images/brukat_tile_mutiara.png",
-              },
-              fabricNeeded: "2.5 Meter (Satu Set Kebaya & Selendang)",
-              furingRecommendation: "Furing Silk Satin Premium 2.0 Meter",
-              description: cleanDescription(p.description),
-            };
-          });
-          setLooks(dynamicLooks);
+        const fetchedProducts = data.products || data;
+        if (Array.isArray(fetchedProducts) && fetchedProducts.length > 0) {
+          setLooks(buildLooksFromProducts(fetchedProducts, config));
         }
       })
-      .catch((err) => console.warn("Failed to fetch dynamic lookbook products from database:", err));
+      .catch((err) => console.warn("Could not load lookbook products:", err));
   }, [
-    config?.lookbookCard1ProductId, config?.lookbookCard2ProductId, config?.lookbookCard3ProductId, config?.lookbookCard4ProductId,
-    config?.lookbookCard1Tag, config?.lookbookCard2Tag, config?.lookbookCard3Tag, config?.lookbookCard4Tag
+    initialProducts,
+    config?.lookbookCard1ProductId,
+    config?.lookbookCard2ProductId,
+    config?.lookbookCard3ProductId,
+    config?.lookbookCard4ProductId,
+    config?.lookbookCard1Tag,
+    config?.lookbookCard2Tag,
+    config?.lookbookCard3Tag,
+    config?.lookbookCard4Tag,
   ]);
 
   const handleBuyFabric = (product: Product, e?: React.MouseEvent) => {
@@ -170,6 +136,10 @@ export default function ShopTheLook({ config }: { config?: any }) {
     toast.success(`${product.name} berhasil ditambahkan ke keranjang!`);
     openCart();
   };
+
+  if (!looks || looks.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-24 bg-white border-b border-stone-200 overflow-hidden">
@@ -191,11 +161,11 @@ export default function ShopTheLook({ config }: { config?: any }) {
             <span className="block text-[#b77305] italic font-serif mt-1">{config?.lookbookTitleLine2 || "Inspirasi Busana Kebaya"}</span>
           </motion.h2>
           <p className="text-stone-600 text-sm md:text-base font-light leading-relaxed">
-            {config?.lookbookDesc || "Lihat keanggunan hasil rancangan busana karya desainer & pelanggan Raja Brukat. Klik kartu untuk inspirasi lengkap dan pembelian bahan langsung!"}
+            {config?.lookbookDesc || "Lihat keanggunan kain asli Raja Brukat. Klik kartu untuk inspirasi lengkap dan pembelian bahan langsung!"}
           </p>
         </div>
 
-        {/* Lookbook 4-Card Grid (Split Modern Card UI/UX Design) */}
+        {/* Lookbook 4-Card Grid Using Real Products */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7">
           {looks.map((item) => (
             <div
@@ -206,7 +176,7 @@ export default function ShopTheLook({ config }: { config?: any }) {
               onClick={() => setSelectedLook(item)}
               className="group relative bg-white rounded-3xl overflow-hidden cursor-pointer shadow-md hover:shadow-xl transition-all duration-500 border border-stone-200/80 flex flex-col justify-between hover:-translate-y-1.5"
             >
-              {/* Top Image Container */}
+              {/* Top Image Container with Real Product Image */}
               <div className="relative w-full aspect-[4/5] bg-stone-100 overflow-hidden">
                 <Image
                   src={cleanImageUrl(item.image, "/images/white_lace_hero.png")}
@@ -242,7 +212,7 @@ export default function ShopTheLook({ config }: { config?: any }) {
                   </p>
                 </div>
 
-                {/* Footer Price & CTA Button */}
+                {/* Footer Real Product Price & CTA Button */}
                 <div className="pt-3 border-t border-stone-100 flex items-center justify-between gap-2">
                   <div className="min-w-0">
                     <span className="text-[10px] uppercase font-bold text-stone-600 block tracking-wider">
@@ -266,17 +236,16 @@ export default function ShopTheLook({ config }: { config?: any }) {
           ))}
         </div>
 
-        {/* Bottom Consultation CTA Banner (Safe Spacing from Floating WA) */}
+        {/* Bottom Consultation CTA Banner */}
         <div className="mt-16 bg-gradient-to-r from-stone-900 via-stone-950 to-stone-900 text-white border border-[#b77305]/30 rounded-3xl p-8 sm:p-10 max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 shadow-2xl relative overflow-hidden mb-8">
-          {/* Top Gold Highlight Accent Bar */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#b77305] to-transparent" />
 
           <div className="text-left space-y-1.5 max-w-xl">
             <h4 className="text-xl sm:text-2xl font-serif font-medium text-white tracking-wide">
-              Ingin Konsultasi Model & Kebutuhan Kain?
+              Ingin Konsultasi Model &amp; Kebutuhan Kain?
             </h4>
             <p className="text-stone-300 text-xs sm:text-sm font-light leading-relaxed">
-              Konsultasikan gratis rekomendasi jenis bahan & takaran meteran bersama Tim Ahli Raja Brukat via WhatsApp.
+              Konsultasikan gratis rekomendasi jenis bahan &amp; takaran meteran bersama Tim Ahli Raja Brukat via WhatsApp.
             </p>
           </div>
 

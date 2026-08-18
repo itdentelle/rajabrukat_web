@@ -49,7 +49,7 @@ export default async function Home() {
       <AboutBrand config={config} />
       <LatestDrops products={products} config={config} />
       <FabricComparisonSlider config={config} />
-      <ShopTheLook config={config} />
+      <ShopTheLook products={products} config={config} />
       <BestSellers products={products} config={config} />
     </div>
   );

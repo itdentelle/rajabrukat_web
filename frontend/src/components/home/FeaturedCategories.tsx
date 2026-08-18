@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Award, Truck, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { API_BASE_URL } from "@/lib/api";
 import { cleanTitle } from "@/utils/cleanTitle";
@@ -89,6 +89,13 @@ interface FeaturedCategoriesProps {
 import { cleanImageUrl } from "@/utils/cleanImageUrl";
 
 export default function FeaturedCategories({ config }: FeaturedCategoriesProps) {
+  const getCardImage = (imgUrl: string | undefined | null, fallback: string) => {
+    if (!imgUrl || typeof imgUrl !== "string" || imgUrl.trim() === "" || imgUrl.startsWith("/uploads/upload_")) {
+      return fallback;
+    }
+    return cleanImageUrl(imgUrl, fallback);
+  };
+
   const initialCards: FabricCardItem[] = [
     {
       id: "left",
@@ -98,7 +105,7 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
       badgeTop: "✨ " + (config?.featuredCard1Title || "Brukat Putih 3D Premium"),
       badgeBottom: "“ Kerapatan Bordir Maksimal ”",
       description: config?.featuredCard1Desc || "Kerapatan bordir presisi diperkaya dengan taburan mutiara timbul dan payet kilau eksklusif.",
-      image: cleanImageUrl(config?.featuredCard1ImgUrl || config?.imageUrl, "/images/white_lace_hero.png"),
+      image: getCardImage(config?.featuredCard1ImgUrl || config?.imageUrl, "/images/white_lace_hero.png"),
       link: config?.featuredCard1Link || "/shop?category=Grade A",
     },
     {
@@ -109,7 +116,7 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
       badgeTop: "🌟 " + (config?.featuredCard2Title || "Panel Brukat Chantily"),
       badgeBottom: "“ Renda Chantilly Impor ”",
       description: config?.featuredCard2Desc || "Serat renda Chantilly kualitas ekspor yang sangat halus, ringan, dan tidak gatal.",
-      image: cleanImageUrl(config?.featuredCard2ImgUrl || config?.panel2ImageUrl, "/images/beige_lace_hero.png"),
+      image: getCardImage(config?.featuredCard2ImgUrl || config?.panel2ImageUrl, "/images/beige_lace_hero.png"),
       link: config?.featuredCard2Link || "/shop?category=Renda Chantilly",
     },
     {
@@ -120,7 +127,7 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
       badgeTop: "💎 " + (config?.featuredCard3Title || "Panel Metallic Ellegant"),
       badgeBottom: "“ Metallic Lace Elegant ”",
       description: config?.featuredCard3Desc || "Memakai benang metalik yang menambah kesan elegan dan mewah untuk busana pesta.",
-      image: cleanImageUrl(config?.featuredCard3ImgUrl || config?.panel3ImageUrl, "/images/metallic_lace_hero.png"),
+      image: getCardImage(config?.featuredCard3ImgUrl || config?.panel3ImageUrl, "/images/metallic_lace_hero.png"),
       link: config?.featuredCard3Link || "/shop?category=Metallic",
     },
   ];
@@ -151,7 +158,7 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
         badgeTop: "✨ " + (config?.featuredCard1Title || "Brukat Putih 3D Premium"),
         badgeBottom: "“ Kerapatan Bordir Maksimal ”",
         description: config?.featuredCard1Desc || "Kerapatan bordir presisi diperkaya dengan taburan mutiara timbul dan payet kilau eksklusif.",
-        image: cleanImageUrl(config?.featuredCard1ImgUrl || config?.imageUrl, "/images/white_lace_hero.png"),
+        image: getCardImage(config?.featuredCard1ImgUrl || config?.imageUrl, "/images/white_lace_hero.png"),
         link: config?.featuredCard1Link || "/shop?category=Grade A",
       },
       {
@@ -162,7 +169,7 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
         badgeTop: "🌟 " + (config?.featuredCard2Title || "Panel Brukat Chantily"),
         badgeBottom: "“ Renda Chantilly Impor ”",
         description: config?.featuredCard2Desc || "Serat renda Chantilly kualitas ekspor yang sangat halus, ringan, dan tidak gatal.",
-        image: cleanImageUrl(config?.featuredCard2ImgUrl || config?.panel2ImageUrl, "/images/beige_lace_hero.png"),
+        image: getCardImage(config?.featuredCard2ImgUrl || config?.panel2ImageUrl, "/images/beige_lace_hero.png"),
         link: config?.featuredCard2Link || "/shop?category=Renda Chantilly",
       },
       {
@@ -173,7 +180,7 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
         badgeTop: "💎 " + (config?.featuredCard3Title || "Panel Metallic Ellegant"),
         badgeBottom: "“ Metallic Lace Elegant ”",
         description: config?.featuredCard3Desc || "Memakai benang metalik yang menambah kesan elegan dan mewah untuk busana pesta.",
-        image: cleanImageUrl(config?.featuredCard3ImgUrl || config?.panel3ImageUrl, "/images/metallic_lace_hero.png"),
+        image: getCardImage(config?.featuredCard3ImgUrl || config?.panel3ImageUrl, "/images/metallic_lace_hero.png"),
         link: config?.featuredCard3Link || "/shop?category=Metallic",
       },
     ]);
@@ -266,32 +273,7 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
               </motion.div>
             </AnimatePresence>
 
-            {/* Bottom Trust Badges with WCAG compliant text contrast */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-stone-200/80 max-w-lg">
-              <div className="flex flex-col items-start gap-1.5">
-                <RotateCcw className="w-5 h-5 text-[#b77305] stroke-[1.75]" />
-                <div>
-                  <p className="text-xs font-bold text-stone-900">{badge1Title}</p>
-                  <p className="text-[11px] font-medium text-stone-600">{badge1Subtitle}</p>
-                </div>
-              </div>
 
-              <div className="flex flex-col items-start gap-1.5">
-                <Award className="w-5 h-5 text-[#b77305] stroke-[1.75]" />
-                <div>
-                  <p className="text-xs font-bold text-stone-900">{badge2Title}</p>
-                  <p className="text-[11px] font-medium text-stone-600">{badge2Subtitle}</p>
-                </div>
-              </div>
-
-              <div className="flex flex-col items-start gap-1.5">
-                <Truck className="w-5 h-5 text-[#b77305] stroke-[1.75]" />
-                <div>
-                  <p className="text-xs font-bold text-stone-900">{badge3Title}</p>
-                  <p className="text-[11px] font-medium text-stone-600">{badge3Subtitle}</p>
-                </div>
-              </div>
-            </div>
 
           </div>
 
