@@ -90,10 +90,71 @@ function normalizeCategory(folderCat: string, title: string): string {
 
   if (f.includes('panel a') || t.includes('grade a')) return 'Panel A';
   if (f.includes('panel b') || t.includes('grade b')) return 'Panel B';
-  if (f.includes('tulle') || t.includes('tulle') || t.includes('tile')) return 'Tulle';
+  if (f.includes('tulle') || t.includes('tile')) return 'Tulle';
   if (t.includes('greige')) return 'Greige';
 
   return 'Panel B';
+}
+
+function cleanDescription(shortDesc: string, fullDesc: string): string {
+  let combined = ((shortDesc || '') + '\n\n' + (fullDesc || ''));
+
+  // 1. Unescape escaped characters
+  combined = combined
+    .replace(/\\n/g, '\n')
+    .replace(/\\r/g, '')
+    .replace(/\\t/g, ' ');
+
+  // 2. Convert HTML tags to clean plaintext / markdown
+  combined = combined
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<li[^>]*>/gi, '\n• ')
+    .replace(/<\/li>/gi, '')
+    .replace(/<\/?(ol|ul|p|div|section|article)[^>]*>/gi, '\n')
+    .replace(/<\/?(strong|b|em|i|span|h[1-6])[^>]*>/gi, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/<[^>]+>/g, '');
+
+  // 3. Clean whitespace and excess blank lines
+  const lines = combined.split('\n').map(l => l.trim());
+  const cleanLines: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line && cleanLines.length > 0 && !cleanLines[cleanLines.length - 1]) {
+      continue;
+    }
+    if (line === '\\' || line === '&nbsp;' || line === '•') continue;
+    cleanLines.push(line);
+  }
+
+  return cleanLines.join('\n').trim();
+}
+
+function isNonColorImage(filename: string): boolean {
+  const f = filename.toLowerCase();
+  return (
+    f.includes('manekin') ||
+    f.includes('gambar utama') ||
+    f.includes('detail motif') ||
+    f.includes('detail-motif') ||
+    f.includes('chatgpt') ||
+    f.includes('banner') ||
+    f.includes('watermark') ||
+    f.includes('eksklusif') ||
+    f.includes('100%') ||
+    f.includes('hero')
+  );
+}
+
+function cleanColorName(filename: string): string {
+  let name = path.parse(filename).name;
+  name = name.replace(/[-_]/g, ' ').replace(/scaled|copy/gi, '').trim();
+  name = name.replace(/\s+\d+$/g, '').trim();
+  return name.split(' ').filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ').trim();
 }
 
 async function uploadLocalFileToSupabase(localFilePath: string, destFileName: string): Promise<string | null> {
@@ -132,20 +193,20 @@ async function uploadLocalFileToSupabase(localFilePath: string, destFileName: st
 
 async function main() {
   console.log('========================================================');
-  console.log('🚀 MEMULAI PROSES RESET DATABASE & IMPORT 78 PRODUK BERSIH');
+  console.log('🚀 MEMULAI RE-SYNC DATABASE DENGAN FOTO & DESKRIPSI BERSIH');
   console.log('========================================================');
 
-  // STEP 1: HAPUS SEMUA DATA LAMA AGAR TIDAK ADA DUPLIKAT
+  // STEP 1: HAPUS SEMUA DATA LAMA AGAR BERSIH TOTAL
   console.log('\n🧹 [1/4] Mengosongkan data lama di Supabase Database...');
   await prisma.orderItem.deleteMany({});
   await prisma.cartItem.deleteMany({});
   await prisma.wishlistItem.deleteMany({});
   await prisma.review.deleteMany({});
   const deletedCount = await prisma.product.deleteMany({});
-  console.log(`✅ Berhasil menghapus ${deletedCount.count} produk lama. Database kini 100% bersih!`);
+  console.log(`✅ Berhasil menghapus ${deletedCount.count} produk lama.`);
 
-  // STEP 2: SCAN SEMUA FOLDER PRODUK DARI HASIL_SCRAPING
-  console.log('\n📂 [2/4] Membaca seluruh folder produk di hasil_scraping...');
+  // STEP 2: SCAN FOLDER PRODUK
+  console.log('\n📂 [2/4] Membaca folder produk di hasil_scraping...');
   const categories = ['Panel A Grade', 'Panel B Grade', 'Tulle'];
   const productFolders: { catName: string; folderName: string; fullPath: string; metadataPath: string }[] = [];
 
@@ -162,10 +223,10 @@ async function main() {
     });
   });
 
-  console.log(`📦 Terdeteksi total ${productFolders.length} folder produk valid.`);
+  console.log(`📦 Terdeteksi ${productFolders.length} folder produk.`);
 
-  // STEP 3: PROSES SETIAP PRODUK & UPLOAD FOTO KE SUPABASE
-  console.log('\n☁️ [3/4] Mengonversi ke WebP, mengunggah ke Supabase Storage, & menyusun database...');
+  // STEP 3: UPLOAD DAN SINKRONISASI
+  console.log('\n☁️ [3/4] Mengunggah foto & menyusun relasi warna, hero, dan galeri...');
 
   let successCount = 0;
 
@@ -180,28 +241,32 @@ async function main() {
     const category = normalizeCategory(item.catName, formattedTitle);
     const { price, discountPrice } = parsePriceString(data.price || "");
 
-    const infoKain = data.short_description || data.description || "";
-    const descLengkap = data.full_description || "";
-    const combinedDescription = [
-      infoKain ? `${infoKain.trim()}` : "",
-      descLengkap ? `\n\n--- KETERANGAN LENGKAP & SPESIFIKASI ---\n${descLengkap.trim()}` : ""
-    ].filter(Boolean).join("");
+    const cleanedDescription = cleanDescription(data.short_description || data.description || '', data.full_description || '');
 
     console.log(`\n[${i + 1}/${productFolders.length}] Memproses: ${formattedTitle.substring(0, 45)}... (Kode: ${productCode})`);
 
-    // Scan all local images in folder
-    const allFiles = fs.readdirSync(item.fullPath);
-    const imageFiles = allFiles.filter(f => f.toLowerCase().endsWith('.png') || f.toLowerCase().endsWith('.jpg') || f.toLowerCase().endsWith('.jpeg'));
+    // Scan all local images
+    const allFiles = fs.readdirSync(item.fullPath).filter(f => f.toLowerCase().endsWith('.png') || f.toLowerCase().endsWith('.jpg') || f.toLowerCase().endsWith('.jpeg'));
+
+    // 1. Identifikasi Foto Utama (Hero / Manekin)
+    // Utamakan file 'Gambar Utama (Manekin).png' atau file manekin tanpa detail
+    const heroImageFile = allFiles.find(f => /^gambar utama \(manekin\)\.(png|jpg|jpeg)$/i.test(f)) ||
+                          allFiles.find(f => /manekin.*ai/i.test(f)) ||
+                          allFiles.find(f => /manekin|gambar utama/i.test(f) && !f.includes('2') && !f.includes('3')) ||
+                          allFiles[0];
+
+    // 2. Identifikasi Foto Detail Motif / Tekstur
+    const detailFiles = allFiles.filter(f => f !== heroImageFile && isNonColorImage(f));
+
+    // 3. Identifikasi Foto Varian Warna Asli
+    const colorFiles = allFiles.filter(f => f !== heroImageFile && !isNonColorImage(f));
 
     const galleryImages: string[] = [];
     const colorNames: string[] = [];
     const colorStocks: Record<string, number> = {};
     const colorImages: Record<string, string> = {};
 
-    // Determine primary/hero image
-    const heroImageFile = imageFiles.find(f => /manekin|gambar utama/i.test(f)) || imageFiles[0];
-
-    // Upload hero image first
+    // Upload Hero Image (Foto Utama)
     let primaryImageUrl = "";
     if (heroImageFile) {
       const heroPath = path.join(item.fullPath, heroImageFile);
@@ -213,50 +278,63 @@ async function main() {
       }
     }
 
-    // Process variant colors from metadata and files
-    const variantFiles = imageFiles.filter(f => f !== heroImageFile);
-
-    for (let fIdx = 0; fIdx < variantFiles.length; fIdx++) {
-      const vFile = variantFiles[fIdx];
-      const vPath = path.join(item.fullPath, vFile);
-      let colorName = path.parse(vFile).name.replace(/[-_]/g, ' ').replace(/scaled|copy/gi, '').trim();
-      if (/manekin|gambar utama|chatgpt/i.test(colorName)) {
-        colorName = `Detail Motif ${fIdx + 1}`;
-      } else {
-        colorName = colorName.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ').trim();
+    // Upload Detail Motif Images (Masuk ke Galeri Foto, BUKAN tombol varian warna)
+    for (let dIdx = 0; dIdx < detailFiles.length; dIdx++) {
+      const dFile = detailFiles[dIdx];
+      const dPath = path.join(item.fullPath, dFile);
+      const destDetailName = `${sanitizeFilename(formattedTitle)}_detail_${dIdx + 1}`;
+      const uploadedDetail = await uploadLocalFileToSupabase(dPath, destDetailName);
+      if (uploadedDetail) {
+        galleryImages.push(uploadedDetail);
       }
+    }
 
-      const destVariantName = `${sanitizeFilename(formattedTitle)}_${sanitizeFilename(colorName)}_${fIdx + 1}`;
-      const uploadedVariant = await uploadLocalFileToSupabase(vPath, destVariantName);
+    // Upload Varian Warna Asli (Masuk ke Galeri Foto DAN tombol varian warna)
+    for (let cIdx = 0; cIdx < colorFiles.length; cIdx++) {
+      const cFile = colorFiles[cIdx];
+      const cPath = path.join(item.fullPath, cFile);
+      const rawColorName = cleanColorName(cFile);
 
-      if (uploadedVariant) {
-        galleryImages.push(uploadedVariant);
-        if (!colorNames.includes(colorName)) {
-          colorNames.push(colorName);
+      const destColorName = `${sanitizeFilename(formattedTitle)}_color_${sanitizeFilename(rawColorName)}_${cIdx + 1}`;
+      const uploadedColor = await uploadLocalFileToSupabase(cPath, destColorName);
+
+      if (uploadedColor) {
+        galleryImages.push(uploadedColor);
+        if (!colorNames.includes(rawColorName)) {
+          colorNames.push(rawColorName);
         }
-        colorStocks[colorName] = 100;
-        colorImages[colorName] = uploadedVariant;
+        colorImages[rawColorName] = uploadedColor;
+
+        // Cari stok spesifik dari teks deskripsi jika ada
+        const stockRegex = new RegExp(`(?:${rawColorName}|@${rawColorName})\\s*[:\\[]?\\s*(\\d+)\\s*(?:PCS|pcs|roll)?`, 'i');
+        const stockMatch = cleanedDescription.match(stockRegex);
+        colorStocks[rawColorName] = stockMatch ? parseInt(stockMatch[1]) : 100;
       }
     }
 
-    // Fallback if no specific hero found
-    if (!primaryImageUrl && galleryImages.length > 0) {
-      primaryImageUrl = galleryImages[0];
-    }
-
-    // If colorNames still empty, check available_colors from metadata
+    // Jika produk merupakan kain single motif/warna tunggal tanpa file warna terpisah:
     if (colorNames.length === 0 && Array.isArray(data.available_colors)) {
       data.available_colors.forEach((cStr: string) => {
-        const m = cStr.match(/^([A-Z\s]+)\s*:\s*(\d+)/i);
-        if (m) {
-          const cName = m[1].trim();
-          colorNames.push(cName);
-          colorStocks[cName] = parseInt(m[2]) || 100;
+        // Filter out non-colors from available_colors
+        if (!/gambar utama|manekin|detail motif/i.test(cStr)) {
+          const m = cStr.match(/^([A-Z\s]+)\s*:\s*(\d+)/i);
+          if (m) {
+            const cName = m[1].trim().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+            if (cName.length < 30 && !colorNames.includes(cName)) {
+              colorNames.push(cName);
+              colorStocks[cName] = parseInt(m[2]) || 100;
+            }
+          }
         }
       });
     }
 
-    // Calculate total stock
+    // Fallback hero image
+    if (!primaryImageUrl && galleryImages.length > 0) {
+      primaryImageUrl = galleryImages[0];
+    }
+
+    // Hitung total stok
     const totalStock = Object.values(colorStocks).reduce((sum, n) => sum + n, 0) || 100;
 
     await prisma.product.create({
@@ -266,7 +344,7 @@ async function main() {
         price: price,
         discountPrice: discountPrice,
         category: category,
-        description: combinedDescription || "Kain Brukat Premium berkualitas tinggi.",
+        description: cleanedDescription || "Kain Brukat Premium berkualitas tinggi.",
         image: primaryImageUrl || "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=800",
         galleryImages: galleryImages,
         colors: colorNames,
@@ -279,7 +357,7 @@ async function main() {
     });
 
     successCount++;
-    console.log(`  ✅ [${successCount}] Berhasil diimpor ke DB (${galleryImages.length} foto, ${colorNames.length} warna, total stok: ${totalStock})`);
+    console.log(`  ✅ [${successCount}] Tersimpan di DB: Foto Utama: ${heroImageFile || 'Default'}, Galeri: ${galleryImages.length} foto, Warna: [${colorNames.join(', ')}]`);
   }
 
   // STEP 4: VERIFIKASI AKHIR
@@ -296,7 +374,7 @@ main()
     process.exit(0);
   })
   .catch(async (e) => {
-    console.error("❌ Error saat sinkronisasi:", e);
+    console.error("❌ Error:", e);
     await prisma.$disconnect();
     process.exit(1);
   });

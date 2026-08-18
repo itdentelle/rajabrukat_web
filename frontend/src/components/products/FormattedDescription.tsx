@@ -14,8 +14,19 @@ export default function FormattedDescription({ description }: FormattedDescripti
     );
   }
 
-  // Parse raw text sections if scraped raw string is provided
-  const rawText = description;
+  // Parse and clean raw text
+  const rawText = (description || "")
+    .replace(/\\n/g, "\n")
+    .replace(/\\r/g, "")
+    .replace(/\\t/g, " ")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "\n• ")
+    .replace(/<\/li>/gi, "")
+    .replace(/<\/?(ol|ul|p|div|section|article)[^>]*>/gi, "\n")
+    .replace(/<\/?(strong|b|em|i|span|h[1-6])[^>]*>/gi, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/<[^>]+>/g, "");
 
   // Extract Specification (Panjang & Lebar)
   const lengthMatch = rawText.match(/Panjang\s*1?\s*Kain\s*:\s*([^:\n\r–\-]+(?:\([^)]+\))?)/i);
@@ -38,7 +49,11 @@ export default function FormattedDescription({ description }: FormattedDescripti
                     rawText.match(/DESKRIPSI\s*:\s*([\s\S]*?)(?=CATATAN PENGIRIMAN|#|$)/i);
 
   if (fabricInfoMatch) {
-    fabricInfoText = fabricInfoMatch[1].trim();
+    fabricInfoText = fabricInfoMatch[1]
+      .replace(/Panjang\s*1?\s*Kain\s*:\s*[^\n\r]+\n?/gi, "")
+      .replace(/Lebar\s*1?\s*Kain\s*:\s*[^\n\r]+\n?/gi, "")
+      .replace(/KETERSEDIAAN (?:WARNA|STOK)\s*:[\s\S]*?(?=KETERANGAN|INFORMASI|CATATAN|#|$)/gi, "")
+      .trim();
   }
   if (descMatch) {
     productDescText = descMatch[1].trim();
@@ -50,7 +65,7 @@ export default function FormattedDescription({ description }: FormattedDescripti
       .replace(/Panjang\s*1?\s*Kain\s*:\s*[^\n\r]+\n?/gi, "")
       .replace(/Lebar\s*1?\s*Kain\s*:\s*[^\n\r]+\n?/gi, "")
       .replace(/Informasi Kain\s*:\s*/gi, "")
-      .replace(/KETERSEDIAAN WARNA\s*:[\s\S]*?SUB TOTAL[^\n\r–\-]*/gi, "")
+      .replace(/KETERSEDIAAN (?:WARNA|STOK)\s*:[\s\S]*?(?=KETERANGAN|INFORMASI|CATATAN|#|$)/gi, "")
       .replace(/---.*?---/gi, "")
       .replace(/Description/gi, "")
       .replace(/KETERANGAN GRADE\s*:.*?/gi, "")
