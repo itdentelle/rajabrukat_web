@@ -41,12 +41,12 @@ function normalizeCategory(folderCat: string, title: string): string {
   const t = title.toLowerCase();
   const f = folderCat.toLowerCase();
 
-  if (f.includes('panel a') || t.includes('grade a')) return 'Panel A';
-  if (f.includes('panel b') || t.includes('grade b')) return 'Panel B';
+  if (f.includes('panel a') || t.includes('grade a')) return 'Grade A';
+  if (f.includes('panel b') || t.includes('grade b')) return 'Grade B';
   if (f.includes('tulle') || t.includes('tile')) return 'Tulle';
   if (t.includes('greige')) return 'Greige';
 
-  return 'Panel B';
+  return 'Grade B';
 }
 
 async function uploadLocalFileToSupabase(localFilePath: string, destFileName: string): Promise<string | null> {
