@@ -24,8 +24,8 @@ export default function FabricComparisonSlider({
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const resolvedBeforeImage = config?.compareBeforeImage || beforeImage || "/images/white_lace_hero.png";
-  const resolvedAfterImage = config?.compareAfterImage || afterImage || "/images/metallic_lace_hero.png";
+  const resolvedBeforeImage = config?.compareBeforeImage || beforeImage || "/images/white_lace_hero.webp";
+  const resolvedAfterImage = config?.compareAfterImage || afterImage || "/images/metallic_lace_hero.webp";
   const resolvedBeforeLabel = config?.compareBeforeLabel || beforeLabel || "Semi Prancis 3D";
   const resolvedAfterLabel = config?.compareAfterLabel || afterLabel || "Metallic Elegant";
   const resolvedTitle = config?.compareTitle || "Compare Textile Quality";

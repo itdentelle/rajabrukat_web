@@ -70,6 +70,8 @@ export default function RootLayout({
         <meta name="theme-color" content="#b77305" />
         <link rel="icon" href="/icon.png" type="image/png" sizes="any" />
         <link rel="apple-touch-icon" href="/icon.png" />
+        <link rel="preload" href="/images/white_lace_hero.webp" as="image" type="image/webp" fetchPriority="high" />
+        <link rel="preload" href="/images/logo_rajabrukat-removebg-preview.png" as="image" type="image/png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   images: {
     qualities: [75, 80],
     formats: ["image/avif", "image/webp"],
-    minimumCacheTTL: 2592000,
+    minimumCacheTTL: 31536000,
     remotePatterns: [
       {
         protocol: "http",
@@ -71,7 +71,7 @@ const nextConfig: NextConfig = {
     ]
   },
   experimental: {
-    optimizePackageImports: ["lucide-react", "framer-motion", "recharts"],
+    optimizePackageImports: ["lucide-react", "framer-motion", "recharts", "@react-oauth/google", "@supabase/supabase-js"],
   },
   async rewrites() {
     let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
@@ -98,7 +98,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Cache-Control",
-            value: "public, max-age=86400, stale-while-revalidate=604800",
+            value: "public, max-age=31536000, immutable",
           },
         ],
       },

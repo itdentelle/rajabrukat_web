@@ -40,7 +40,7 @@ export default function HeroBanner({ config }: HeroBannerProps) {
       description: "Seni bordir tile bertabur payet mutiara kristal mewah untuk kebaya & gaun pesta istimewa Anda.",
       buttonText: config?.buttonText || "Shop Now",
       buttonLink: config?.buttonLink || "/shop",
-      image: config?.imageUrl?.endsWith(".jpg") ? "/images/white_lace_hero.png" : (config?.imageUrl || "/images/white_lace_hero.png"),
+      image: config?.imageUrl?.endsWith(".jpg") ? "/images/white_lace_hero.webp" : (config?.imageUrl || "/images/white_lace_hero.webp"),
       badge: "BRUKAT 3D",
     },
     {
@@ -51,7 +51,7 @@ export default function HeroBanner({ config }: HeroBannerProps) {
       description: "Kehalusan renda Prancis bertekstur ultra-soft yang jatuh lembut dan mewah di kulit.",
       buttonText: config?.panel2ButtonText || "Lihat Koleksi",
       buttonLink: config?.panel2ButtonLink || "/shop?category=Renda Chantilly",
-      image: config?.panel2ImageUrl || "/images/beige_lace_hero.png",
+      image: config?.panel2ImageUrl || "/images/beige_lace_hero.webp",
       badge: "CHANTILLY",
     },
     {
@@ -62,7 +62,7 @@ export default function HeroBanner({ config }: HeroBannerProps) {
       description: "Seni bordir metallic berkilau dengan detail mewah dan elegan untuk gaun pesta istimewa Anda.",
       buttonText: config?.panel3ButtonText || "Lihat Koleksi",
       buttonLink: config?.panel3ButtonLink || "/shop?category=Metallic",
-      image: config?.panel3ImageUrl || "/images/metallic_lace_hero.png",
+      image: config?.panel3ImageUrl || "/images/metallic_lace_hero.webp",
       badge: "METALLIC",
     },
   ];
@@ -102,6 +102,12 @@ export default function HeroBanner({ config }: HeroBannerProps) {
               aria-label={`Lihat Koleksi ${panel.title}`}
               onClick={() => setActiveIndex(idx)}
               onMouseEnter={() => setActiveIndex(idx)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setActiveIndex(idx);
+                }
+              }}
               className={`relative h-full transition-[flex,opacity,box-shadow] duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] cursor-pointer overflow-hidden group border-b lg:border-b-0 lg:border-r border-white/10 transform-gpu will-change-auto ${isActive
                   ? "flex-1 lg:flex-[3.5] shadow-2xl z-10"
                   : "flex-1 lg:flex-1 opacity-90 hover:opacity-100 lg:hover:flex-[1.25]"
@@ -114,9 +120,10 @@ export default function HeroBanner({ config }: HeroBannerProps) {
                   alt={panel.title}
                   fill
                   priority={idx === 0}
+                  fetchPriority={idx === 0 ? "high" : "auto"}
                   loading={idx === 0 ? "eager" : "lazy"}
                   quality={75}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1280px) 60vw, 40vw"
                   className={`object-cover object-center transition-transform duration-1000 transform-gpu ${isActive ? "scale-105" : "scale-100 group-hover:scale-105"
                     }`}
                 />

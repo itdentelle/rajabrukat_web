@@ -31,7 +31,7 @@ const FABRIC_CARDS: FabricCardItem[] = [
     badgeTop: "✨ Brukat Putih 3D Premium",
     badgeBottom: "“ Kerapatan Bordir Maksimal ”",
     description: "Kerapatan bordir presisi diperkaya dengan taburan mutiara timbul dan payet kilau eksklusif.",
-    image: "/images/white_lace_hero.png",
+    image: "/images/white_lace_hero.webp",
     link: "/shop?category=Grade A",
   },
   {
@@ -42,7 +42,7 @@ const FABRIC_CARDS: FabricCardItem[] = [
     badgeTop: "🌟 Renda Chantilly French Impor",
     badgeBottom: "“ Lembut & Tidak Gatal di Kulit ”",
     description: "Serat renda Chantilly kualitas ekspor yang sangat halus, ringan, dan tidak gatal. Pilihan utama para desainer untuk gaun pesta & kebaya pengantin.",
-    image: "/images/beige_lace_hero.png",
+    image: "/images/beige_lace_hero.webp",
     link: "/shop?category=Renda Chantilly",
   },
   {
@@ -53,7 +53,7 @@ const FABRIC_CARDS: FabricCardItem[] = [
     badgeTop: "💎 Metallic Lace Elegant",
     badgeBottom: "“ Kilau Benang Metalik Mewah ”",
     description: "Memakai benang metalik yang menambah kesan elegan dan mewah untuk busana pesta dan kebaya modern.",
-    image: "/images/metallic_lace_hero.png",
+    image: "/images/metallic_lace_hero.webp",
     link: "/shop?category=Metallic",
   },
 ];
@@ -105,7 +105,7 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
       badgeTop: config?.featuredCard1Title || "Brukat Putih 3D Premium",
       badgeBottom: "“ Kerapatan Bordir Maksimal ”",
       description: config?.featuredCard1Desc || "Kerapatan bordir presisi diperkaya dengan taburan mutiara timbul dan payet kilau eksklusif.",
-      image: getCardImage(config?.featuredCard1ImgUrl || config?.imageUrl, "/images/white_lace_hero.png"),
+      image: getCardImage(config?.featuredCard1ImgUrl || config?.imageUrl, "/images/white_lace_hero.webp"),
       link: config?.featuredCard1Link || "/shop?category=Grade A",
     },
     {
@@ -116,7 +116,7 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
       badgeTop: config?.featuredCard2Title || "Panel Brukat Chantily",
       badgeBottom: "“ Renda Chantilly Impor ”",
       description: config?.featuredCard2Desc || "Serat renda Chantilly kualitas ekspor yang sangat halus, ringan, dan tidak gatal.",
-      image: getCardImage(config?.featuredCard2ImgUrl || config?.panel2ImageUrl, "/images/beige_lace_hero.png"),
+      image: getCardImage(config?.featuredCard2ImgUrl || config?.panel2ImageUrl, "/images/beige_lace_hero.webp"),
       link: config?.featuredCard2Link || "/shop?category=Renda Chantilly",
     },
     {
@@ -127,7 +127,7 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
       badgeTop: config?.featuredCard3Title || "Panel Metallic Ellegant",
       badgeBottom: "“ Metallic Lace Elegant ”",
       description: config?.featuredCard3Desc || "Memakai benang metalik yang menambah kesan elegan dan mewah untuk busana pesta.",
-      image: getCardImage(config?.featuredCard3ImgUrl || config?.panel3ImageUrl, "/images/metallic_lace_hero.png"),
+      image: getCardImage(config?.featuredCard3ImgUrl || config?.panel3ImageUrl, "/images/metallic_lace_hero.webp"),
       link: config?.featuredCard3Link || "/shop?category=Metallic",
     },
   ];
@@ -158,7 +158,7 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
         badgeTop: config?.featuredCard1Title || "Brukat Putih 3D Premium",
         badgeBottom: "“ Kerapatan Bordir Maksimal ”",
         description: config?.featuredCard1Desc || "Kerapatan bordir presisi diperkaya dengan taburan mutiara timbul dan payet kilau eksklusif.",
-        image: getCardImage(config?.featuredCard1ImgUrl || config?.imageUrl, "/images/white_lace_hero.png"),
+        image: getCardImage(config?.featuredCard1ImgUrl || config?.imageUrl, "/images/white_lace_hero.webp"),
         link: config?.featuredCard1Link || "/shop?category=Grade A",
       },
       {
@@ -169,7 +169,7 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
         badgeTop: config?.featuredCard2Title || "Panel Brukat Chantily",
         badgeBottom: "“ Renda Chantilly Impor ”",
         description: config?.featuredCard2Desc || "Serat renda Chantilly kualitas ekspor yang sangat halus, ringan, dan tidak gatal.",
-        image: getCardImage(config?.featuredCard2ImgUrl || config?.panel2ImageUrl, "/images/beige_lace_hero.png"),
+        image: getCardImage(config?.featuredCard2ImgUrl || config?.panel2ImageUrl, "/images/beige_lace_hero.webp"),
         link: config?.featuredCard2Link || "/shop?category=Renda Chantilly",
       },
       {
@@ -180,7 +180,7 @@ export default function FeaturedCategories({ config }: FeaturedCategoriesProps) 
         badgeTop: config?.featuredCard3Title || "Panel Metallic Ellegant",
         badgeBottom: "“ Metallic Lace Elegant ”",
         description: config?.featuredCard3Desc || "Memakai benang metalik yang menambah kesan elegan dan mewah untuk busana pesta.",
-        image: getCardImage(config?.featuredCard3ImgUrl || config?.panel3ImageUrl, "/images/metallic_lace_hero.png"),
+        image: getCardImage(config?.featuredCard3ImgUrl || config?.panel3ImageUrl, "/images/metallic_lace_hero.webp"),
         link: config?.featuredCard3Link || "/shop?category=Metallic",
       },
     ]);

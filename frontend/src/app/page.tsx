@@ -5,13 +5,25 @@ import HeroBanner from "@/components/home/HeroBanner";
 import FeaturedCategories from "@/components/home/FeaturedCategories";
 import { API_BASE_URL } from "@/lib/api";
 
-// Below-the-fold components: lazy loaded to maximize Lighthouse Performance (99-100)
-const CatalogFlipbookSection = dynamic(() => import("@/components/home/CatalogFlipbookSection"));
-const AboutBrand = dynamic(() => import("@/components/home/AboutBrand"));
-const LatestDrops = dynamic(() => import("@/components/home/LatestDrops"));
-const FabricComparisonSlider = dynamic(() => import("@/components/home/FabricComparisonSlider"));
-const ShopTheLook = dynamic(() => import("@/components/home/ShopTheLook"));
-const BestSellers = dynamic(() => import("@/components/home/BestSellers"));
+// Below-the-fold components: lazy loaded with reserved height to eliminate CLS (Cumulative Layout Shift)
+const CatalogFlipbookSection = dynamic(() => import("@/components/home/CatalogFlipbookSection"), {
+  loading: () => <div className="min-h-[420px] w-full" />,
+});
+const AboutBrand = dynamic(() => import("@/components/home/AboutBrand"), {
+  loading: () => <div className="min-h-[360px] w-full" />,
+});
+const LatestDrops = dynamic(() => import("@/components/home/LatestDrops"), {
+  loading: () => <div className="min-h-[480px] w-full" />,
+});
+const FabricComparisonSlider = dynamic(() => import("@/components/home/FabricComparisonSlider"), {
+  loading: () => <div className="min-h-[480px] w-full" />,
+});
+const ShopTheLook = dynamic(() => import("@/components/home/ShopTheLook"), {
+  loading: () => <div className="min-h-[450px] w-full" />,
+});
+const BestSellers = dynamic(() => import("@/components/home/BestSellers"), {
+  loading: () => <div className="min-h-[400px] w-full" />,
+});
 
 async function getProducts() {
   try {

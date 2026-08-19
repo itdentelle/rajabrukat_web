@@ -313,6 +313,8 @@ export default function Navbar() {
               onMouseLeave={() => setIsCategoriesOpen(false)}
             >
               <button 
+                aria-label="Kategori Produk"
+                aria-expanded={isCategoriesOpen}
                 className={cn(
                   "relative inline-flex items-center gap-1 font-medium transition-colors focus:outline-none",
                   pathname.includes("category=") || pathname.startsWith("/collections") ? "text-[#b77305]" : "text-stone-800 hover:text-[#b77305]"
@@ -366,6 +368,8 @@ export default function Navbar() {
               onMouseLeave={() => setIsLainnyaOpen(false)}
             >
               <button 
+                aria-label="Menu Lainnya"
+                aria-expanded={isLainnyaOpen}
                 className={cn(
                   "relative inline-flex items-center gap-1 font-medium transition-colors focus:outline-none",
                   pathname.startsWith("/pages/") || pathname === "/about" ? "text-[#b77305]" : "text-stone-800 hover:text-[#b77305]"
