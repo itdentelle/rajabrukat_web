@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "react-hot-toast";
@@ -37,6 +37,32 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
   const [fabricInfo, setFabricInfo] = useState("");
   const [fabricLength, setFabricLength] = useState("");
   const [fabricWidth, setFabricWidth] = useState("");
+
+  const fabricInfoRef = useRef<HTMLTextAreaElement | null>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const adjustTextareaHeight = (el: HTMLTextAreaElement | null) => {
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.max(el.scrollHeight, 84)}px`;
+  };
+
+  useEffect(() => {
+    adjustTextareaHeight(fabricInfoRef.current);
+  }, [fabricInfo]);
+
+  useEffect(() => {
+    adjustTextareaHeight(descriptionRef.current);
+  }, [formData.description]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      adjustTextareaHeight(fabricInfoRef.current);
+      adjustTextareaHeight(descriptionRef.current);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const [colorStocks, setColorStocks] = useState<Record<string, string>>({});
   const [colorImages, setColorImages] = useState<Record<string, string>>({});
@@ -658,11 +684,16 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
       <div>
         <label className="block text-sm font-bold text-gray-700">Informasi Kain / Detail & Keunggulan Bahan (Optional)</label>
         <textarea
+          ref={fabricInfoRef}
           rows={3}
           value={fabricInfo}
-          onChange={(e) => setFabricInfo(e.target.value)}
+          onChange={(e) => {
+            setFabricInfo(e.target.value);
+            adjustTextareaHeight(e.target);
+          }}
           placeholder="Contoh: Serat renda dan brukat kualitas impor yang sangat halus, ringan, adem, dan tidak gatal di kulit. Kerapatan bordir presisi diperkaya dengan taburan mutiara timbul."
-          className="mt-1 block w-full border border-gray-300 rounded-lg shadow-xs py-2.5 px-3.5 focus:outline-none focus:ring-2 focus:ring-[#b77305]/20 focus:border-[#b77305] sm:text-sm font-medium text-stone-800"
+          className="mt-1 block w-full border border-gray-300 rounded-lg shadow-xs py-2.5 px-3.5 focus:outline-none focus:ring-2 focus:ring-[#b77305]/20 focus:border-[#b77305] sm:text-sm font-medium text-stone-800 resize-y overflow-hidden transition-[height] duration-75"
+          style={{ minHeight: "84px" }}
         />
         <p className="mt-1 text-[11px] text-stone-500">
           Informasi keunggulan bahan kain ini akan ditampilkan secara eksklusif pada bagian Detail Produk pembeli.
@@ -673,11 +704,16 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
       <div>
         <label className="block text-sm font-bold text-gray-700">Deskripsi Tambahan Produk (Optional)</label>
         <textarea
+          ref={descriptionRef}
           rows={3}
           value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          onChange={(e) => {
+            setFormData({ ...formData, description: e.target.value });
+            adjustTextareaHeight(e.target);
+          }}
           placeholder="Tuliskan rincian deskripsi produk, rekomendasi pemakaian (kebaya, gaun pesta, dll.)..."
-          className="mt-1 block w-full border border-gray-300 rounded-lg shadow-xs py-2.5 px-3.5 focus:outline-none focus:ring-2 focus:ring-[#b77305]/20 focus:border-[#b77305] sm:text-sm font-medium text-stone-800"
+          className="mt-1 block w-full border border-gray-300 rounded-lg shadow-xs py-2.5 px-3.5 focus:outline-none focus:ring-2 focus:ring-[#b77305]/20 focus:border-[#b77305] sm:text-sm font-medium text-stone-800 resize-y overflow-hidden transition-[height] duration-75"
+          style={{ minHeight: "84px" }}
         />
       </div>
 
