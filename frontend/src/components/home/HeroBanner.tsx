@@ -85,7 +85,8 @@ export default function HeroBanner({ config }: HeroBannerProps) {
 
   return (
     <div
-      className="relative w-full h-screen min-h-[650px] bg-white overflow-hidden flex flex-col pt-[60px] md:pt-[68px]"
+      className="relative w-full h-[100dvh] min-h-[650px] bg-white overflow-hidden flex flex-col pt-[60px] md:pt-[68px]"
+      style={{ contain: "layout style" }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
