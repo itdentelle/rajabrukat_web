@@ -10,7 +10,8 @@
     "dev": "tsx watch src/index.ts",
     "test": "tsx src/test-suite.ts",
     "db:backup": "tsx scripts/backup-db.ts",
-    "db:restore": "tsx scripts/restore-db.ts"
+    "db:restore": "tsx scripts/restore-db.ts",
+    "sync:images": "tsx scripts/sync-images-vps.ts"
   },
   "keywords": [],
   "author": "",
