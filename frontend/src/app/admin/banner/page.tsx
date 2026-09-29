@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
-import { supabase } from "@/lib/supabase";
+import { uploadImage } from "@/lib/uploadHelper";
 import { API_BASE_URL } from "@/lib/api";
 import { Save, Image as ImageIcon, Layout, Store, Share2, Info, Sparkles, Gem, Award, ShieldCheck, Heart, Layers, BookOpen, Flame, Home, ShoppingBag, Globe, Eye, PhoneCall, HelpCircle, Plus, Trash2, Edit3, Check, X } from "lucide-react";
 
@@ -630,43 +630,7 @@ export default function CMSSettingsPage() {
     setLoading(true);
 
     const uploadFileWithFallback = async (bucket: string, path: string, file: File, options?: any): Promise<string> => {
-      // 1. Try Supabase Storage first
-      try {
-        const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file, options || { upsert: true });
-        if (!uploadError) {
-          const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(path);
-          if (publicUrlData?.publicUrl) return publicUrlData.publicUrl;
-        }
-      } catch (e: any) {
-        console.warn("Supabase Storage upload warning:", e?.message);
-      }
-
-      // 2. Fallback: Convert to Base64 and upload via Backend /api/upload to generate a clean URL
-      const dataUrl: string = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(file);
-      });
-
-      try {
-        const token = localStorage.getItem("admin_token") || localStorage.getItem("token");
-        const res = await fetch(`${API_BASE_URL}/api/upload`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({ image: dataUrl })
-        });
-        if (res.ok) {
-          const json = await res.json();
-          if (json.url) return json.url;
-        }
-      } catch (err) {
-        console.warn("Backend /api/upload error:", err);
-      }
-
-      return dataUrl;
+      return await uploadImage(file, bucket, path);
     };
 
     try {

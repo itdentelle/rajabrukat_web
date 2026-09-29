@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { uploadImage } from "@/lib/uploadHelper";
 import { toast } from "react-hot-toast";
 import { API_BASE_URL } from "@/lib/api";
 import { Upload, Image as ImageIcon, Trash2, Plus, X } from "lucide-react";
@@ -214,43 +214,7 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
       let sizeGuideUrl = formData.sizeGuide;
 
       const uploadFileWithFallback = async (bucket: string, path: string, file: File): Promise<string> => {
-        // 1. Try direct Supabase storage first
-        try {
-          const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
-          if (!uploadError) {
-            const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(path);
-            if (publicUrlData?.publicUrl) return publicUrlData.publicUrl;
-          }
-        } catch (e) {
-          // Fall through to backend upload
-        }
-
-        // 2. Fallback: Convert to Base64 and upload via Backend /api/upload (which uploads to Supabase Storage with Admin Key)
-        const dataUrl: string = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.readAsDataURL(file);
-        });
-
-        try {
-          const token = localStorage.getItem("admin_token") || localStorage.getItem("token");
-          const res = await fetch(`${API_BASE_URL}/api/upload`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`,
-            },
-            body: JSON.stringify({ image: dataUrl }),
-          });
-          if (res.ok) {
-            const json = await res.json();
-            if (json.url) return json.url;
-          }
-        } catch (err) {
-          console.warn("Backend /api/upload error:", err);
-        }
-
-        throw new Error("Gagal mengunggah file gambar ke server. Silakan coba lagi.");
+        return await uploadImage(file, bucket, path);
       };
 
       if (imageFile || galleryFiles.length > 0 || sizeGuideFile || Object.keys(colorImageFiles).length > 0) {
@@ -518,7 +482,7 @@ export default function ProductForm({ initialData, productId, isEdit }: ProductF
             />
           </div>
         )}
-        {uploadingImage && <p className="text-xs text-blue-500 mt-2">Uploading image to Supabase...</p>}
+        {uploadingImage && <p className="text-xs text-amber-600 mt-2">Mengunggah gambar...</p>}
       </div>
 
       {/* Gallery Images Section */}

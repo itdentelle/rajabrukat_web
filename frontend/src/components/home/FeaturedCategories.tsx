@@ -90,7 +90,7 @@ import { cleanImageUrl } from "@/utils/cleanImageUrl";
 
 export default function FeaturedCategories({ config }: FeaturedCategoriesProps) {
   const getCardImage = (imgUrl: string | undefined | null, fallback: string) => {
-    if (!imgUrl || typeof imgUrl !== "string" || imgUrl.trim() === "" || imgUrl.startsWith("/uploads/upload_")) {
+    if (!imgUrl || typeof imgUrl !== "string" || imgUrl.trim() === "") {
       return fallback;
     }
     return cleanImageUrl(imgUrl, fallback);

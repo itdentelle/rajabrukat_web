@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { supabase } from "@/lib/supabase";
+import { uploadImage } from "@/lib/uploadHelper";
 import { API_BASE_URL } from "@/lib/api";
 
 export default function NewCollectionPage() {
@@ -28,24 +28,7 @@ export default function NewCollectionPage() {
       let finalImageUrl = imageUrl;
 
       if (imageOption === "upload" && imageFile) {
-        const fileExt = imageFile.name.split('.').pop();
-        const fileName = `collection-${Date.now()}.${fileExt}`;
-        
-        const { data, error: uploadError } = await supabase.storage
-          .from('products')
-          .upload(fileName, imageFile, { upsert: true });
-
-        if (uploadError) {
-          toast.error("Failed to upload image to Supabase Storage");
-          setLoading(false);
-          return;
-        }
-
-        const { data: publicUrlData } = supabase.storage
-          .from('products')
-          .getPublicUrl(fileName);
-
-        finalImageUrl = publicUrlData.publicUrl;
+        finalImageUrl = await uploadImage(imageFile, 'products');
       }
 
       const token = localStorage.getItem("admin_token") || localStorage.getItem("token");

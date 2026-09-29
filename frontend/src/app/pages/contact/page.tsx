@@ -5,7 +5,6 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Phone, Mail, MapPin, Clock, Send, MessageSquare, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
-import FullWidthHeroSlider from "@/components/home/FullWidthHeroSlider";
 import { cleanImageUrl } from "@/utils/cleanImageUrl";
 
 function TikTokIcon({ className = "w-5 h-5" }: { className?: string }) {

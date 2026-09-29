@@ -23,8 +23,10 @@ const cormorant = Cormorant_Garamond({
   fallback: ["Georgia", "serif"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://rajabrukat.com";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("http://localhost:3000"),
+  metadataBase: new URL(siteUrl),
   title: "Raja Brukat - Grosir & Satuan Kain Brukat",
   description: "Pusat grosir dan eceran kain brukat berkualitas. Koleksi brukat terlengkap dengan berbagai motif yang indah dan elegan dengan harga yang terjangkau.",
   keywords: [
@@ -79,7 +81,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Store",
               "name": "Raja Brukat",
-              "image": "http://localhost:3000/images/logo_rajabrukat-removebg-preview.png",
+              "image": `${siteUrl}/images/logo_rajabrukat-removebg-preview.png`,
               "description": "Pusat grosir dan eceran kain brukat berkualitas. Koleksi brukat terlengkap dengan berbagai motif yang indah dan elegan dengan harga yang terjangkau.",
               "address": {
                 "@type": "PostalAddress",
@@ -89,7 +91,7 @@ export default function RootLayout({
               },
               "priceRange": "Rp",
               "telephone": "+6285881667778",
-              "url": "http://localhost:3000"
+              "url": siteUrl
             })
           }}
         />
