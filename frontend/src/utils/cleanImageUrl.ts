@@ -4,26 +4,22 @@ export function cleanImageUrl(url?: string | null, fallback: string = "/images/w
   }
   let trimmed = url.trim();
 
+  // If pointing to /uploads/ or /scraped-images/ anywhere (absolute or relative), normalize to relative path
+  if (trimmed.includes("/uploads/")) {
+    return trimmed.slice(trimmed.indexOf("/uploads/"));
+  }
+  if (trimmed.includes("/scraped-images/")) {
+    return trimmed.slice(trimmed.indexOf("/scraped-images/"));
+  }
+
   // If already absolute URL (Supabase, Unsplash, external HTTPS, or base64 data URL)
   if (trimmed.startsWith("https://") || trimmed.startsWith("http://") || trimmed.startsWith("data:")) {
-    // If it's pointing to localhost in a browser that is on a remote domain, strip or redirect
-    if (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
-      if (/^http:\/\/(localhost|127\.0\.0\.1):(5000|5001)/.test(trimmed)) {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
-        if (apiUrl && !apiUrl.includes("localhost") && !apiUrl.includes("127.0.0.1")) {
-          return trimmed.replace(/^http:\/\/(localhost|127\.0\.0\.1):(5000|5001)/, apiUrl.replace(/\/$/, ""));
-        }
-      }
-    }
     return trimmed;
   }
 
-  // If relative path starts with /uploads/ or /scraped-images/, prefix with NEXT_PUBLIC_API_URL if available in production
-  if (trimmed.startsWith("/uploads/") || trimmed.startsWith("/scraped-images/")) {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (apiUrl && !apiUrl.includes("localhost") && !apiUrl.includes("127.0.0.1")) {
-      return `${apiUrl.replace(/\/$/, "")}${trimmed}`;
-    }
+  // Ensure relative path starts with /
+  if (!trimmed.startsWith("/")) {
+    trimmed = `/${trimmed}`;
   }
 
   return trimmed;

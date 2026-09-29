@@ -182,6 +182,7 @@ export default function ShopTheLook({ products: initialProducts = [], config }: 
                   src={cleanImageUrl(item.image, "/images/white_lace_hero.png")}
                   alt={item.title}
                   fill
+                  unoptimized={true}
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-cover object-center group-hover:scale-108 transition-transform duration-700"
                 />
@@ -294,9 +295,10 @@ export default function ShopTheLook({ products: initialProducts = [], config }: 
                 {/* Left: High-Res Image Preview */}
                 <div className="md:col-span-6 relative aspect-square md:aspect-auto bg-stone-100 min-h-[300px]">
                   <Image
-                    src={selectedLook.image}
+                    src={cleanImageUrl(selectedLook.image, "/images/white_lace_hero.png")}
                     alt={selectedLook.title}
                     fill
+                    unoptimized={true}
                     sizes="(max-width: 768px) 100vw, 50vw"
                     className="object-cover object-center"
                   />

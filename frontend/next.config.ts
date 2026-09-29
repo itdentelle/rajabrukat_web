@@ -29,6 +29,14 @@ const nextConfig: NextConfig = {
         port: "5001",
       },
       {
+        protocol: "http",
+        hostname: "31.97.66.48",
+      },
+      {
+        protocol: "https",
+        hostname: "31.97.66.48",
+      },
+      {
         protocol: "https",
         hostname: "rajabrukat.com",
       },
